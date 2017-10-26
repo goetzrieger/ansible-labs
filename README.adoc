@@ -1,0 +1,32 @@
+= Getting Started Labs for Ansible Engine and Tower
+
+In this repo you'll find short lab guides to get you started learning the awesomeness of Ansible. The actual lab environments we use are not documented here but are pretty straight forward. I mean Ansible is all about being simple... ;-)
+
+The lab environment is build on 4 VMs (all RHEL 7):
+
+* control.example.com, for running Ansible Engine
+* host{1,2}.example.com, the managed nodes
+* tower.example.com, for installing Ansible Tower
+
+== Lab durations
+
+* Around two to four hours lab time
+
+== How to build html/pdf/etc. output
+
+The `.adoc` files can be compiled to html ot other consumable formats via http://asciidoctor.org[Asciidoctor] . The command to generate html output is for example:
+```
+$ asciidoctor ansible-engine.adoc
+```
+
+PDFs can be generated with the appropriate command:
+```
+$ asciidoctor-pdf ansible-engine.adoc
+```
+
+== Contribution
+
+The lab description is done in AsciiDoc. If you want to contribute, check out the http://asciidoctor.org/docs/asciidoc-syntax-quick-reference/[AsciiDoc quick reference]. We welcome pull requests.
+
+== Work in Progress ( in /misc/)
+* Manage Windows with Ansible

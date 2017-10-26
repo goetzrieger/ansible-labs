@@ -1,0 +1,261 @@
+:scrollbar:
+:data-uri:
+:toc: left
+:numbered:
+:icons: font
+
+== Managing Windows with Ansible
+
+Ansible handles management of multiple different targets like Linux, Unix, networking, cloud services... 
+so what is missing for a unified management stack - to manage Windows using Ansible. Starting in 
+version 1.7, Ansible comes with support for managing Windows machines. This uses native PowerShell remoting, rather than SSH. 
+
+Ansible will still be run from a Linux control machine, and uses the "winrm" Python module to talk to remote hosts. No additional software needs to be installed on the remote machines for Ansible to manage them, it still maintains the agentless properties that make it popular on Linux/Unix.
+
+With Ansible’s native Windows support, you can, out of the box:
+
+* Gather facts on Windows hosts
+* Install and uninstall MSIs
+* Enable and disable Windows Features
+* Start, stop, and manage Windows services
+* Create and manage local users and groups
+* Manage Windows packages via the Chocolatey package manager
+* Manage and install Windows updates
+* Fetch files from remote sites
+* Push and execute any PowerShell scripts you write
+
+So without further ado, let's learn to manage Windows with Ansible.
+
+=== Install Windows 2016 Server
+
+At first you have to install Windows 2016 in one of your Lab VMs. This is reasonably fast and painless with this latest incarnation of Windows. After installation it will run in Eval mode, which is enough for the purpose of this lab.
+
+To open the virtual console to your Windows Server VM:
+
+* In the Email with the connection details, in the "Environment Access" section of the VM click the "here" in "Click here to get real time build status and console access to your environment." 
+* This will take you to the status page of your lab environment
+* Here locate the Windows VM and open the console by clicking the "Console" link. 
+
+The console opens and you can proceed with the next steps:
+
+* The Windows install DVD should have been booted already and the installer shoud be waiting.
+* Choose your language settings and click *Next*
+* Click *Install Now*
+* In "Select the operating system you want to install" select "Windows Server 2016 Standard Evaluation (Desktop Experience)" and click *Next*
+* Accept the license terms and click *Next*
+* In the "Where do you want to install Windows?" screen click *Next* to install on the only disk.
+* The Windows 2016 installation starts, this takes some time (~ 10 min), time for a break. 
+* After it's done the installer will reboot and you will be asked for the administrator password. 
+** Set a password and click *Finish*.
+
+Now you'll be greeted by the login screen.
+
+* To log in you have to press *Ctrl+Alt+Delete*. 
+** Because you are in a virtual console this would be caught by your OS, you have to use the soft keyboard by clicking *Show Keyboard* in the upper left corner and then clicking the keys or use the shortcut button *Ctrl-Alt-Delete* next to it.
+* Provide the Administrator password
+* Answer the question for Network visibility with "Yes" and you are good to go.
+
+You will have to run more tasks on the Windows Server VM. It's up to you, but doing this on the virtual console will be really painful... forget about mouse syncronization... so as a first step it's recommeded to allow Remote Desktop connections:
+
+* Open Server Manager, e.g. by searching for it using the search icon on the task bar.
+* In Server Manager window, select the Local Server 
+* In the right pane click on "Remote Desktop" (it should be disabled).
+* Click on the "Disabled" text which will open the System Properties window in the Remote tab.
+* Here click "Allow remote connections to this Computer"
+* A warning message regarding firewall rules will appear click *OK* to proceed.
+* Administrator is already allowed to connect remotely, click the *OK* button.
+
+TIP: Back in Server Manager, "Remote Desktop" may still show as "Disabled" until you refresh the view.
+
+You should now be able to connect to the desktop remotely:
+
+* On Linux, use the "rdesktop" tool:
+----
+# rdesktop <your Windows VM > -g1024x768
+----
+
+=== Configure Windows for Ansible
+
+As Ansible is using PowerShell Remoting, the Windows systems have to be set up for this. 
+
+WARNING: PowerShell 3.0 or higher is needed for most provided Ansible modules for Windows. Note that PowerShell 3.0 is only supported on Windows 7 SP1, Windows Server 2008 SP1, and later releases of Windows. The former two had some issues that require patching, from Windows 8.1 and Server 2012 R2 onwards there should be no problems as they come with Windows Management Framework 4.0.
+
+Luckily Ansible provides a PowerShell script to set up remoting. It basically creates a self-signed HTTPS certificate to secure WinRM communication and configures the WinRM service & endpoint.
+
+The script is already located on your control machine:
+* Open Internet Explorer and accept the default security settings.
+* Point it to `http://control.example.com/pub/`, right-click "ConfigureRemotingForAnsible.ps1" to download it.
+* Open the command prompt (again for the not that Windows-savy: use the search in the task bar ;-) and execute the following commands to execute the helper script:
+----
+C:\Users\Administrator>cd Downloads
+C:\Users\Administrator>move ConfigureRemotingForAnsible.txt ConfigureRemotingForAnsible.ps1
+C:\Users\Administrator\Downloads>powershell.exe -File ConfigureRemotingForAnsible.ps1 -SkipNetworkProfileCheck -EnableCredSSP
+----
+
+This is what the arguments are for:
+
+* *-EnableCredSSP*: enable CredSSP as an authentication option, more in a second
+* *-SkipNetworkProfileCheck*: configure winrm to listen on PUBLIC zone interfaces
+
+=== Configure the Ansible Control Host
+
+Now a couple of preparation steps have to be done on `control.example.com` to allow Ansible to use WinRM. Open the SSH connection to the host and:
+
+----
+[root@control ~]# yum install python2-winrm
+----
+
+TIP: This will install WinRM from the locally cached EPEL packages.
+
+==== Authentication
+
+* THIS IS NOT WORKING ON RHEL YET USING PLAIN AUTH FOR NOW*
+
+When using Ansible with Windows systems, there is a number of authentication options. Some allow only local accounts (as opposed to Domain accounts), some don't provide credential delegation for multi-hop connections. The most complete are "Kerberos" and "CredSSP", where the Kerberos-based method is quite involved to set up. So for now the way to go seems to be "CredSSP". 
+
+WARNING: There might be security issues when using CredSSP with pre-Windows Server 2012R2 and Windows 8.1 systems, e.g. described here: http://www.powershellmagazine.com/2014/03/06/accidental-sabotage-beware-of-credssp/
+
+In this lab we'll use "CredSSP". We need another Python module on `control.example.com` to make it work. Unfortunately there is no RPM yet, so you have to install pip and then use it to install the module:
+
+----
+[root@control ~]# yum install python-pip
+[root@control ~]# pip install pywinrm[credssp]
+----
+
+==== Configure Ansible
+
+After all the preparations you are now back in Ansible's world. At first we need to add the Windows systems to an inventory and define some variables.
+
+On `control.example.com` as user ansible create a new directory to keep your Windows-related files and underneath a directory for the variables:
+
+----
+[ansible@control ~]$ mkdir -p windows-files/group_vars
+----
+
+Now create the inventory in _~/windows-files/inventory_:
+
+----
+[windows]
+win.example.com
+----
+
+And the variables file in _windows-files/group_vars/windows.yml_:
+
+----
+ansible_user: Administrator
+ansible_password: <password you configured>
+ansible_port: 5986
+ansible_connection: winrm
+# We are using WinRM self-signed certificates:
+ansible_winrm_server_cert_validation: ignore
+ansible_winrm_transport: credssp
+----
+
+TIP: In the ansible_winrm_transport variable you can specify one or more transports as a comma-separated list. By default, Ansible will use kerberos,plaintext if the kerberos module is installed and a realm is defined, otherwise plaintext.
+
+TIP: In real-world environments you should encrypt the password with ansible-vault!
+
+TIP: There is no privilege escalation mechanism for Windows yet.
+
+And to make your life easier, create the file _~/windows-files/ansible.cfg_ (you should remember this from the first chapter):
+
+----
+[defaults]
+inventory=/home/ansible/windows-files/inventory
+----
+
+=== Using Ansible with Windows
+
+You are set for the first test! But wait, there is an issue where a Python module is still complaining about the self-signed certificate. It's a warning and therefor cosmetic, but you can get rid of it with:
+
+----
+[ansible@control ~]$ export PYTHONWARNINGS="ignore" 
+----
+
+Change to the _~/windows-files/_ directory, then do a first test:
+
+----
+[ansible@control windows-files]$ ansible windows -m win_ping
+
+win.example.com | SUCCESS => {
+    "changed": false, 
+    "ping": "pong"
+}
+----
+
+All green? Cool! 
+
+TIP: Remember this is not an ICMP ping but tests the Ansible communication channel that leverages Windows remoting!
+
+Just as with Linux/Unix, facts can be gathered for windows hosts, which will return things such as the operating system version. To see what variables are available about a windows host, run the following:
+
+----
+[ansible@control windows-files]$ ansible win.example.com -m setup
+----
+
+Let us try something else. What about the equivalent of the Ansible "command" module for Linux as an ad hoc command?
+
+----
+[ansible@control windows-files]$ ansible win.example.com -m win_command -a 'ipconfig'
+----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
