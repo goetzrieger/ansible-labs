@@ -2,6 +2,15 @@
 
 In this repo you'll find short lab guides to get you started learning the awesomeness of Ansible. The actual lab environments we use are not documented here but are pretty straight forward. I mean Ansible is all about being simple... ;-)
 
+== Labs
+
+Currently the following labs are available:
+
+* link:engine/ansible-engine_short.adoc[Ansible Engine]
+* link:tower/ansible-tower-lab_short.adoc[Ansible Tower]
+
+== Setup
+
 The lab environment is build on 4 VMs (all RHEL 7):
 
 * control.example.com, for running Ansible Engine
