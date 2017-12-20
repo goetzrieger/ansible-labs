@@ -10,28 +10,28 @@
 . Start
   . Presentation
   . Inventories, Providers
-    - explain principles
-    - explain group vars and providers
-      - local_connection
-      - username, etc.
-  . ad-hoc
-    - networking modules, generic vs specific
-    - facts, ios_facts
-    - {{ provider }}
-    - ios_ping
-    - ios_command
-      - first commands
-      - ev command chains
+    * explain principles
+    * explain group vars and providers
+    ** local_connection
+    ** username, etc.
+  . ad*hoc
+    * networking modules, generic vs specific
+    * facts, ios_facts
+    * {{ provider }}
+    * ios_ping
+    * ios_command
+    ** first commands
+    ** ev command chains
 . Advanced
   . Playbooks
-    - backups
-    - diffs against running or startup config
-    - real world task:
-      - identify diff between two devices via backup
-      - verify difference on ssh command line
-      - push config device 2 to device 1
-      - create backups against, show diffs
-      - verify changes on ssh command line
+    * backups
+    * diffs against running or startup config
+    * real world task:
+    ** identify diff between two devices via backup
+    ** verify difference on ssh command line
+    ** push config device 2 to device 1
+    ** create backups against, show diffs
+    ** verify changes on ssh command line
 . Tower
   . set up credentials
   . set up inventories
