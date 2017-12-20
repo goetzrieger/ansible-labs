@@ -8,13 +8,13 @@
 == Structure (Draft)
 
 . Start
-  . Presentation
-  . Inventories, Providers
+  .. Presentation
+  .. Inventories, Providers
     * explain principles
     * explain group vars and providers
     ** local_connection
     ** username, etc.
-  . ad*hoc
+  .. ad-hoc
     * networking modules, generic vs specific
     * facts, ios_facts
     * {{ provider }}
@@ -23,7 +23,7 @@
     ** first commands
     ** ev command chains
 . Advanced
-  . Playbooks
+  .. Playbooks
     * backups
     * diffs against running or startup config
     * real world task:
@@ -33,12 +33,12 @@
     ** create backups against, show diffs
     ** verify changes on ssh command line
 . Tower
-  . set up credentials
-  . set up inventories
-  . created scheduled jobs
-  . show diffs in Tower
-  . set up notification
-  . do surveys
+  .. set up credentials
+  .. set up inventories
+  .. created scheduled jobs
+  .. show diffs in Tower
+  .. set up notification
+  .. do surveys
 
 == Your Lab Environment
 
