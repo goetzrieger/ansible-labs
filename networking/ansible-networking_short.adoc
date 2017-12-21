@@ -203,6 +203,57 @@ Your Ansible inventory was used without providing the `-i` option. To double-che
   hosts (0):
 ---- 
 
+== Ansible Network Automation vs Host Automation
+
+The next step would be to use Ansible to execute tasks on the Cisco devices. But of course we need to set up a connection and access credentials first. As this is done in a different way then "normal" Ansible connections to Linux host, we'll go into some depth here.
+
+When Ansible is used to automate Linux (or UNIX) host configuration, the standard connection method is SSH using key (password-less) authentication. This involves distributing SSH keys to the managed hosts, mainly during intitial host deployment/installation. Ansible would then "compile" all tasks into Python scripts, copy the Python code via SSH to the managed hosts and execute it there.
+
+This is not going to work on network devices for some reasons:
+
+* SSH is not available on all (most?) network devices
+* No Python interpreter (or not on all devices)
+* Every vendors network device OS works differently
+
+So to talk to network devices Ansible uses either CLI over SSH and API (when available) transports for connections. But the real magic when using Ansible with network devices is in the Ansible modules. The modules are device-specific and "know" how to talk to a certain device type. We will use the `ios_*` modules to talk to our Cisco routers via SSH. Other network modules might require a locally installed CLI software as a connection method.
+
+So the main difference is:
+
+* To a _Linux host_ Ansible would connect _directly_ using the inventory hostname and an SSH connection.
+* When configuring an _network device_ Ansible will call the module _locally_, the module then handles the connection to the device. SSH in this lab, but it may be some API or CLI call, too. This happens mostly transparent to the user. 
+
+== Configure Connection Settings
+
+Phew, okay. This is out of the way. But how do we pass credentials to a network module? All core networking modules implement a provider argument, which defines the characteristics of how to connect to the device. In the case of our Cisco IOS modules we can configure the transport (aka connection) as a provider in a couple of ways. In this lab we will define the provider with the connection settings as a group variable.
+
+Create the directoy `~/ansible-files/group_vars`:
+
+----
+[ansible@control ~]$ mkdir ~/ansible-files/group_vars/
+----
+
+Now create the variable file `~/ansible-files/group_vars/csr` with the actual provider configuration (take care of the dashes, this is YAML):
+
+----
+---
+cisco_connect:
+  host: "{{ inventory_hostname }}"
+  username: admin
+  password: cisco
+
+ansible_connection: local
+----
+
+What happens here?
+
+* A transport provider named "cisco_connect" is defined
+* The connection settings are configured
+* The type of the connection is set to "local"
+
+TIP: These settings can be configured in a number of ways and places, e.g as environment variables. Using the group variables is a good way to stay sane... ;-)
+
+The provider "cisco_connect" can now be used for the inventory group "csr" an ad hoc commands and playbooks.
+
 == Running Ansible Ad-Hoc Commands
 
 Ansible allows administrators to execute on-demand tasks on managed hosts. These ad hoc commands are the most basic operations that can be performed with Ansible. They are great for learning about Ansible, for trying new things or for quick non-intrusive tasks like reporting. Let's try something straight forward:
