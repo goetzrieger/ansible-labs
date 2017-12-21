@@ -53,33 +53,9 @@ image::menu5.png[]
 
 A job is basically an instance of Tower launching an Ansible playbook against an inventory of hosts.
 
-== Create an Inventory
+== Networking Credentials
 
-Okay, let's get started. The first thing we need is an inventory of your managed hosts. This is the equivalent of an inventory file in Ansible Engine. There is a lot more to it (like dynamic inventories) but let's start with the basics.
-
-* You should already have the web UI open, if not: Point your browser to *\https://tower-GUID.rhpds.opentlc.com*, accept the certificate and log in as `admin`
-
-Create the inventory:
-
-* In the web UI go to *Inventories* and click *+ Add*
-* *Name:* Example Inventory
-* *Organization:* Default
-* Click *Save*
-
-Add your managed hosts:
-
-* In the inventory view click the *+Add Hosts* button
-* *Host Name:* host1.example.com
-* Click *Save*
-* Repeat to add `host2.example.com` as a second host.
-
-You have now created an inventory with two managed hosts.
-
-== Machine Credentials
-
-One of the great features of Ansible Tower is to make credentials usable to users without making them visible. To allow Tower to execute jobs on remote hosts, you must configure connection credentials. 
-
-TIP: This is again the equivalent of what you would do to prepare hosts for "plain" Ansible. The managed hosts in your lab have already been setup to allow user ansible key authenticated SSH access and sudo rights from tower.example.com on the OS level. The only thing missing is to hand over the private key to Tower.
+Essential for working with networking devices are the credentials used to access the target devices. These can still be provided in the inventory variables. But since the login credentials are often sensitive information, it makes more sense to provide them via Tower directly, in a secure way.
 
 WARNING: This is one of the most important features of Tower: *Credential Separation*! Credentials are defined separately and not with the hosts or inventory settings.
 
@@ -93,145 +69,73 @@ As this is an important part of your Tower setup, why not make sure I'm not maki
 [root@tower ~]# su - ansible
 ----
 
-* SSH into `host1.example.com` and `host2.example.com` and try something `sudo`, this should work without a password! E.g:
+* SSH into `csr1.example.com` and `csr2.example.com` and try something `sudo`, this should work without a password! E.g:
 
 ----
-[ansible@tower ~]$ ssh host1.example.com
-[ansible@host1 ~]$ sudo cat /etc/shadow
-root:$6$
+[ansible@tower ~]$ ssh csr1.example.com
+csr1#show version
+Cisco IOS XE Software, Version 16.07.01
+Cisco IOS Software [Fuji], Virtual XE Software (X86_64_LINUX_IOSD-UNIVERSALK9-M), Version 16.7.1, RELEASE SOFTWARE (fc6)
 [...]
-[ansible@host1 ~]$ exit
+csr1#exit
 ----
 
-=== Configure Machine Credentials
+TIP: When you execute `show version` the information are shown in a *pager*. You can exit the pager by pressing the button `q`.
+
+=== Configure Networking Credentials
 
 Now let's go and configure the credentials to access our managed hosts from Tower. In the Tower web UI click *Settings*, it is the gear-shaped icon to the upper right. From the settings choose the *Credentials* box. Now:
 
 * Click the *+Add* button to add new credentials
-** *Name:* Example Credentials
+** *Name:* Networking Credentials
 ** *Organization:* Default
 
 TIP: Whenever you see a magnifiying glass icon next to an input field, clicking it will open a list to choose from.
 
-** *Type:* Machine
-** *Username:* ansible
-** *Privilege Escalation:* Sudo
+** *Type:* Network
+** *Username:* admin
 
-As we are using SSH key authentication, you have to provide an SSH private key that can be used to access the hosts. You could also configure password authentication here.
+As we are using password authentication, you have to provide a password - that can be used to access the networking devices - in the *PASSWORD* field.
 
-* Bring up your SSH terminal on Tower, become user `ansible` and `cat` the SSH private key:
-----
-[root@tower ~]# su - ansible
-[ansible@tower ~]$ cat .ssh/id_rsa
-----
+Additionally, often network devices require an additional *authorize* step to gain higher privileges. This can be activated via the check box in the part *OPTIONS* underneath the key field. Please do so, and enter the password again in the *AUTHORIZE PASSWORD* field.
 
-* Copy the complete private key (including "BEGIN" and "END" lines) and paste it into the *Private Key* window in the web UI.
+You have now setup credentials to use later for your networking devices.
+
+== Create an Inventory
+
+Additionally we need an inventory of your managed networking devices. This is the equivalent of an inventory file in Ansible Engine. There is a lot more to it (like dynamic inventories) but let's start with the basics.
+
+* You should already have the web UI open, if not: Point your browser to *https://tower-GUID.rhpds.opentlc.com*, accept the certificate and log in as `admin`
+
+Create the inventory:
+
+* In the web UI go to *Inventories* and click *+ Add*
+* *Name:* `Networking Inventory`
+* *Organization:* Default
 * Click *Save*
-* Go back to *Settings -> Credentials -> Example Credentials* and note that the SSH key is not visible. 
 
-You have now setup credentials to use later for your inventory hosts.
+Add your managed hosts:
 
-== Run Ad Hoc Commands
-
-As you've probably done with Ansible before you can run ad hoc commands from Tower as well.
-
-* In the web UI go to *Inventories -> Example Inventory* 
-* Select the two hosts by ticking the boxes to the left of the host entries.
-* Click *Run Commands*. In the next screen you have to specify the ad hoc command:
-** As *Module* choose *Ping*
-** For *Machine Credentials* click the magnifying glass icon and choose *Example Credentials*.
-** Click *Launch*, lean back and enjoy the show... 
-
-TIP: After choosing the module to run, Tower will provide a link to the docs page of the module when clicking the question mark next to "Arguments". This is handy, give it a try.
-
-Try other modules in ad hoc commands, as well:
-
-TIP: Don't forget the Credentials!
-
-* Find the userid of the executing user using an ad hoc command.
-** *Module:* command 
-** *Arguments:* id
-
-TIP: The simple *Ping* module doesn't need options. For the command module you need to supply the command to run as an argument.
-
-* Print out _/etc/shadow_.
-** *Module:* command
-** *Arguments:* cat /etc/shadow
-
-Oops, the last one didn't went well, all red. 
-
-* Re-run the last ad hoc command but this time tick the "Enable Privilege Escalation" box. 
-
-TIP: For tasks that have to run as root you need to escalate the privileges. This is the same as the *become: yes* you've probably used often in your Ansible Playbooks.
-
-=== Challenge Lab: Ad Hoc Commands
-
-Okay, a small challenge: Run an ad hoc to
-
-* Make sure the package "screen" is installed on all hosts
-
-TIP: If unsure, consult the documentation either via the web UI as shown above or by running `[ansible@tower ~]$ ansible-doc yum` on Tower.
-
-WARNING: *Solution below!*
-
-* *Module:* yum
-* *Arguments:* name=screen
-* Tick *Enable Privilege Escalation*
-
-== Using Variables
-
-You might have seen you can add variables for a host in the inventory.
-
-* Go to *Inventories -> Example Inventory* and edit `host1.example.com` by clicking the pen icon.
-* Add a variable named "file" by putting *file: /etc/passwd* under the YAML start (the three dashes)
-
-TIP: There has to be a blank between the *file:* and the content string
-
+* In the inventory view click the *HOSTS* button
+* Click the *+Add Hosts* button
+* *Host Name:* `csr1.example.com`
 * Click *Save*
-* Now run an ad hoc command on `host1.example.com`
-** *Module:* command
-** *Arguments:* cat {{ file }}
-* The output should now show the content of the file.
+* Repeat to add `csr2.example.com` as a second host.
+
+You have now created an inventory with two managed hosts.
 
 == Add a new Project
 
-A Tower *Project* is a logical collection of Ansible playbooks. You can manage playbooks by either placing them manually on your Tower server, or by placing your playbooks into a source code management (SCM) system supported by Tower, including Git, Subversion, and Mercurial.
+A Tower *PROJECT* is a logical collection of Ansible playbooks. You can manage playbooks by either placing them manually on your Tower server, or by placing your playbooks into a source code management (SCM) system supported by Tower, including Git, Subversion, and Mercurial.
 
 You should definitely keep your Playbooks under version control. In this lab we'll use Playbooks kept in a Git repository.
 
 === Setup Git Repository
 
-For this lab you will use a pre-configured Git repository on control.example.com that can be accessed via SSH. A Playbook to install the Apache webserver has already been commited to the repository:
+For this lab you will use a pre-configured Git repository on `control.example.com` that can be accessed via SSH. A Playbook has already been commited to the repository:
 
 ----
----
-- name: Apache server installed
-  hosts: all
-  tasks:
-  - name: latest Apache version installed
-    yum:
-      name: httpd
-      state: latest
-  - name: latest firewalld version installed
-    yum:
-      name: firewalld
-      state: latest
-  - name: firewalld enabled and running
-    service:
-      name: firewalld
-      enabled: true
-      state: started
-  - name: firewalld permits http service
-    firewalld:
-      service: http
-      permanent: true
-      state: enabled
-      immediate: yes
-  - name: Apache enabled and running
-    service:
-      name: httpd
-      enabled: true
-      state: started
+TODO: add playbook to Git and afterwards document here
 ----
 
 TIP: Note the difference to other Playbooks you might have written! Most importantly there is no `become` and `hosts` is set to `all`.
@@ -243,42 +147,42 @@ To configure and use this repository as a *Source Control Management (SCM)* syst
 
 === Create Credentials
 
-First we have to create credentials again, this time to access the Git repository over SSH. As you will need the private key of user git (the repo owner) from control.example.com for the credentials:
+First we have to create credentials again, this time to access the Git repository over SSH. As you will need the private key of user git (the repo owner) from `control.example.com` for the credentials:
 
-* In a terminal log in to control.example.com as root. Then become user git and `cat` the SSH private key:
+* In a terminal log in to `control.example.com` as root. Then become user git and `cat` the SSH private key:
 ----
 [root@control ~]# su - git
 [git@control ~]$ cat .ssh/id_rsa
 ----
 
-* Copy the complete private key (including "BEGIN" and "END" lines) into the clipboard
+* Copy the complete private key (including *BEGIN* and *END* lines) into the clipboard
 
-In the Tower web UI click the icon for *Settings*. From the settings choose the *Credentials* box. 
+In the Tower web UI click the icon for *Settings*. From the settings choose the *CREDENTIALS* box. 
 
-* Click the *+Add* button to add new credentials
-* *Name*: control git
-* *Type*: *Source Control*
-* *Username*: git
+* Click the *+ADD* button to add new credentials
+* *NAME*: control git
+* *TYPE*: `Source Control`
+* *USERNAME*: git
 * Paste the SSH private key for the git user from control.example.com into the box
-* Click *Save*
+* Click *SAVE*
 
 === Create the Project
 
-* In the *Projects* view click *+Add*
-* *Name:* Control Git Repo
-* *Organization:* Default
-* *SCM Type:* Git
+* In the *PROJECTS* view click *+ADD*
+* *NAME:* Control Git Repo
+* *ORGANIZATION:* Default
+* *SCM TYPE:* *Git*
 * Point to the Git repo on the control host: 
-** *SCM URL:* control.example.com:/home/git/git-repo
-* *SCM Credential:* control git
-* *SCM Update Options:* Tick all three boxes to always get a fresh copy of the repository and to update the repository when launching a job.
-* Click *Save*
+** *SCM URL:* `control.example.com:/home/git/git-repo`
+* *SCM CREDENTIAL:* `control git`
+* *SCM UPDATE OPTIONS:* Tick all three boxes to always get a fresh copy of the repository and to update the repository when launching a job.
+* Click *SAVE*
 
 TIP: The new Project will be synced after creation automatically. 
 
-Sync the Project again with the Git repository by going to the *Projects* view and clicking the cloudy *Start an SCM Update* icon to the right of the Project.
+Sync the Project again with the Git repository by going to the *PROJECTS* view and clicking the cloudy *START AN SCM UPDATE* icon to the right of the Project.
 
-* After starting the sync job, go to the *Jobs* view, find your job and have a look at the details.
+* After starting the sync job, go to the *JOBS* view, find your job and have a look at the details.
 
 == Create a Job Template and Run a Job
 
@@ -291,17 +195,17 @@ A job template is a definition and set of parameters for running an Ansible job.
 
 Okay, let's just do that:
 
-* Go to the *Templates* view and click *+Add* -> *Job Template*
-** *Name:* Apache
-** *Job Type:* Run
-** *Inventory:* Example Inventory
-** *Project:* Control Git Repo
-** *Playbook:* apache.yml
-** *Machine Credentials:* Example Credentials
-** We need to run the tasks as root so check *Enable privilege escalation*
-** Click *Save*
+* Go to the *TEMPLATES* view and click *+ADD* -> *Job Template*
+** *NAME:* `TODO`
+** *JOB TYPE:* Run
+** *INVENTORY:* `Networking Inventory`
+** *PROJECT:* `Control Git Repo`
+** *PLAYBOOK:* `TODO`
+** *MACHINE CREDENTIALS:* `Networking Credentials`
+** We need to run the tasks as root so check *ENABLE PRIVILEGE ESCALATION*
+** Click *SAVE*
 
-Start a Job using this Job Template by going to the *Templates* view and clicking the rocket icon. Have a good look at the information the view provides.
+Start a Job using this Job Template by going to the *TEMPLATES* view and clicking the rocket icon. Have a good look at the information the view provides.
 
 TIP: This will take a couple of minutes because you configured the Project to update the SCM on launch. 
 
