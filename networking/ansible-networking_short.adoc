@@ -288,7 +288,7 @@ Get help for a specific module including usage examples:
 
 TIP: Mandatory options are marked by a "=" in `ansible-doc`.
 
-=== Running Ad Hoc Commands
+=== Running Ad Hoc Commands: `ios_command`
 
 Let's start with `ios_command`, this module allows to run IOS commands on your devices. The module is called with `-m` and the options are passed with `-a`. Give it a try:
 ----
@@ -310,90 +310,51 @@ Another example: Have a quick look at the version your host is running:
 [ansible@control ansible-files]$ ansible csr1.example.com -m ios_command -a 'commands=sh version provider={{cisco_connect}}' 
 ----
 
-Sometimes it's desirable to have the output for a host on one line:
-----
-[ansible@control ansible-files]$ ansible all -m command -a 'uname -r' -o
-----
-
-Using the `copy` module, execute an ad hoc command on control.example.com to change the contents of the `/etc/motd` file on host1.example.com. *The content is handed to the module through an option in this case*. 
-
-Run:
+Until now we executed the command on only one host. The real power of automation is to run the same tasks on many hosts/devices at the same time. Just change the target hosts in the commands to `all`or `csr` (in our inventory this is the same right now):
 
 ----
-[ansible@control ansible-files]$ ansible host1.example.com -m copy -a 'content="Managed by Ansible\n" dest=/etc/motd' 
-----
-Output:
-----
-host1.example.com | FAILED! => {
-    "changed": false, 
-    "checksum": "a314620457effe3a1db7e02eacd2b3fe8a8badca", 
-    "failed": true, 
-    "msg": "Destination /etc not writable"
-}
+[ansible@control ansible-files]$ ansible csr -m ios_command -a 'commands="sh ip int br" provider={{cisco_connect}}' 
+---- 
+
+=== Running Ad Hoc Commands: `ios_config`
+
+The `ios_config` module is extremly useful and has a fair number of arguments. It can be used to store, set, compare and check the configuration of IOS devices. The easiest way to use it is to create a full backup of the current `running-config' of your devices to a text file. Run the following ansible command:
 
 ----
-
-Should be all red for you, the ad hoc command failed. Why? Because user ansible is not allowed to write the motd file. 
-
-Now this is a case for privilege escalation and the reason `sudo` has to be setup properly. We need to instruct ansible to use `sudo` to run the command as root by using the parameter `-b` (think "become"). 
-
-TIP: Ansible will connect to the machines using your current user name (ansible in this case), just like SSH would. To override the remote user name, you could use the `-u` parameter.
-
-For us it's okay to connect as ansible because `sudo` is set up. Change the command to use the `-b` parameter and run again:
-----
-[ansible@control ansible-files]$ ansible host1.example.com -m copy -a 'content="Managed by Ansible\n" dest=/etc/motd' -b
-----
-Output:
-----
-host1.example.com | SUCCESS => {
-    "changed": true, 
-    "checksum": "a314620457effe3a1db7e02eacd2b3fe8a8badca", 
-    "dest": "/etc/motd", 
-    "gid": 0, 
-    "group": "root", 
-    "md5sum": "7a924f6b4cbcbc7414eda7763dc0e43b", 
-    "mode": "0644", 
-    "owner": "root", 
-    "secontext": "system_u:object_r:etc_t:s0", 
-    "size": 19, 
-    "src": "/home/ansible/.ansible/tmp/ansible-tmp-1472132609.82-261447806330276/source", 
-    "state": "file", 
-    "uid": 0
-}
+[ansible@control ansible-files]$ ansible csr -m ios_config -a 'backup=yes provider={{cisco_connect}}' 
 ----
 
-Check the motd file:
-----
-[ansible@control ansible-files]$ ansible host1.example.com -m command -a 'cat /etc/motd' 
+You should get an output that indicates an error on `csr2.example.com`. What the heck? Both devices should be configured in exactly the same way!
 
-host1.example.com | SUCCESS | rc=0 >>
-Managed by Ansible
-----
-
-Run the `ansible host1.example.com -m copy ...` command from above again. Note:
-
-* the different output color (proper terminal config provided) 
-* the change from `"changed": true,` to `"changed": false,`.
-
-TIP: This makes it a lot easier to spot changes and what Ansible actually did.
-
-=== Challenge Lab: Modules
-
-* Using `ansible-doc`
-** Find a module that uses Yum to manage software packages.
-** Look up the help examples for the module to learn how to install a package in the latest version
-* Run an Ansible ad hoc command to install the package "screen" in the latest version on host1.example.com
-
-TIP: Use the copy ad hoc command from above as a template and change the module and options.
-
-WARNING: *Solution below!*
+If you get into issues like this, it's best to log into the devices and in the shell execute what the module would do:
 
 ----
-[ansible@control ansible-files]$ ansible-doc -l | grep -i yum
-[ansible@control ansible-files]$ ansible-doc yum
-[ansible@control ansible-files]$ ansible host1.example.com -m yum -a 'name=screen state=latest' -b
+[ansible@control ansible-files]$ ssh admin@csr1.example.com
+csr1#enable
+csr1#show running-config
+Building configuration...
+
+Current configuration : 1549 bytes
+!
+! Last configuration change at 19:13:04 UTC Thu Dec 21 2017 by admin
+!
+version 16.7
+[...]
 ----
 
+Looks all good, try the same on `csr2.example.com`. 
+
+Okay, there is the issue: The second Cisco is configured to require a password for `enable` mode. As it should be.
+
+TIP: Okay, okay, we prepared the devices this way and you might have noticed already from the different shell prompts. Anyway.
+
+We have to provide a password to enter privileged mode. For practice first look up the documentation for the module and look for `authorize` and `auth_pass`. Now we just have to tell the module to use authorization:
+
+----
+[ansible@control ansible-files]$ ansible csr -m ios_config -a 'backup=yes provider={{cisco_connect}} authorize=yes auth_pass=cisco' 
+----
+
+Now the configuration backup should have worked on both devices. Have a look at the backup files in the `backup/` folder.
 
 == Ansible Playbooks: Introduction
 
