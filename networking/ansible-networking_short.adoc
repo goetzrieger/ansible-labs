@@ -32,6 +32,8 @@
     ** push config device 2 to device 1
     ** create backups against, show diffs
     ** verify changes on ssh command line
+  .. third device
+    * configure third device for internet access
   .. GRE tunnel from lightbulb lab
 . Tower
   .. set up credentials
