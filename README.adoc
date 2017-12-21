@@ -8,6 +8,7 @@ Currently the following labs are available:
 
 * link:engine/ansible-engine_short.adoc[Ansible Engine]
 * link:tower/ansible-tower-lab_short.adoc[Ansible Tower]
+* link:networking/ansible-networking_short.adoc[Ansible Networking]
 
 == Setup
 
