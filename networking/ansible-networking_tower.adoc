@@ -124,6 +124,15 @@ Add your managed hosts:
 
 You have now created an inventory with two managed hosts.
 
+== Using Variables
+
+You might have seen you can add variables for a host in the inventory. We will use this to enfore the connection type to `lcoal` for all devices in this inventory. This is required for modules of the IOS type.
+
+* Go to *INVENTORIES -> Networking Inventory*
+* In the box *VARIABLES* enter `ansible_connection: local` underneath the three existing dashes
+
+* Click *SAVE*
+
 == Add a new Project
 
 A Tower *PROJECT* is a logical collection of Ansible playbooks. You can manage playbooks by either placing them manually on your Tower server, or by placing your playbooks into a source code management (SCM) system supported by Tower, including Git, Subversion, and Mercurial.
@@ -196,58 +205,24 @@ A job template is a definition and set of parameters for running an Ansible job.
 Okay, let's just do that:
 
 * Go to the *TEMPLATES* view and click *+ADD* -> *Job Template*
-** *NAME:* `TODO`
+** *NAME:* `Networking Template`
 ** *JOB TYPE:* Run
 ** *INVENTORY:* `Networking Inventory`
 ** *PROJECT:* `Control Git Repo`
 ** *PLAYBOOK:* `TODO`
-** *MACHINE CREDENTIALS:* `Networking Credentials`
-** We need to run the tasks as root so check *ENABLE PRIVILEGE ESCALATION*
+** *CREDENTIAL:* Here you need to pick two: first, pick the `Demo Credential`, and afterwards, in the crendetial dialog, click on the drop down menu *CREDENTIAL TYPE*, click on *Network*, and pick the previously created `Networking Credentials`
 ** Click *SAVE*
 
 Start a Job using this Job Template by going to the *TEMPLATES* view and clicking the rocket icon. Have a good look at the information the view provides.
 
 TIP: This will take a couple of minutes because you configured the Project to update the SCM on launch. 
 
-After the Job has finished go to the *Jobs* view:
+After the Job has finished go to the *JOBS* view:
 
 * All jobs are listed here, you should see directly before the Playbook run an SCM update was started. 
 * This is the Git update we configured for the *Project* on launch!
 
-=== Challenge Lab: Check the Result
-
-Time for a little challenge:
-
-* Use an ad hoc command on both hosts to make sure Apache has been installed and is running.
-
-You have already been through all the steps needed, so try this for yourself.
-
-TIP: What about `systemctl status httpd`?
-
-WARNING: *Solution Below*
-
-* Go to *Inventories* -> *Example Inventory*
-* Select both hosts and click *Run Commands*
-* *Module:* command
-* *Arguments:* systemctl status httpd
-* *Machine Credentials:* Example Credentials
-* Click *Launch*
-
-=== Challenge Lab
-
-Here is another challenge:
-
-* Create a new inventory called `Webserver` and make only host1.example.com member of it.
-* Copy the `Apache` template to `Apache Ask` using the copy icon in the *Templates* view
-** Change the *Inventory* setting of the Project so it will ask for the inventory on launch
-** *Save*
-* Go to the *Templates* view and launch the `Apache Ask` template.
-* It will now ask for the inventory to use, choose the `Webserver` inventory and click *Launch*
-* Wait until the Job has finished and make sure it run only on host1.example.com
-
-TIP: The Job didn't change anything because Apache was already installed in the latest version.
-
-== Create a Survey
+== Create a Survey (TODO)
 
 You might have noticed the *Add Survey* button in the *Template* configuration view. A survey is a way to create a simple form to ask for parameters that get used as variables when a *Template* is launched as a *Job*.
 
@@ -374,7 +349,7 @@ You should see how the two variables where used by the playbook to create the co
 </body>
 ----
 
-== Ansible Tower Role Based Access Control
+== Ansible Tower Role Based Access Control (TODO)
 
 You have already learned how Tower separates credentials from users. Another advantage of Ansible Tower is the user and group rights management.
 
@@ -452,7 +427,7 @@ Check the result:
 
 WARNING: For the next lab log out of the web UI and log in as user *admin* again. 
 
-== Ansible Tower Workflows
+== Ansible Tower Workflows (TODO)
 
 Workflows where introduced as a major new feature in Ansible Tower 3.1. The basic idea of a workflow is to link multiple Job Templates together. They may or may not share inventory, playbooks or even permissions. The links can be conditional: 
 
@@ -581,7 +556,8 @@ TIP: Note how the workflow run is shown in the job view and you can choose the w
 [root@host1 ~]# curl http://localhost:8080/coolapp/
 ----
 
-== Set Up and Use System Tracking
+== Set Up and Use System Tracking (TODO)
+
 
 System Tracking is a cool feature that offers the ability to compare the results of two scan runs from different dates on one host or the same date on two hosts.
 
@@ -638,7 +614,7 @@ WARNING: *Solution below*
 * Go to *Inventories*, select host1.example.com
 * Click the *System Tracking* button.
 
-== Final Lab or Putting it all Together
+== Final Lab or Putting it all Together (TODO)
 
 This is the final challenge where we try to put most of what you have learned together. 
 
@@ -783,7 +759,7 @@ WARNING: *Solution Not Below*
 
 You have done all the required configuration steps in the lab already. If unsure, just refer back to the respective chapters. 
 
-== Optional: Ansible Tower Administration
+== Optional: Ansible Tower Administration (TODO)
 
 Because the installation process takes a fair amount of time your Ansible Tower instance was already installed for you.
 
@@ -898,7 +874,7 @@ TIP: This is actually a good example; on Tower 3.1.3 (at least) the Azure module
 
 TIP: I'm not 100% sure if this has to be run as user `awx` but as all site-packages files for the virtualenv belong to user `awx` I'm reasonably sure... ;-) 
 
-== Optional: Tower Client
+== Optional: Tower Client (TODO)
 
 The tower-cli tool is a command line tool for Ansible Tower. It allows Tower commands to be easily run from the Unix command line. It can also be used as a client library for other python apps, or as a reference for others developing API interactions with Tower's REST API.
 
