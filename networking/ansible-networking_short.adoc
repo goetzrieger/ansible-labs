@@ -4,6 +4,7 @@
 :toc: left
 :numbered:
 :icons: font
+:imagesdir: ./images
 
 == Structure (Draft)
 
@@ -43,17 +44,35 @@
   .. set up notification
   .. do surveys
 
+== About this Lab
+
+This lab will get you started with Ansible Network Automation. As example devices we will use Cisco CSR1000V routers, so most network pros will find their Cisco IOS commands in here. It´s assumed that you understand Ansible´s concepts and have some hands-on knowledge. Otherwise please go through a getting started lab first.   
+
 == Your Lab Environment
 
-In this lab you work in a pre-configured lab environment that has already been deployed for you. 
+In the network automation lab you work in a pre-configured lab environment that has already been deployed for you. The lab setup includes a number of hosts:
 
-You will have access to the following hosts:
+* Ansible control host - you will run Ansible Engine from here
+* Two Cisco CSR1000V routers
+* Two RHEL 7 hosts that "sit" behind the Cisco routers
+
+As this is a network automation lab we need a couple of, yes, networks to have some fun. The lab comes with the following networks:
+
+* Management (192.168.0.0/24) - Network between the control host and the Cisco routers.
+* Two site networks (192.168.1.0/24 and 192.168.2.0/24) that connect the RHEL 7 hosts and the Cisco routers. 
+* A Network connecting the Cisco routers to emulate a WAN/"The Internet"
+
+So the Cisco routers come with three network interfaces each. What better then to have drawing of the setup for reference:
+
+image::network_dia.png[]
 
 |===
-|Hostname|Internal IP|Role
+|Hostname|Mgmt IP|Role
 |control.example.com|192.168.0.10|The host you will run Ansible on to manage the other hosts. Only this host is accessible from the Internet.
-|host1.example.com|192.168.0.20|Managed host1
-|host2.example.com|192.168.0.30|Managed host2
+|csr1.example.com|192.168.0.100|Cisco CSR1000V
+|csr2.example.com|192.168.0.110|Cisco CSR1000V
+|csr1-host.example.com|192.168.1.200|Site 1 Host
+|csr2-host.example.com|192.168.2.200|Site 2 Host
 |===
 
 WARNING: You will be able to SSH into the control host, from here you need to connect into the other hosts. 
@@ -66,39 +85,34 @@ include::access.adoc[]
 
 Most prerequisite tasks have already been done for you:
 
-* Ansible software is installed
-* SSH connection and keys are configured
-* `sudo` has been configured on the managed hosts to run commands that require root privileges.
+* Ansible Engine software is installed on `control.example.com`
+* A user `ansible` exists on the control host. Please don't run Ansible as `root`. Never.
+* The CSR1000V are configured for SSH access with username `admin` and password `cisco`
 
 Check Ansible has been installed correctly
 ----
-[root@cont4o2 ~]# ansible --version
-ansible 2.2.1.0
-  config file = /etc/ansible/ansible.cfg
-  configured module search path = Default w/o overrides
+[root@control ~]# ansible --version
+ansible 2.4.2.0
+  config file = /root/ansible.cfg
+  configured module search path = [u'/root/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python2.7/site-packages/ansible
+  executable location = /usr/bin/ansible
+  python version = 2.7.5 (default, May  3 2017, 07:55:04) [GCC 4.8.5 20150623 (Red Hat 4.8.5-14)]
 ----
 
 NOTE: Ansible is keeping configuration management simple. Ansible requires no database or running daemons and can run easily on a laptop. On the managed hosts it needs no running agent. 
 
-Verify that the managed hosts accept password-less connections with key authentication from the control node as user ansible, e.g.:
+Verify that the Cisco´s accept SSH connections with user/password authentication from the control node:
 ----
 [root@control ~]# su - ansible
-[ansible@control ~]$ ssh host1.example.com
-[ansible@host1 ~]$ exit 
-----
-----
-[ansible@control ~]$ ssh host2.example.com
-[ansible@host2 ~]$ exit
+[ansible@control ~]$ ssh admin@csr1.example.com
+Password: 
+
+csr1#exit
+Connection to csr1.example.com closed.
 ----
 
-To allow user ansible to execute commands on host1.example.com and host2.example.com as root `sudo` needs to be configured on the managed hosts.
-
-Test that the configuration allows ansible to run commands using `sudo` on host1.example.com and host2.example.com without a password, e.g.:
-----
-[ansible@control ~]$ ssh host1.example.com
-[ansible@host1 ~]$ sudo cat /etc/shadow
-[ansible@host1 ~]$ exit 
-----
+Try this for `csr2.example.com`, too.
 
 NOTE: *In all subsequent exercises you should work as the ansible user on the control node if not explicitly told differently.*
 
@@ -117,50 +131,39 @@ TIP: The command line can wrap on the web page from time to time. Therefor the o
 
 You will soon discover that many chapters in this lab guide come with a "Challenge Lab" section. These labs are meant to give you a small task to solve using what you have learned so far. The solution of the task is shown underneath a warning sign.
 
-== Getting Started with Ansible
+== Getting Started with Ansible Network Automation
 
 === The Inventory
 
-To use the ansible command for host management, you need to provide an inventory file which defines a list of hosts to be managed from the control node. One way to do this is to specify the path to the inventory file with the `-i` option to the ansible command.
+To use Ansible for network automation, you need to provide an inventory file which defines the devices to be managed from the control node. This is basically the same as you would do for "normal" host management. One way to do this is to specify the path to the inventory file with the `-i` option to the ansible command.
 
-Make sure you are user ansible on control.example.com. Create a directory for your Ansible files:
+Make sure you are user `ansible` on `control.example.com`. Create a directory for your Ansible files:
 ----
 [ansible@control ~]$ mkdir ansible-files
 ----
 
 Now create a simple inventory file as `~/ansible-files/inventory` with the following content:
 ----
-host1.example.com
-host2.example.com
+[csr]
+csr1.example.com
+csr2.example.com
 ----
+
+This defines an inventory group `csr` with two member hosts.
 
 To reference inventory hosts, you supply a host pattern to the ansible command. Ansible has a `--list-hosts` option which can be useful for clarifying which managed hosts are referenced by the host pattern in an ansible command. 
 
 The most basic host pattern is the name for a single managed host listed in the inventory file. This specifies that the host will be the only one in the inventory file that will be acted upon by the ansible command. Run:
 
 ----
-[ansible@control ~]$ ansible "host1.example.com" -i ~/ansible-files/inventory --list-hosts
-
-  hosts (1):
-    host1.example.com
-----
-
-An inventory file can contain a lot more information. To organize your hosts in groups, change your inventory file so it looks like this:
-----
-[webserver]
-host1.example.com
-
-[database]
-host2.example.com
-
-[ftpserver]
-host2.example.com
+[ansible@control ~]$ ansible csr1.example.com -i ~/ansible-files/inventory --list-hosts
+hosts (1):
+    csr1.example.com
 ----
 
 Now run Ansible with these host patterns and observe the output:
 ----
-[ansible@control ~]$ ansible webserver -i ~/ansible-files/inventory --list-hosts
-[ansible@control ~]$ ansible webserver,host2.example.com -i ~/ansible-files/inventory --list-hosts
+[ansible@control ~]$ ansible csr -i ~/ansible-files/inventory --list-hosts
 [ansible@control ~]$ ansible '*.example.com' -i ~/ansible-files/inventory --list-hosts
 [ansible@control ~]$ ansible all -i ~/ansible-files/inventory --list-hosts
 ----
@@ -190,7 +193,8 @@ Your Ansible inventory was used without providing the `-i` option. To double-che
 
 ----
 [ansible@control ansible-files]$ cd ..
-[ansible@control ansible-files ~]$ ansible all --list-hosts
+[ansible@control ~]$ ansible all --list-hosts
+ [WARNING]: Could not match supplied host pattern, ignoring: all
 
  [WARNING]: provided hosts list is empty, only localhost is available
 
