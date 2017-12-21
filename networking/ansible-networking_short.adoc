@@ -207,6 +207,8 @@ Your Ansible inventory was used without providing the `-i` option. To double-che
 
 The next step would be to use Ansible to execute tasks on the Cisco devices. But of course we need to set up a connection and access credentials first. As this is done in a different way then "normal" Ansible connections to Linux host, we'll go into some depth here.
 
+=== Ansible for Hosts
+
 When Ansible is used to automate Linux (or UNIX) host configuration, the standard connection method is SSH using key (password-less) authentication. This involves distributing SSH keys to the managed hosts, mainly during intitial host deployment/installation. Ansible would then "compile" all tasks into Python scripts, copy the Python code via SSH to the managed hosts and execute it there.
 
 This is not going to work on network devices for some reasons:
@@ -215,7 +217,9 @@ This is not going to work on network devices for some reasons:
 * No Python interpreter (or not on all devices)
 * Every vendors network device OS works differently
 
-So to talk to network devices Ansible uses either CLI over SSH and API (when available) transports for connections. But the real magic when using Ansible with network devices is in the Ansible modules. The modules are device-specific and "know" how to talk to a certain device type. We will use the `ios_*` modules to talk to our Cisco routers via SSH. Other network modules might require a locally installed CLI software as a connection method.
+=== So what about network devices?
+
+To talk to network devices Ansible uses either CLI over SSH or API (when available) transports for connections. But the real magic when using Ansible with network devices is in the Ansible modules. The modules are device-specific and "know" how to talk to a certain device type. We will use the `ios_*` modules to talk to our Cisco routers via SSH. Other network modules might require a locally installed CLI software as a connection method.
 
 So the main difference is:
 
@@ -252,7 +256,7 @@ What happens here?
 
 TIP: These settings can be configured in a number of ways and places, e.g as environment variables. Using the group variables is a good way to stay sane... ;-)
 
-The provider "cisco_connect" can now be used for the inventory group "csr" an ad hoc commands and playbooks.
+The provider "cisco_connect" can now be used for the inventory group "csr" in ad hoc commands and playbooks.
 
 == Running Ansible Ad-Hoc Commands
 
@@ -260,18 +264,11 @@ Ansible allows administrators to execute on-demand tasks on managed hosts. These
 
 WARNING: *Don't forget to run the commands from `~/ansible-files/` where your `ansible.cfg` file is located, otherwise it will complain about an empty host list.*
 
-Run the examples on control.example.com from the `~/ansible-files/` directory as user ansible.
-----
-[ansible@control ansible-files]$ ansible all -m ping
-----
-
-The `-m` option defines which Ansible module to use. Options can be passed to the specified modul using the `-a` option. BTW the `ping` module is not running an ICMP ping but does a simple connection test.
-
-TIP: Think of a module as a tool which is designed to accomplish a specific task. 
+WARNING: If you know Ansible already you might be tempted to run `ansible csr -m ping` after setting up the inventory and everything. While this good practice with regular hosts, it's confusing in this case. Why? Because it will come back with "SUCCESS" from your devices. Remember the *local* connection we configured? This command will just run Ansible's ping against the control host... probably not what you want.
 
 === Listing Modules and Getting Help
 
-Ansible comes with a lot of modules by default. To list all modules run:
+Ansible comes with a lot of modules by default. Think of a module as a tool which is designed to accomplish a specific task. To list all modules run:
 
 ----
 [ansible@control ansible-files]$ ansible-doc -l
@@ -279,33 +276,38 @@ Ansible comes with a lot of modules by default. To list all modules run:
 
 TIP: In `ansible-doc` use the `up`/`down` arrows to scroll through the content and leave with `q`.
 
-To find a module try e.g.:
+But in this lab we are only intersted in the modules for IOS devices, right? Use grep to get a list of the IOS modules:
 ----
-[ansible@control ansible-files]$ ansible-doc -l | grep -i user
+[ansible@control ansible-files]$ ansible-doc -l | grep "^ios_"
 ----
 
 Get help for a specific module including usage examples:
 ----
-[ansible@control ansible-files]$ ansible-doc user
+[ansible@control ansible-files]$ ansible-doc ios_config
 ----
 
 TIP: Mandatory options are marked by a "=" in `ansible-doc`.
 
-=== More Ad Hoc Commands
+=== Running Ad Hoc Commands
 
-Let's try a simple module that just executes a command on a managed host:
+Let's start with `ios_command`, this module allows to run IOS commands on your devices. The module is called with `-m` and the options are passed with `-a`. Give it a try:
 ----
-[ansible@control ansible-files]$ ansible host1.example.com -m command -a 'id' 
-
-host1.example.com | SUCCESS | rc=0 >>
-uid=1000(ansible) gid=1000(ansible) groups=1000(ansible),10(wheel) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+[ansible@control ansible-files]$ ansible csr1.example.com -m ios_command -a 'commands="sh ip int br"'
 ----
 
-In this case the module is called `command` and the option passed with `-a` is the actual command to run. Try to run this ad hoc command on both hosts using the `all` host pattern.
+Okay, not too successful, status FAILED. This is because we configured the provider with the connection settings, but we didn't tell the command to use it. Give it a second try, this time supplying the `provider` argument:
 
-Another example: Have a quick look at the kernel versions your hosts are running:
 ----
-[ansible@control ansible-files]$ ansible all -m command -a 'uname -r' 
+[ansible@control ansible-files]$ ansible csr1.example.com -m ios_command -a 'commands="sh ip int br" provider={{cisco_connect}}' 
+----
+
+Now the connection from the module to the Cisco worked and you should get a familiar listing.
+
+TIP: You might be wondering why we have to enclose the provider name in double curly braces. If you have used Ansible before you know this is for referencing variables. And the provider we defined in the group var file is actually a variable structure. 
+
+Another example: Have a quick look at the version your host is running:
+----
+[ansible@control ansible-files]$ ansible csr1.example.com -m ios_command -a 'commands=sh version provider={{cisco_connect}}' 
 ----
 
 Sometimes it's desirable to have the output for a host on one line:
