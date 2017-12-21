@@ -1,0 +1,36 @@
+Clear all nic/MAC/IF mapping:
+-----------------------------
+clear platform software vnic-if nvtable
+
+CSR 1000V Network Config
+------------------------
+
+Router>enable
+Router#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Router(config)#no ip domain-lookup
+
+Router#show platform software vnic-if interface-mapping
+-------------------------------------------------------------
+ Interface Name        Driver Name         Mac Addr
+-------------------------------------------------------------
+ GigabitEthernet3       virtio             5254.0064.67e2 
+ GigabitEthernet2       virtio             5254.0039.2c47 
+ GigabitEthernet1       virtio             5254.0006.685d 
+-------------------------------------------------------------
+
+Configure the first interface.
+
+Router(config)#int gigabit 1
+Router(config-if)#ip address 192.168.122.2 255.255.255.0
+Router(config-if)#no shutdown
+Router(config-if)#exit
+
+
+How to disable a router getting a config from a tftp server
+------------------------------------------------------------
+
+Router#config terminal
+Router(config)#no service config
+Router(config)#exit
+Router#copy running-config startup-config

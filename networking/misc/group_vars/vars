@@ -1,0 +1,6 @@
+---
+cisco_connect:
+  host: "{{ inventory_hostname }}"
+  username: admin
+  password: cisco
+
