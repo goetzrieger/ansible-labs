@@ -13,7 +13,7 @@
     * explain principles
     * explain group vars and providers
     ** local_connection
-    ** username, etc.
+    ** authentication, username, etc.
   .. ad-hoc
     * networking modules, generic vs specific
     * facts, ios_facts
