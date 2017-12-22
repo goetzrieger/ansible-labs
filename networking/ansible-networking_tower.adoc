@@ -147,7 +147,7 @@ For this lab you will use a pre-configured Git repository on `control.example.co
 TODO: add playbook to Git and afterwards document here
 ----
 
-TIP: Note the difference to other Playbooks you might have written! Most importantly there is no `become` and `hosts` is set to `all`.
+TIP: Note the difference to other Playbooks you might have written! Most importantly there is no `become` and `hosts` is set to `all`. Also, `gather_facts` is set to `no`: this is due to the way network devices are currently queried: since the initial connect is local, the `gather_facts` would only gather the facts of the Tower.
 
 To configure and use this repository as a *Source Control Management (SCM)* system in Tower you have to:
 
@@ -224,7 +224,7 @@ After the Job has finished go to the *JOBS* view:
 
 == Create a Survey (TODO)
 
-You might have noticed the *Add Survey* button in the *Template* configuration view. A survey is a way to create a simple form to ask for parameters that get used as variables when a *Template* is launched as a *Job*.
+You might have noticed the *ADD SURVEY* button in the *TEMPLATE* configuration view. A survey is a way to create a simple form to ask for parameters that get used as variables when a *TEMPLATE* is launched as a *JOB*.
 
 You have installed Apache on both hosts in the job you just run. Now we're going to extend on this, the task is to:
 
@@ -349,7 +349,7 @@ You should see how the two variables where used by the playbook to create the co
 </body>
 ----
 
-== Ansible Tower Role Based Access Control (TODO)
+== Ansible Tower Role Based Access Control
 
 You have already learned how Tower separates credentials from users. Another advantage of Ansible Tower is the user and group rights management.
 
@@ -363,16 +363,16 @@ There are three types of Tower Users:
 
 Let's create a user:
 
-* Go to *Settings* by clicking the "gear"-icon and choose *Users*
-* Click *+Add*
+* Go to *Settings* by clicking the "gear"-icon and choose *USERS*
+* Click *+ADD*
 * Fill in the values for the new user:
-** *First Name:* Werner
-** *Last Name:* Web
-** *Email:* wweb@example.com
-** *Username:* wweb
-** *User Type:* Normal User
-** *Password:* <as provided>
-* Click *Save*
+** *FIRST NAME:* `Norbert`
+** *LAST NAME:* `Network`
+** *EMAIL:* nnetwork@example.com
+** *USERNAME:* `nnetwork`
+** *USER TYPE:* Normal User
+** *PASSWORD:* <as provided>
+* Click *SAVE*
 
 === Ansible Tower Teams
 
@@ -380,49 +380,49 @@ A Team is a subdivision of an organization with associated users, projects, cred
 
 Create a Team:
 
-* Go to *Settings* and choose *Teams*.
-* Click *+Add* and create a team named `Web Content`.
-* Click *Save*
+* Go to *Settings* and choose *TEAMS*.
+* Click *+ADD* and create a team named `Network Team`.
+* Click *SAVE*
 
 Now you can add a user to the Team:
 
-* Switch to the User view of the `Web Content` Team by clicking the *Users* button.
-* Click *+Add* and select the `wweb` user.
+* Switch to the *Users* view of the `Network Team` by clicking the *USERS* button.
+* Click *+ADD* and select the `nnetwork` user.
 * The dialog now asks for a role to assign, the following permission settings are available:
-** Admin: This User should have privileges to manage all aspects of the team
-** Member: This User should be a member of the team
+** *Admin*: This User should have privileges to manage all aspects of the team
+** *Member*: This User should be a member of the team
 * Assign the *Member* role.
-* Click *Save*
+* Click *SAVE*
 
-Now click the *Permissions* button in the *Team*  view, you will be greeted with "No Permissions Have Been Granted".
+Now click the *PERMISSIONS* button in the *Team*  view, you will be greeted with "No Permissions Have Been Granted".
 
 Permissions allow to read, modify, and administer projects, inventories, and other Tower elements. Permissions can be set for different resources.
 
 === Granting Permissions
 
-To allow users or teams to actually do something, you have to set permissions. The user *wweb* should only be allowed to modify content of the assigned webservers.
+To allow users or teams to actually do something, you have to set permissions. The user *nnetwork* should only be allowed to modify content of the assigned webservers.
 
-* In the Permissions view of the Team `Web Content` click the *+ Add Permissions* button.
+* In the Permissions view of the Team `Network Team` click the *+ ADD PERMISSIONS* button.
 * A new window opens. You can choose to set permissions for a number of resources.
-** Select the resource type *Job Templates*
-** Choose the `create index.html` Template by ticking the box next to it.
+** Select the resource type *JOB TEMPLATES*
+** Choose the `TODO` Template by ticking the box next to it.
 * The second part of the window opens, here you assign roles to the selected resource.
 ** Choose *Execute*
-* Click *Save*
+* Click *SAVE*
 
 === Test Permissions
 
-Now log out of Tower's web UI and in again as the *wweb* user.
+Now log out of Tower's web UI and in again as the *nnetwork* user.
 
-* Go to the *Templates* view, you should notice for Werner only the `create index.html` template is listed. He is allowed to view and lauch, but not to edit the Template.
+* Go to the *TEMPLATES* view, you should notice for Norbert only the `TODO` template is listed. He is allowed to view and lauch, but not to edit the Template.
 * Launch the Job Template, enter the survey content to your liking.
-* In the following *Jobs* view have a good look around, note that there where changes to the host (of course...).
+* In the following *JOBS* view have a good look around, note that there where changes to the host (of course...).
 
 Check the result:
 
-* In the SSH console on control.example.com check the web page:
+* In the SSH console on control.example.com:
 ----
-[root@control ~]# curl http://host1.example.com
+TODO
 ----
 
 WARNING: For the next lab log out of the web UI and log in as user *admin* again. 
