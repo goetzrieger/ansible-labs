@@ -36,9 +36,9 @@ Most prerequisite tasks have already been done for you:
 Check Ansible has been installed correctly
 ----
 [root@control ~]# ansible --version
-ansible 2.2.1.0
+ansible 2.4.2.0
   config file = /etc/ansible/ansible.cfg
-  configured module search path = Default w/o overrides
+[...]
 ----
 
 NOTE: Ansible is keeping configuration management simple. Ansible requires no database or running daemons and can run easily on a laptop. On the managed hosts it needs no running agent. 
@@ -152,8 +152,8 @@ inventory=/home/ansible/ansible-files/inventory
 Your Ansible inventory was used without providing the `-i` option. To double-check, run the command again from outside `~/ansible-files/`:
 
 ----
-[ansible@control ansible-files]$ cd ..
-[ansible@control ansible-files ~]$ ansible all --list-hosts
+[ansible@control ~]$ ansible all --list-hosts
+ [WARNING]: Could not match supplied host pattern, ignoring: all
 
  [WARNING]: provided hosts list is empty, only localhost is available
 
@@ -433,7 +433,7 @@ Run your extended Playbook:
 * Note some tasks are shown as "ok" in green and one is shown as "changed" in yellow.
 * Use an Ansible ad hoc command again to make sure Apache has been enabled and started, e.g. with:
 `systemctl status httpd`
-* Log out of host1.example.com and run the Playbook a second time to get used to the change in the output.
+* Run the Playbook a second time to get used to the change in the output.
 
 === Extend your Playbook: Create an index.html
 
@@ -491,6 +491,8 @@ The command should now return a friendly green "status: 200" line, amongst other
 
 === Challenge Lab: Playbooks
 
+This was nice but the real power of Ansible is to apply the same set of tasks reliably to many hosts.
+
 * Change the apache.yml Playbook to run on host1 *and* host2.example.com. 
 
 TIP: There are multiple ways to do this, try to edit the "webserver" group in your inventory file to include both hosts and change your Playbook to use the group in `hosts:`
@@ -502,9 +504,6 @@ WARNING: *Solution below!*
 
 The changed inventory file:
 ----
-host1.example.com
-host2.example.com
-
 [webserver]
 host1.example.com
 host2.example.com
