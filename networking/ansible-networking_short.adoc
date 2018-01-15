@@ -389,7 +389,7 @@ TIP: Here is a nice analogy: When Ansible modules are the tools in your workshop
 
 The next chapter requires some working knowledge with creating edit running Playbooks. 
 
-== Network Automation using Playbooks
+=== Playbook: Check Configuration
 
 We found the configuration of `csr2.example.com` differs from `csr1.example.com` by executing ad hoc commands and using the `diff` utility on the command line. So first let's convert this into an Ansible Playbook that checks the running-config state of a router against a master configuration.
 
@@ -398,7 +398,9 @@ Remember:
 * The connection parameters/settings are defined as a data structure in the `group_vars` file `csr`
 * The settings are used using the network modules `provider` parameter
 
-Let's write the Playbook. Create the file `~/ansible-files/check_config.yml` and add this content:
+==== Create the Playbook
+
+Create the file `~/ansible-files/check_config.yml` and add this content:
 
 ----
 ---
@@ -430,7 +432,7 @@ We need a master configuration file. Because we want `csr2.example.com` to be th
 [ansible@control ansible-files]$ cp ~/ansible-files/backup/csr2.example.com_config.<TIMESTAMP> master.cfg
 ----
 
-Now run the Playbook:
+==== Run the Playbook
 
 ----
 [ansible@control ansible-files]$ ansible-playbook --diff check_config.yml 
@@ -455,7 +457,7 @@ ansible_connection: local
 
 Now run the Playbook again. The output should nicely show the diff of the devices to the master configuration. `csr2.example.com` should show as OK (no surprise I would say) but `csr1.example.com` should show a good number of changes.
 
-=== Challenge Lab
+==== Challenge Lab
 
 This is handy, but a number of configuration lines are shown as diffs that have to be different, like `ip address` or `hostname`. The `ios_config` module knows an option to specify one or more lines that should be ignored during the diff.   
 
