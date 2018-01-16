@@ -144,10 +144,44 @@ You should definitely keep your Playbooks under version control. In this lab we'
 For this lab you will use a pre-configured Git repository on `control.example.com` that can be accessed via SSH. A Playbook has already been commited to the repository:
 
 ----
-TODO: add playbook to Git and afterwards document here
+---
+- name: backup router configurations
+  hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: collect device running-config
+      ios_command:
+        commands: show running-config interface GigabitEthernet 3
+      register: running_config
+
+    - name: output running-config
+      debug: var=running_config
+
+    - name: administratively enable interface
+      ios_config:
+        lines: no shutdown
+        parents: interface GigabitEthernet 3
+      when: '"shutdown" in running_config.stdout[0]'
+      register: new_state
+
+    - name: change description
+      ios_config:
+        lines: description Ansible controlled interface
+        parents: interface GigabitEthernet 3
+
+    - name: collect device running-config
+      ios_command:
+        commands: show running-config interface GigabitEthernet 3
+      register: new_config
+
+    - name: output new address
+      debug: var=new_config
 ----
 
 TIP: Note the difference to other Playbooks you might have written! Most importantly there is no `become` and `hosts` is set to `all`. Also, `gather_facts` is set to `no`: this is due to the way network devices are currently queried: since the initial connect is local, the `gather_facts` would only gather the facts of the Tower.
+
+For education purpose this playbook does print out the content of the configuration two times: before changes are done, and after changes are done. This provides a better understanding and control of what happens. However, in production this would not be done usually.
 
 To configure and use this repository as a *Source Control Management (SCM)* system in Tower you have to:
 
@@ -205,11 +239,11 @@ A job template is a definition and set of parameters for running an Ansible job.
 Okay, let's just do that:
 
 * Go to the *TEMPLATES* view and click *+ADD* -> *Job Template*
-** *NAME:* `Networking Template`
+** *NAME:* `Networking Interface Description Template`
 ** *JOB TYPE:* Run
 ** *INVENTORY:* `Networking Inventory`
 ** *PROJECT:* `Control Git Repo`
-** *PLAYBOOK:* `TODO`
+** *PLAYBOOK:* `interface-description.yml`
 ** *CREDENTIAL:* Here you need to pick two: first, pick the `Demo Credential`, and afterwards, in the crendetial dialog, click on the drop down menu *CREDENTIAL TYPE*, click on *Network*, and pick the previously created `Networking Credentials`
 ** Click *SAVE*
 
@@ -222,60 +256,75 @@ After the Job has finished go to the *JOBS* view:
 * All jobs are listed here, you should see directly before the Playbook run an SCM update was started. 
 * This is the Git update we configured for the *Project* on launch!
 
-== Create a Survey (TODO)
+== Create a Survey
 
 You might have noticed the *ADD SURVEY* button in the *TEMPLATE* configuration view. A survey is a way to create a simple form to ask for parameters that get used as variables when a *TEMPLATE* is launched as a *JOB*.
 
-You have installed Apache on both hosts in the job you just run. Now we're going to extend on this, the task is to:
+You have changed the description of the interfaces on both networking devices. Now we're going to change the actual IP configuration on these interfaces. The task is:
 
-* Create a Playbook and a Jinja2 template to deploy an _index.html_ file
-* The content of the _index.html_ should result from a survey
-* Add the Playbook and _index.html_ template to the Git repository.
+* Create a Playbook to not only change the description of the interfaces, but also the IP configuration of the third interface
+* Make the description and parts of the IP as variables
+* Add the Playbook to the Git repository.
 * Create a Template with a survey
 * Launch it
 
-=== Create the index.html Jinja Template
-
-In the SSH console on host control.example.com as user `git` create the _index.html_ template as _/home/git/git-work/index.j2_ with the following content: 
-----
-<body>
-<h1>Apache is running fine</h1>
-<h1>This is survey field "First Line": {{ first_line }}</h1>
-<h1>This is survey field "Second Line": {{ second_line }}</h1>
-</body>
-----
-
-TIP: Note the two variables used in the template!
-
 === Create the Playbook
 
-Again as user `git` create the playbook _/home/git/git-work/index_html_create.yml_ to distribute the index.html file from the template:
+In the SSH console on host control.example.com as user `git` create the playbook _/home/git/git-work/networking-configuration.yml_:
 ----
 ---
-- name: Create index.html from template
+- name: backup router configurations
   hosts: all
+  gather_facts: no
+
   tasks:
-  - name: Create index.html
-    template:
-      src: index.j2
-      dest: /var/www/html/index.html
-      owner: root
-      group: root
-      mode: 0644
+    - name: collect device running-config
+      ios_command:
+        commands: show running-config interface GigabitEthernet 3
+      register: running_config
+
+    - name: output running-config
+      debug: var=running_config
+
+    - name: administratively enable interface
+      ios_config:
+        lines: no shutdown
+        parents: interface GigabitEthernet 3
+      when: '"shutdown" in running_config.stdout[0]'
+      register: new_state
+
+    - name: change ip address
+      ios_config:
+        lines: "ip address 10.0.{{ wan_subnet }}.{{ wan_ip }} 255.255.255.0"
+        parents: interface GigabitEthernet 3
+
+    - name: change description
+      ios_config:
+        lines: description "{{ interface_description }}"
+        parents: interface GigabitEthernet 3
+
+    - name: collect device running-config
+      ios_command:
+        commands: show running-config interface GigabitEthernet 3
+      register: new_config
+
+    - name: output new address
+      debug: var=new_config
 ----
+
+Note the similarity to the first playbook. However, in this case the description in the task *change description* is a variable: `interface_description`. Also, there is an additional task, *change ip address*, that defines the IP address for the third interface. The IP address is set together by two variables, `wan_ip` and `wan_ip`.
 
 === Add the Files to Git
 
 Now add the files to Git, commit and push to origin:
 ----
 [git@control ~]$ cd /home/git/git-work
-[git@control git-work]$ git add index_html_create.yml
-[git@control git-work]$ git add index.j2
-[git@control git-work]$ git commit -a -m "index.j2 and playbook added"
+[git@control git-work]$ git add networking-configuration.yml
+[git@control git-work]$ git commit -a -m "Network configuration playbook added"
 [git@control git-work]$ git push origin master
 ----
 
-TIP: In real world scenarios you would structure your Git (or whatever SCM) in a meaningful way. *And* you would use Ansible Roles, so the location of all files would be clear, instead of having the template file "just" in the Git repo.
+TIP: In real world scenarios you would structure your Git (or whatever SCM) in a meaningful way. *And* you would use Ansible Roles.
 
 Now that we have new content in the Git repo, you can update the *Project* with the new Git content:
 
@@ -284,55 +333,69 @@ Now that we have new content in the Git repo, you can update the *Project* with 
 
 TIP: As you've configured the Project to update on launch, this would have happenend anyway.
 
+=== Set host specific variables
+
+The above mentioned playbook changes the IP for the third interface. However, since they are both connected to the same wan, they should not have the exact same address. Thus we will set the variable `wan_ip` for each host in the inventory.
+
+* Got to *INVENTORIES* and click *Networking Inventory*
+* Click on the button *HOSTS*
+* Click the edit button in the line of the first host, *csr1.example.com*
+* In the field *VARIABLES*, enter the line: `wan_ip: 100`
+* Click *SAVE*
+* Click the edit button in the line of the second host, *csr2.example.com*
+* In the field *VARIABLES*, enter the line: `wan_ip: 110`
+* Click *SAVE*
+
 === Create a Template with a Survey
 
 Now you create a new Template that includes a survey:
 
-* Go to *Templates* and click *+Add* -> *Job Template*
-* *Name:* create index.html
+* Go to *TEMPLATES* and click *+ADD* -> *JOB TEMPLATE*
+* *NAME:* `Networking Interface Configuration Template`
 * Set the proper parameters for the job to
+** Use the appropriate inventory
+** Use the correct project
 ** Use the new playbook
-** To run on host1.example.com
-** To run as root
+** USe the right credentials
 
 Try for yourself, the solution is below.
 
 WARNING: *Solution Below!*
 
-* *Name:* create index.html
-* *Job Type:* Run
-* *Inventory:* Webserver
-* *Project:* Control Git Repo
-* *Playbook:* index_html_create.yml
-* *Machine Credentials:* Example Credentials
-* *Options:* Enable Privilege Escalation 
-* Click *Save*
+* *NAME:* `Networking Interface Configuration Template`
+* *JOB TYPE:* `Run`
+* *INVENTORY:* `Networking Inventory`
+* *PROJECT:* `Control Git repo`
+* *PLAYBOOK:* `networking-configuration.yml`
+* *MACHINE CREDENTIALS:* `Demo Credentials` and `Networking Credentials`
+* Click *SAVE*
 
 ==== Add the Survey
 
-* In the Template, click the *Add Survey* button
-* Under *Add Survey Prompt* fill in:
-** *Prompt:* First Line
-** *Answer Variable Name:* first_line
-** *Answer Type:* Text
-* Click *+Add*
-* In the same way add a second *Survey Prompt*
-** *Prompt:* Second Line
-** *Answer Variable Name:* second_line
-** *Answer Type:* Text
-* Click *+Add*
-* Click *Save* for the Survey
-* Click *Save* for the Template
+* In the Template, click the *ADD SURVEY* button
+* Under *ADD SURVEY PROMPT* fill in:
+** *PROMPT:* `WAN subnet`
+** *ANSWER VARIABLE NAME:* `wan_subnet`
+** *ANSWER TYPE:* `Text`
+* Click *+ADD*
+* In the same way add a second *SURVEY PROMPT*
+** *PROMPT:* `Interface description`
+** *ANSWER VARIABLE NAME:* `interface_description`
+** *ANSWER TYPE:* `Text`
+* Click *+ADD*
+* Click *SAVE* for the Survey
+* Click *SAVE* for the Template
 
 === Launch the Template
 
-Now go back to the *Template* view and launch *Create index.html*.
+Now go back to the *TEMPLATES* view and launch *Networking Interface Configuration Template*
 
-* Before the actual launch the survey will ask for *First Line* and *Second Line*. Fill in some text and launch.
+* Before the actual launch the survey will ask for *WAN SUBNET* and *INTERFACE DESCRIPTION*. Fill in some subnet ip and text and launch.
 
-TIP: Note how the two survey lines are shown to the left of the Job view as *Extra Variables*.
+TIP: Note how the two survey lines are shown to the left of the Job view as *EXTRA VARIABLES*.
 
-After the job has completed, check the Apache homepage:
+After the job has completed, check the output of the Playbook run in Tower. 
+TODO: add information how to check online
 
 * In the SSH console on control.example.com, run: 
 ----
