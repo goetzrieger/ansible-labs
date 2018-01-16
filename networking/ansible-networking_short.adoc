@@ -371,12 +371,32 @@ total 8
 -rw-rw-r--. 1 ansible ansible 1650 Jan 15 13:08 csr2.example.com_config.2018-01-15@13:08:11
 ----
 
-TIP: You could easily use this to do regular backups of your device configurations. One thing to keep in mind though: Ansible deletes older files for the same host even while they are timestamped. 
+TIP: You could easily use this to do regular backups of your device configurations. One thing to keep in mind though: Ansible by default deletes older files for the same host even while they are timestamped. 
 
-As we have seen the configuration of the two devices should be different and we should be able to find this in the configuration backup. Have a quick look:
+As we have seen the configuration of the two devices should be different and we should be able to find this in the configuration backup. Have a quick look (your file names will differ):
 
 ----
 [ansible@control ansible-files]$ diff -u backup/csr1.example.com_config.2018-01-15\@13\:47\:31 backup/csr2.example.com_config.2018-01-15\@13\:47\:31
+----
+
+So this might be useful to keep track of your devices configuration and to do quick comparisons. 
+
+=== Challenge Lab: Ad Hoc Commands
+
+How about adding a login banner to our CSRs? 
+
+* Find a module and its parameters to do so (Hint: grep docs for "banner"...)
+* Use it in an ad hoc command to set the banner to "Managed by Ansible"
+* Check that it works by SSHing into the devices
+* Delete the banner again from the device
+
+WARNING: *Solution below!*
+
+----
+[ansible@control ansible-files]$ ansible csr -m ios_banner -a 'banner=login text="Managed by Ansible!" state=present provider={{ cisco_connect }}'
+----
+----
+[ansible@control ansible-files]$ ansible csr -m ios_banner -a 'banner=login text="Managed by Ansible!" state=absent provider={{ cisco_connect }}'
 ----
 
 == Ansible Network Automation: Facts
@@ -534,6 +554,142 @@ diff_ignore_lines:
         - license .*
         - user name .*
 ----
+
+=== Playbook: Configure Router
+
+Now that we know `csr1.example.com` is not configured correctly let us fix this. We have the (correct) configuration from `csr2.example.com` saved as master config file. We could just use the `ios_config` modul and apply the master configuration file to `csr1`. 
+
+But wait! There are some config settings in there that have to be specific to the device like hostname, ip configuration and so on. You don't really want to have all your devices with the same IP, do you?
+
+==== Creating the Configuration Template
+
+Luckily Ansible can use Jinja2 templating to modify files before they are distributed to managed devices.
+
+So let's convert the `master.cfg` file to a template to be used with our CSR routers. First clean up the file a bit and rename it to show it's a template:
+
+----
+[ansible@control ansible-files]$ cat master.cfg | grep -v "!" > master_csr_config.j2
+----
+
+Delete the first couple of lines in `master_csr_config.j2`:
+
+----
+Building configuration...
+
+Current configuration : 1590 bytes
+version 16.7
+----
+
+That's better. Now the important part: We want to replace some commands (or part of them) with variables. Open the file in your editor and edit the hostname and ip configuration commands to look like this:
+
+----
+[...]
+hostname {{ hostname }}
+[...]
+interface GigabitEthernet1
+ {{ gi1 }}
+[...]
+interface GigabitEthernet2
+ {{ gi2 }}
+[...] 
+interface GigabitEthernet3
+ {{ gi3 }}
+[...]
+----
+
+TIP: You might wonder why we define the whole `ip address ...` line but only the value for the hostname as a variable... you'll see in a second.
+
+Before we write the Playbook we need to define the values somewhere. Remember how we defined the connection variables in the `group_vars/csr` file? We can do the same for individual hosts in `host_vars` files.
+
+First create the `host_vars` directory:
+
+----
+[ansible@control ansible-files]$ mkdir ~/ansible-files/host_vars/
+----
+
+Then create the file `~/ansible-files/host_vars/csr1.example.com` with these lines:
+
+----
+---
+hostname: csr1
+gi1: "ip address 192.168.0.100 255.255.255.0"
+gi2: "ip address 192.168.1.100 255.255.255.0"
+gi3: "no ip address"
+----
+
+TIP: Now it should become clear why we structured the template like we did.
+
+==== Creating the Playbook
+
+Now we have to create a Playbook to apply the configuration template. Create `~/ansible-files/configure_csr.yml`:
+
+----
+---
+- name: configure csr from master config template
+  hosts: csr1.example.com
+  connection: local
+  gather_facts: no
+
+  tasks:
+  - name: create and apply config from master template
+    ios_config:
+      provider: "{{ cisco_connect }}"
+      src: master_csr_config.j2
+      #save_when: always
+      match: none
+----
+
+What happens here?
+
+* The `ios_config` module is used to deploy a configuration defined in the `src` parameter.
+* The `match` parameter is set to `none`, meaning the modul will not compare the source with the device configuration.
+* The `save_when` parameter defined if and when the changed `running-config` will be copied to the `startup-config`.
+
+==== Running the Playbook
+
+Now run the Playbook, but be careful. It's easy to see how you could accidentally deploy this configuration on all devices managed by Ansible. It's about automation after all, this includes wiping out configurations as well...
+
+There are a lot of ways to structure inventories and Playbooks to avoid this, for now we'll just check the devices the Playbook will actually be run against. Should of course just be the host from the `hosts:` line but better safe then sorry. So run:
+
+----
+[ansible@control ansible-files]$ ansible-playbook --list-hosts configure_csr.yml 
+
+playbook: configure_csr.yml
+
+  play #1 (csr1.example.com): configure csr from master config template	TAGS: []
+    pattern: [u'csr1.example.com']
+    hosts (1):
+      csr1.example.com
+----
+
+Looks good!
+
+Okay, go ahead and run it:
+
+----
+[ansible@control ansible-files]$ ansible-playbook configure_csr.yml
+----
+
+To test our work, SSH into `csr1.example.com`. Then try to run `enable`, it should ask for a password now. Compare the `running-config` with the `startup-config`, it should still differ. 
+
+To fix the `startup-config` uncomment the `save_when` line and run the Playbook again. Check the result.
+
+TIP: The `ios_config` module is something like the Swiss Army Knife for IOS devices. It can do a lot more like comparing configs, doing backups, changing only lines or sections of an configurations etc. If in doubt, read the great documentation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
