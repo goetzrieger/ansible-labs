@@ -379,6 +379,55 @@ As we have seen the configuration of the two devices should be different and we 
 [ansible@control ansible-files]$ diff -u backup/csr1.example.com_config.2018-01-15\@13\:47\:31 backup/csr2.example.com_config.2018-01-15\@13\:47\:31
 ----
 
+== Ansible Network Automation: Facts
+
+Ansible facts are variables that are automatically discovered by Ansible from a managed host or in our case a network device. On hosts the `setup` module is used to pull facts, on network devices specific modules exist. Regardless how facts are pulled they contain useful information stored into variables that administrators can reuse for example in Playbooks. 
+
+=== Using `ios_facts`
+
+We have already used some of the `ios_*` Ansible modules specific to devices running Cisco IOS. To get an idea what facts this module collects by default, on `control.example.com` as user ansible from the `~/ansible-files/` directory run:
+
+----
+[ansible@control ansible-files]$ ansible csr -m ios_facts -a 'provider={{cisco_connect}} authorize=yes auth_pass=cisco'
+----
+
+This command:
+
+* uses the `ios_facts` module (`-m`)
+* uses the settings from the `cisco_connect` provider/connection
+* authenticates the `enable` mode
+
+Have a look at the facts provided. The `ios_facts` module differentiates between subsets of data, namely:
+
+* `all`
+* `hardware`
+* `config`
+* `interfaces`
+
+Subsets can be specified as a list, an initial `!` can be used to not collect data for this subset.
+
+WARNING: The facts module does not support the `filter` argument you might know from the `setup` module used to collect host facts.
+
+=== Challenge Lab: Facts
+
+Use `ansible-doc` to look up the modules documentation.
+
+* Which subset is excluded by default?
+* Find the parameter to specify subsets.
+* Change the command to print the facts for the subsets `interfaces` and `config`.
+
+TIP: In ad hoc commands lists are specified using comma separation.
+
+WARNING: *Solution below!*
+
+* `config` is excluded by default
+* The parameter is named `gather_subset`
+
+----
+[ansible@control ansible-files]$ ansible csr -m ios_facts -a 'gather_subset=interfaces,config provider={{cisco_connect}} authorize=yes auth_pass=cisco'
+----
+
+
 == Using Ansible Playbooks for Network Automation
 
 While Ansible ad hoc commands are useful for simple operations, they are not suited for complex configuration management or orchestration scenarios. 
