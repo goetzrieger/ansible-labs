@@ -1,4 +1,4 @@
-= Ansible Getting Started
+= Ansible Network Automation
 :scrollbar:
 :data-uri:
 :toc: left
@@ -46,7 +46,7 @@
 
 == About this Lab
 
-This lab will get you started with Ansible Network Automation. As example devices we will use Cisco CSR1000V routers, so most network pros will find their Cisco IOS commands in here. It´s assumed that you understand Ansible´s concepts and have some hands-on knowledge. Otherwise please go through a getting started lab first.   
+This lab will get you started with Ansible Network Automation. As example devices we will use Cisco CSR1000V routers, so most network pros will find their Cisco IOS commands in here. It´s assumed that you understand Ansible´s concepts and have some hands-on knowledge. Otherwise please go through a getting started lab first.
 
 == Your Lab Environment
 
@@ -59,7 +59,7 @@ In the network automation lab you work in a pre-configured lab environment that 
 As this is a network automation lab we need a couple of, yes, networks to have some fun. The lab comes with the following networks:
 
 * Management (192.168.0.0/24) - Network between the control host and the Cisco routers.
-* Two site networks (192.168.1.0/24 and 192.168.2.0/24) that connect the RHEL 7 hosts and the Cisco routers. 
+* Two site networks (192.168.1.0/24 and 192.168.2.0/24) that connect the RHEL 7 hosts and the Cisco routers.
 * A Network connecting the Cisco routers to emulate a WAN/"The Internet"
 
 So the Cisco routers come with three network interfaces each. What better then to have drawing of the setup for reference:
@@ -75,7 +75,7 @@ image::network_dia.png[]
 |csr2-host.example.com|192.168.2.200|Site 2 Host
 |===
 
-WARNING: You will be able to SSH into the control host, from here you need to connect into the other hosts. 
+WARNING: You will be able to SSH into the control host, from here you need to connect into the other hosts.
 
 === Access your Lab Environment
 
@@ -90,6 +90,7 @@ Most prerequisite tasks have already been done for you:
 * The CSR1000V are configured for SSH access with username `admin` and password `cisco`
 
 Check Ansible has been installed correctly on the control host:
+
 ----
 [root@control ~]# ansible --version
 ansible 2.4.2.0
@@ -100,13 +101,13 @@ ansible 2.4.2.0
   python version = 2.7.5 (default, May  3 2017, 07:55:04) [GCC 4.8.5 20150623 (Red Hat 4.8.5-14)]
 ----
 
-NOTE: Ansible is keeping configuration management simple. Ansible requires no database or running daemons and can run easily on a laptop. On the managed hosts it needs no running agent. 
+NOTE: Ansible is keeping configuration management simple. Ansible requires no database or running daemons and can run easily on a laptop. On the managed hosts it needs no running agent.
 
 Verify that the Cisco routers accept SSH connections with user/password authentication from the control node:
 ----
 [root@control ~]# su - ansible
 [ansible@control ~]$ ssh admin@csr1.example.com
-Password: 
+Password:
 
 csr1#exit
 Connection to csr1.example.com closed.
@@ -123,9 +124,9 @@ You might have guessed by now this lab is pretty commandline-centric... :-)
 * Don't type everything manually, use copy & paste from the browser when appropriate. But don't stop to think and understand... ;-)
 * All labs where prepared using Vi, but feel free to install nano or even emacs.
 
-TIP: In the lab guide commands you are supposed to run are shown with or without the expected output, whatever makes more sense in the context. 
+TIP: In the lab guide commands you are supposed to run are shown with or without the expected output, whatever makes more sense in the context.
 
-TIP: The command line can wrap on the web page from time to time. Therefor the output is separated from the command line for better readability by an empty line. *Anyway, the line you should actually run should be recognizable by the prompt.* :-) 
+TIP: The command line can wrap on the web page from time to time. Therefor the output is separated from the command line for better readability by an empty line. *Anyway, the line you should actually run should be recognizable by the prompt.* :-)
 
 === Challenge Labs
 
@@ -151,7 +152,7 @@ csr2.example.com
 
 This defines an inventory group `csr` with two member hosts.
 
-To reference inventory hosts, you supply a host pattern to the ansible command. Ansible has a `--list-hosts` option which can be useful for clarifying which managed hosts are referenced by the host pattern in an ansible command. 
+To reference inventory hosts, you supply a host pattern to the ansible command. Ansible has a `--list-hosts` option which can be useful for clarifying which managed hosts are referenced by the host pattern in an ansible command.
 
 The most basic host pattern is the name for a single managed host listed in the inventory file. This specifies that the host will be the only one in the inventory file that will be acted upon by the ansible command. Run:
 
@@ -170,17 +171,18 @@ Now run Ansible with these host patterns and observe the output:
 
 TIP: It is ok to put systems in more than one group, for instance a server could be both a web server and a database server.
 
-TIP: The inventory can contain more data. E.g. if you have hosts that run on non-standard SSH ports you can put the port number after the hostname with a colon. Or you could define names specific to Ansible and have them point to the "real" IP or hostname.  
+TIP: The inventory can contain more data. E.g. if you have hosts that run on non-standard SSH ports you can put the port number after the hostname with a colon. Or you could define names specific to Ansible and have them point to the "real" IP or hostname.
 
 === The Ansible Configuration Files
 
 The behavior of Ansible can be customized by modifying settings in Ansible's ini-style configuration file. Ansible will select its configuration file from one of several possible locations on the control node, please refer to the documentation.
 
-TIP: The recommended practice is to create an `ansible.cfg` file in a directory from which you run Ansible commands. This directory would also contain any files used by your Ansible project, such as the inventory and Playbooks. 
+TIP: The recommended practice is to create an `ansible.cfg` file in a directory from which you run Ansible commands. This directory would also contain any files used by your Ansible project, such as the inventory and Playbooks.
 
 Make sure your inventory file is used by default when executing commands from the `~/ansible-files/` directory:
 
 * On control.example.com as ansible create the file `~/ansible-files/ansible.cfg` with the following content:
+
 ----
 [defaults]
 inventory=/home/ansible/ansible-files/inventory
@@ -201,7 +203,7 @@ Your Ansible inventory was used without providing the `-i` option. To double-che
  [WARNING]: No hosts matched, nothing to do
 
   hosts (0):
----- 
+----
 
 == Ansible Network Automation vs Host Automation
 
@@ -224,7 +226,7 @@ To talk to network devices Ansible uses either CLI over SSH or API (when availab
 So the main difference is:
 
 * To a _Linux host_ Ansible would connect _directly_ using the inventory hostname and an SSH connection.
-* When configuring a _network device_ Ansible will call the module _locally_, the module then handles the connection to the device. SSH in this lab, but it may be some API or CLI call, too. This happens mostly transparent to the user. 
+* When configuring a _network device_ Ansible will call the module _locally_, the module then handles the connection to the device. SSH in this lab, but it may be some API or CLI call, too. This happens mostly transparent to the user.
 
 == Configure Connection Settings
 
@@ -300,30 +302,30 @@ Let's start with `ios_command`, this module allows to run IOS commands on your d
 Okay, not too successful, status FAILED. This is because we configured the provider with the connection settings, but we didn't tell the command to use it. Give it a second try, this time supplying the `provider` argument:
 
 ----
-[ansible@control ansible-files]$ ansible csr1.example.com -m ios_command -a 'commands="sh ip int br" provider={{cisco_connect}}' 
+[ansible@control ansible-files]$ ansible csr1.example.com -m ios_command -a 'commands="sh ip int br" provider={{cisco_connect}}'
 ----
 
 Now the connection from the module to the Cisco worked and you should get a familiar listing.
 
-TIP: You might be wondering why we have to enclose the provider name in double curly braces. If you have used Ansible before you know this is for referencing variables. And the provider we defined in the group var file is actually a variable structure. 
+TIP: You might be wondering why we have to enclose the provider name in double curly braces. If you have used Ansible before you know this is for referencing variables. And the provider we defined in the group var file is actually a variable structure.
 
 Another example: Have a quick look at the version your host is running:
 ----
-[ansible@control ansible-files]$ ansible csr1.example.com -m ios_command -a 'commands="sh version" provider={{cisco_connect}}' 
+[ansible@control ansible-files]$ ansible csr1.example.com -m ios_command -a 'commands="sh version" provider={{cisco_connect}}'
 ----
 
 Until now we executed the command on only one host. The real power of automation is to run the same tasks on many hosts/devices at the same time. Just change the target hosts in the commands to `all`or `csr` (in our inventory this is the same right now):
 
 ----
-[ansible@control ansible-files]$ ansible csr -m ios_command -a 'commands="sh ip int br" provider={{cisco_connect}}' 
----- 
+[ansible@control ansible-files]$ ansible csr -m ios_command -a 'commands="sh ip int br" provider={{cisco_connect}}'
+----
 
 === Running Ad Hoc Commands: `ios_config`
 
 The `ios_config` module is extremly useful and has a fair number of arguments. It can be used to store, set, compare and check the configuration of IOS devices. The easiest way to use it is to create a full backup of the current `running-config' of your devices to a text file. Run the following ansible command:
 
 ----
-[ansible@control ansible-files]$ ansible csr -m ios_config -a 'backup=yes provider={{cisco_connect}}' 
+[ansible@control ansible-files]$ ansible csr -m ios_config -a 'backup=yes provider={{cisco_connect}}'
 ----
 
 You should get an output that indicates an error on `csr2.example.com`. What the heck? Both devices should be configured in exactly the same way!
@@ -344,7 +346,7 @@ version 16.7
 [...]
 ----
 
-Looks all good, try the same on `csr2.example.com`. 
+Looks all good, try the same on `csr2.example.com`.
 
 Okay, there is the issue: The second Cisco is configured to require a password for `enable` mode. As it should be.
 
@@ -352,15 +354,15 @@ TIP: Okay, okay, we prepared the devices this way and you might have noticed alr
 
 ==== Authorization
 
-Obviously we need to provide a password to enter privileged mode. For practice first look up the documentation for the module and look for `authorize` and `auth_pass`. 
+Obviously we need to provide a password to enter privileged mode. For practice first look up the documentation for the module and look for `authorize` and `auth_pass`.
 
 Now we have to pass the credentials to the module for authorization. Basically we just need to specify the arguments:
 
 ----
-[ansible@control ansible-files]$ ansible csr -m ios_config -a 'backup=yes provider={{cisco_connect}} authorize=yes auth_pass=cisco' 
+[ansible@control ansible-files]$ ansible csr -m ios_config -a 'backup=yes provider={{cisco_connect}} authorize=yes auth_pass=cisco'
 ----
 
-TIP: As with the configuration of the connection parameters this will become more aligned with "regular" ansible in 2.5. E.g. there will be a parameter "become_method: enable". *As with all things roadmap: No guarantee*.  
+TIP: As with the configuration of the connection parameters this will become more aligned with "regular" ansible in 2.5. E.g. there will be a parameter "become_method: enable". *As with all things roadmap: No guarantee*.
 
 Now the configuration backup should have worked on both devices. The backup is written to the directory `backup`. Have a look:
 
@@ -371,7 +373,7 @@ total 8
 -rw-rw-r--. 1 ansible ansible 1650 Jan 15 13:08 csr2.example.com_config.2018-01-15@13:08:11
 ----
 
-TIP: You could easily use this to do regular backups of your device configurations. One thing to keep in mind though: Ansible by default deletes older files for the same host even while they are timestamped. 
+TIP: You could easily use this to do regular backups of your device configurations. One thing to keep in mind though: Ansible by default deletes older files for the same host even while they are timestamped.
 
 As we have seen the configuration of the two devices should be different and we should be able to find this in the configuration backup. Have a quick look (your file names will differ):
 
@@ -379,11 +381,11 @@ As we have seen the configuration of the two devices should be different and we 
 [ansible@control ansible-files]$ diff -u backup/csr1.example.com_config.2018-01-15\@13\:47\:31 backup/csr2.example.com_config.2018-01-15\@13\:47\:31
 ----
 
-So this might be useful to keep track of your devices configuration and to do quick comparisons. 
+So this might be useful to keep track of your devices configuration and to do quick comparisons.
 
 === Challenge Lab: Ad Hoc Commands
 
-How about adding a login banner to our CSRs? 
+How about adding a login banner to our CSRs?
 
 * Find a module and its parameters to do so (Hint: grep docs for "banner"...)
 * Use it in an ad hoc command to set the banner to "Managed by Ansible"
@@ -401,7 +403,7 @@ WARNING: *Solution below!*
 
 == Ansible Network Automation: Facts
 
-Ansible facts are variables that are automatically discovered by Ansible from a managed host or in our case a network device. On hosts the `setup` module is used to pull facts, on network devices specific modules exist. Regardless how facts are pulled they contain useful information stored into variables that administrators can reuse for example in Playbooks. 
+Ansible facts are variables that are automatically discovered by Ansible from a managed host or in our case a network device. On hosts the `setup` module is used to pull facts, on network devices specific modules exist. Regardless how facts are pulled they contain useful information stored into variables that administrators can reuse for example in Playbooks.
 
 === Using `ios_facts`
 
@@ -450,13 +452,13 @@ WARNING: *Solution below!*
 
 == Using Ansible Playbooks for Network Automation
 
-While Ansible ad hoc commands are useful for simple operations, they are not suited for complex configuration management or orchestration scenarios. 
+While Ansible ad hoc commands are useful for simple operations, they are not suited for complex configuration management or orchestration scenarios.
 
 Playbooks are files which describe the desired configurations or steps to implement on managed hosts. Playbooks can change lengthy, complex administrative tasks into easily repeatable routines with predictable and successful outcomes.
 
 TIP: Here is a nice analogy: When Ansible modules are the tools in your workshop, the inventory is the materials and the Playbooks are the instructions.
 
-The next chapter requires some working knowledge with creating edit running Playbooks. 
+The next chapter requires some working knowledge with creating edit running Playbooks.
 
 === Playbook: Check Configuration
 
@@ -504,12 +506,12 @@ We need a master configuration file. Because we want `csr2.example.com` to be th
 ==== Run the Playbook
 
 ----
-[ansible@control ansible-files]$ ansible-playbook --diff check_config.yml 
+[ansible@control ansible-files]$ ansible-playbook --diff check_config.yml
 ----
 
-TIP: The `--diff` option is not too commonly used in Playbook runs but needed here! 
+TIP: The `--diff` option is not too commonly used in Playbook runs but needed here!
 
-You should get an error for `csr2.example.com`. The error is not to easy to pin down but wait, didn't we have to pass credentials for `enable` on `csr2.example.com`? Using the ad hoc command we passed the credentials on the commandline, to make it available to the Playbook we'll now put them into the `group_vars` file. 
+You should get an error for `csr2.example.com`. The error is not to easy to pin down but wait, didn't we have to pass credentials for `enable` on `csr2.example.com`? Using the ad hoc command we passed the credentials on the commandline, to make it available to the Playbook we'll now put them into the `group_vars` file.
 
 Change `~/ansible-files/group_vars/csr` to look like:
 
@@ -528,7 +530,7 @@ Now run the Playbook again. The output should nicely show the diff of the device
 
 ==== Challenge Lab
 
-This is handy, but a number of configuration lines are shown as diffs that have to be different, like `ip address` or `hostname`. The `ios_config` module knows an option to specify one or more lines that should be ignored during the diff.   
+This is handy, but a number of configuration lines are shown as diffs that have to be different, like `ip address` or `hostname`. The `ios_config` module knows an option to specify one or more lines that should be ignored during the diff.
 
 * Look up the module doc and find the option name
 * Change the Playbook to ignore lines you don't want to have listed (e.g. `ip address` or `hostname`)
@@ -557,7 +559,7 @@ diff_ignore_lines:
 
 === Playbook: Configure Router
 
-Now that we know `csr1.example.com` is not configured correctly let us fix this. We have the (correct) configuration from `csr2.example.com` saved as master config file. We could just use the `ios_config` modul and apply the master configuration file to `csr1`. 
+Now that we know `csr1.example.com` is not configured correctly let us fix this. We have the (correct) configuration from `csr2.example.com` saved as master config file. We could just use the `ios_config` modul and apply the master configuration file to `csr1`.
 
 But wait! There are some config settings in there that have to be specific to the device like hostname, ip configuration and so on. You don't really want to have all your devices with the same IP, do you?
 
@@ -591,7 +593,7 @@ interface GigabitEthernet1
 [...]
 interface GigabitEthernet2
  {{ gi2 }}
-[...] 
+[...]
 interface GigabitEthernet3
  {{ gi3 }}
 [...]
@@ -652,7 +654,7 @@ Now run the Playbook, but be careful. It's easy to see how you could accidentall
 There are a lot of ways to structure inventories and Playbooks to avoid this, for now we'll just check the devices the Playbook will actually be run against. Should of course just be the host from the `hosts:` line but better safe then sorry. So run:
 
 ----
-[ansible@control ansible-files]$ ansible-playbook --list-hosts configure_csr.yml 
+[ansible@control ansible-files]$ ansible-playbook --list-hosts configure_csr.yml
 
 playbook: configure_csr.yml
 
@@ -670,27 +672,254 @@ Okay, go ahead and run it:
 [ansible@control ansible-files]$ ansible-playbook configure_csr.yml
 ----
 
-To test our work, SSH into `csr1.example.com`. Then try to run `enable`, it should ask for a password now. Compare the `running-config` with the `startup-config`, it should still differ. 
+To test our work, SSH into `csr1.example.com`. Then try to run `enable`, it should ask for a password now. Compare the `running-config` with the `startup-config`, it should still differ.
 
 To fix the `startup-config` uncomment the `save_when` line and run the Playbook again. Check the result.
 
 TIP: The `ios_config` module is something like the Swiss Army Knife for IOS devices. It can do a lot more like comparing configs, doing backups, changing only lines or sections of an configurations etc. If in doubt, read the great documentation.
 
+=== Playbook: Create a Report
 
+In this example we'll use Ansible's templating mechanism to create a nice HTML report from the facts Ansible collects from the managed devices.
 
+We need two things for this:
 
+* A Jinja2 template to produce the HTML output
+* A Playbooks that collects the facts and fills the template
 
+==== The template
 
+Let's start with the template. Jinja2 templating is very powerful and comes with a lot of options, if you want to learn more it's best to look up the documentation.
 
+Create the file `~/ansible-files/report_ios.j2`:
 
+----
+ <!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+<table>
+    <thead>
+        <tr>
+            <th>Hostname</th>
+            <th>Model Type</th>
+            <th>Serial Number</th>
+            <th>Mgmt interface IP</th>
+            <th>Code Version</th>
+        </tr>
+    </thead>
+    <tbody>
+{% for device in groups['csr'] %}
+        <tr>
+            <td>{{hostvars[device]['ansible_net_hostname']}}</td>
+            <td>{{hostvars[device]['ansible_net_model']}}</td>
+            <td>{{hostvars[device]['ansible_net_serialnum']}}</td>
+            <td>{{hostvars[device]['ansible_net_interfaces']['GigabitEthernet1']['ipv4'][0]['address']}}</td>
+            <td {% if hostvars[device]['ansible_net_version'] != desired_ios_version %}style="background:yellow;"{% endif %}>{{hostvars[device]['ansible_net_version']}}</td>
+        </tr>
+{% endfor %}
+    </tbody>
+</table>
 
+</body>
+</html>
+----
 
+So what is this template doing?
 
+* Easy to spot; it generates an HTML page with a table
+* The interesting parts are the Jinja2 bits, commands are enclosed in `{% ... %}`
+* The content of the facts is referenced as variables: `{{...}}`
 
+With this in mind it's easy to understand what's going on:
 
+* A loop is going over all devices in the `csr` inventory group
+* For every device is constructs a table row with a number of fields that get filled with variables.
+* To make this a bit more entertaining we change the color in one field if the value from `desired_ios_version` is not matched.
 
+TIP: To understand how the facts data structure is referenced here, have a look at the facts output you run earlier.
 
+==== The Playbook
 
+Now we need a Playbook to collect the facts and to write the HTML file based on the template. Create the file `~/ansible-files/report_ios.yml`:
 
+----
+---
+  - name: build IOS inventory
+    hosts: csr
+    connection: local
+    gather_facts:  False
 
-  
+    vars:
+       desired_ios_version: "16.06.01"
+
+    tasks:
+
+      - name: gathering IOS facts
+        ios_facts:
+          provider: "{{ cisco_connect }}"
+        register: all_facts
+
+      - name: create HTML report
+        template:
+          src: report_ios.j2
+          dest: ./report_ios.html
+        delegate_to: localhost
+        run_once: true
+----
+
+Let's go through this:
+
+* A variable `desired_ios_version` is set to a string, this is used for setting the color of the version field.
+* Then the facts are collected from the devices and registered for later use.
+* And finally Ansible's template module is run with the template as source.
+
+Little challenge: Why do we need `delegate_to` and `run_once` here?
+
+TIP: Beacuse we want the file to be created on our control node and we want this task only run once and not for every device.
+
+==== Run the Report
+
+Before we actually run the Playbook change the template to look like this (e.g. add the `<style>` section):
+
+----
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+body {
+  background:#353a40;
+}
+
+table {
+  border-collapse: separate;
+  background:#fff;
+  @include border-radius(5px);
+  margin:50px auto;
+  @include box-shadow(0px 0px 5px rgba(0,0,0,0.3));
+}
+
+thead {
+  @include border-radius(5px);
+}
+
+thead th {
+  font-family: 'Patua One', monospace;
+  font-size:16px;
+  font-weight:400;
+  color:#fff;
+  @include text-shadow(1px 1px 0px rgba(0,0,0,0.5));
+  text-align:left;
+  padding:20px;
+  border-top:1px solid #858d99;
+  background: #353a40;
+
+  &:first-child {
+   @include border-top-left-radius(5px);
+  }
+
+  &:last-child {
+    @include border-top-right-radius(5px);
+  }
+}
+
+tbody tr td {
+  font-family: 'Open Sans', sans-serif;
+  font-weight:400;
+  color:#5f6062;
+  font-size:13px;
+  padding:20px 20px 20px 20px;
+  border-bottom:1px solid #e0e0e0;
+
+}
+
+tbody tr:nth-child(2n) {
+  background:#f0f3f5;
+}
+
+tbody tr:last-child td {
+  border-bottom:none;
+  &:first-child {
+    @include border-bottom-left-radius(5px);
+  }
+  &:last-child {
+    @include border-bottom-right-radius(5px);
+  }
+}
+
+span.highlight {
+    background-color: yellow;
+}
+</style>
+</head>
+<body>
+<table>
+    <thead>
+        <tr>
+            <th>Hostname</th>
+            <th>Model Type</th>
+            <th>Serial Number</th>
+            <th>Mgmt interface IP</th>
+            <th>Code Version</th>
+        </tr>
+    </thead>
+    <tbody>
+{% for device in groups['csr'] %}
+        <tr>
+            <td>{{hostvars[device]['ansible_net_hostname']}}</td>
+            <td>{{hostvars[device]['ansible_net_model']}}</td>
+            <td>{{hostvars[device]['ansible_net_serialnum']}}</td>
+            <td>{{hostvars[device]['ansible_net_interfaces']['GigabitEthernet1']['ipv4'][0]['address']}}</td>
+            <td {% if hostvars[device]['ansible_net_version'] != desired_ios_version %}style="background:yellow;"{% endif %}>{{hostvars[device]['ansible_net_version']}}</td>
+        </tr>
+{% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>
+----
+
+TIP: In real life you would have some mechanism to make the resulting HTML page available on a webserver and keep the css in a separate file, of course. For the purpose of this lab we just embed it.
+
+Okay, let's run the Playbook:
+
+----
+[ansible@control ansible-files]$ ansible-playbook report_ios.yml
+----
+
+If everything went fine you should now have the file `report_ios.html` in the same folder. To make it available to your browser do the following steps:
+
+----
+[ansible@control ansible-files]$ exit
+logout
+[root@control ~]# cp /home/ansible/ansible-files/report_ios.html /var/www/html/
+----
+
+Now go and open `\http://<control hostname or ip>/report_ios.html` in your browser. Cool, isn't it?
+
+TIP: This lab is based on `\https://github.com/network-automation/ansible_inventory_report`. Have a look, there is lot more great examples to be found!
+
+==== Challenge Lab: Change the Report
+
+* Change the reporting so the version is not displayed yellow (so the desired version is the version your CSRs are actually running)
+* Make other facts available in the report, what about having the total memory in the report, too?
+
+WARNING: *Solution Below!*
+
+* Change the Playbook variable to `desired_ios_version: "16.07.01"`
+* Add a field to the table head:
+----
+<th>Memory</th>
+----
+* Add a field to the table row:
+----
+<td>{{hostvars[device]['ansible_net_memtotal_mb']}}</td>
+----
