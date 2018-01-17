@@ -390,26 +390,37 @@ WARNING: *Solution Below!*
 
 Now go back to the *TEMPLATES* view and launch *Networking Interface Configuration Template*
 
-* Before the actual launch the survey will ask for *WAN SUBNET* and *INTERFACE DESCRIPTION*. Fill in some subnet ip and text and launch.
+* Before the actual launch the survey will ask for *WAN SUBNET* and *INTERFACE DESCRIPTION*. Fill in the subnet ip `112` and the text `Ansible Tower controlled` and click on *LAUNCH*.
 
 TIP: Note how the two survey lines are shown to the left of the Job view as *EXTRA VARIABLES*.
 
-After the job has completed, check the output of the Playbook run in Tower. 
-TODO: add information how to check online
+After the job has completed, check the output of the Playbook run in Tower. Note that the new subnet IP is shown, also note the new description.
 
-* In the SSH console on control.example.com, run: 
+To highlight these changes, let's check them online:
+
+In the SSH console on control.example.com, run: 
 ----
-[root@control ~]# curl http://host1.example.com
+[ansible@control ~]# ssh admin@csr1.example.com
 ----
 
-You should see how the two variables where used by the playbook to create the content of the index.html file:
+In the following password query, enter the password `cisco`. After that, read the main configuration:
 
 ----
-<body>
-<h1>Apache is running fine</h1>
-<h1>This is survey field "First Line": line one</h1>
-<h1>This is survey field "Second Line": line two</h1>
-</body>
+csr1#enable
+csr1#show running-config  
+Building configuration...
+[...]
+----
+
+Press *space* two times to get the full output. The interface configuration rather at the end. It shows the new description and the new subnet:
+
+----
+interface GigabitEthernet3
+ description "Ansible Tower controlled"
+ ip address 10.0.112.100 255.255.255.0
+ negotiation auto
+ no mop enabled
+ no mop sysid
 ----
 
 == Ansible Tower Role Based Access Control
@@ -418,11 +429,13 @@ You have already learned how Tower separates credentials from users. Another adv
 
 === Ansible Tower Users
 
-There are three types of Tower Users:
+There are four types of Tower Users:
 
 * *Normal User*: Have read and write access limited to the inventory and projects for which that user has been granted the appropriate roles and privileges.
 * *System Auditor*: Auditors implicitly inherit the read-only capability for all objects within the Tower environment.
-* *System Administrator*:  Has admin, read, and write privileges over the entire Tower installation. 
+* *System Administrator*:  Has admin, read, and write privileges over the entire Tower installation.
+
+Also, when Tower is configured with multiple organizations (not covered in this lessons) there are organization admins: they have admin, read and write privileges in their entire organization, but not in others.
 
 Let's create a user:
 
@@ -435,6 +448,7 @@ Let's create a user:
 ** *USERNAME:* `nnetwork`
 ** *USER TYPE:* Normal User
 ** *PASSWORD:* <as provided>
+** *CONFIRM PASSWORD:* <as provided>
 * Click *SAVE*
 
 === Ansible Tower Teams
@@ -449,7 +463,7 @@ Create a Team:
 
 Now you can add a user to the Team:
 
-* Switch to the *Users* view of the `Network Team` by clicking the *USERS* button.
+* Switch to the *USERS* view of the `Network Team` by clicking the *USERS* button.
 * Click *+ADD* and select the `nnetwork` user.
 * The dialog now asks for a role to assign, the following permission settings are available:
 ** *Admin*: This User should have privileges to manage all aspects of the team
@@ -457,18 +471,18 @@ Now you can add a user to the Team:
 * Assign the *Member* role.
 * Click *SAVE*
 
-Now click the *PERMISSIONS* button in the *Team*  view, you will be greeted with "No Permissions Have Been Granted".
+Now click the *PERMISSIONS* button in the *Team*  view, you will be greeted with *NO PERMISSIONS HAVE BEEN GRANTED*.
 
 Permissions allow to read, modify, and administer projects, inventories, and other Tower elements. Permissions can be set for different resources.
 
 === Granting Permissions
 
-To allow users or teams to actually do something, you have to set permissions. The user *nnetwork* should only be allowed to modify content of the assigned webservers.
+To allow users or teams to actually do something, you have to set permissions. The user *nnetwork* should only be allowed to execute content to configure the assigned switches.
 
 * In the Permissions view of the Team `Network Team` click the *+ ADD PERMISSIONS* button.
 * A new window opens. You can choose to set permissions for a number of resources.
 ** Select the resource type *JOB TEMPLATES*
-** Choose the `TODO` Template by ticking the box next to it.
+** Choose the `Networking Interface Configuration Template` by ticking the box next to it.
 * The second part of the window opens, here you assign roles to the selected resource.
 ** Choose *Execute*
 * Click *SAVE*
@@ -476,222 +490,46 @@ To allow users or teams to actually do something, you have to set permissions. T
 === Test Permissions
 
 Now log out of Tower's web UI and in again as the *nnetwork* user.
-
-* Go to the *TEMPLATES* view, you should notice for Norbert only the `TODO` template is listed. He is allowed to view and lauch, but not to edit the Template.
-* Launch the Job Template, enter the survey content to your liking.
+g
+* Go to the *TEMPLATES* view, you should notice for Norbert only the `Networking Interface Configuration Template` is listed. The user is allowed to view and lauch, but not to edit the Template.
+* Launch the Job Template, enter the survey content: `42` as *WAN SUBNET* and `Ansible Tower controlled via user` as *INTERFACE DESCRIPTION*.
 * In the following *JOBS* view have a good look around, note that there where changes to the host (of course...).
 
 Check the result:
 
 * In the SSH console on control.example.com:
 ----
-TODO
+[ansible@control ~]$ ssh admin@csr2.example.com
+Password:
+csr2>enable
+Password:
+csr2#show running-config
+Building configuration...
+[...]
+interface GigabitEthernet3
+ description "Ansible Tower controlled via user"
+ ip address 10.0.42.110 255.255.255.0
+ negotiation auto
+ no mop enabled
+ no mop sysid
+[...]
 ----
 
-WARNING: For the next lab log out of the web UI and log in as user *admin* again. 
+== Final Lab or Putting it all Together
 
-== Ansible Tower Workflows (TODO)
-
-Workflows where introduced as a major new feature in Ansible Tower 3.1. The basic idea of a workflow is to link multiple Job Templates together. They may or may not share inventory, playbooks or even permissions. The links can be conditional: 
-
-* if job template A succeeds, job template B is automatically executed afterwards
-* but in case of failure, job template C will be run. 
-
-And the workflows are not even limited to Job Templates, but can also include project or inventory updates.
-
-TIP: This enables new applications for Tower: different Job Templates can build upon each other. E.g. the networking team creates playbooks with their own content, in their own Git repository and even targeting their own inventory, while the operations team also has their own repos, playbooks and inventory.
-
-In this lab you'll learn how to setup a workflow. 
-
-=== Lab Scenario
-
-You have two departements in your organization:
-
-* The web operations team that is developing Playbooks in their own Git repository.
-* The web applications team, that developes really cool JSP web applications for Tomcat in their Git repository.
-
-When there is a new Tomcat server to deploy, two things need to happen:
-
-* Tomcat needs to be installed, the firewall needs to be opened and Tomcat should get started.
-* The most recent version of the web application needs to be deployed.
-
-TIP: For the sake of this lab everything needed already exists in Git repositories: Playbooks, JSP-files etc. You just need to glue it together.
-
-=== Set up Projects
-
-First you have to set up the Git repos as Projects like you normally would. You have done this before, try to do this on your own. Detailed instructions can be found below. 
-
-TIP: Because the Git repos are on the same server (control.example.com) and belong to the same user (git) like the one you already configured, you can use the existing credentials.
-
-* Create the project for web operations:
-** It should be named *Webops Git Repo*
-** The URL to access the repo is *control.example.com:/home/git/git-webops*
-
-* Create the project for the application developers:
-** It should be named *Webdev Git Repo*
-** The URL to access the repo is *control.example.com:/home/git/git-webdev*
-
-WARNING: *Solution Below*
-
-* Create the project for web operations. In the Projects view click *+Add*
-** *Name:* Webops Git Repo
-** *Organization:* Default
-** *SCM Type:* Git
-** *SCM URL:* control.example.com:/home/git/git-webops
-** *SCM Credential:* control git
-** *SCM Update Options:* Tick all three boxes.
-* Click *Save*
-
-* Create the project for the application developers. In the Projects view click *+Add*
-** *Name:* Webdev Git Repo
-** *Organization:* Default
-** *SCM Type:* Git
-** *SCM URL:* control.example.com:/home/git/git-webdev
-** *SCM Credential:* control git
-** *SCM Update Options:* Tick all three boxes.
-* Click *Save*
-
-=== Set up Job Templates
-
-Now you have to create *Job Templates* like you would for "normal" Jobs.
-
-* Go to the Templates view and click *+Add* → *Job Template*
-** *Name:* Tomcat Deploy
-** *Job Type:* Run
-** *Inventory:* Example Inventory
-** *Project:* Webops Git Repo
-** *Playbook:* tomcat.yml
-** *Machine Credentials:* Example Credentials
-** Enable privilege escalation
-* Click *Save*
-
-* Go to the Templates view and click *+Add* → *Job Template*
-** *Name:* Web App Deploy
-** *Job Type:* Run
-** *Inventory:* Example Inventory
-** *Project:* Webdev Git Repo
-** *Playbook:* create_jsp.yml
-** *Machine Credentials:* Example Credentials
-** Enable privilege escalation
-* Click *Save*
-
-If you want to know what the Playbooks look like:
-
-* Log in via SSH to control.example.com as root
-* Have a look at the files in _/home/git/git-webops-work/_ and _/home/git/git-webdev-work/_
-
-=== Set up the Workflow
-
-And now you finally set up the workflow. Workflows are configured in the *Templates* view, you might have noticed you can choose between *Job Template* and *Workflow Job Template* when adding a template so this is finally making sense.
-
-* Go to the *Templates* view and click *+Add* -> *Workflow Job Template*
-** *Name:* Deploy Webapp Server
-** *Organization:* Default
-* Click *Save*
-* Now the *Workflow Editor* button becomes active, click it to start the graphical editor.
-* Click on the *Start* button, a new node opens. To the right you can assign an action to the node, you can choose between *Jobs*, *Project Sync* and *Inventory Sync*. 
-* In this lab we'll link Jobs together, so select the *Tomcat Deploy* job and click *Select*.
-* The node gets annotated with the name of the job. Hover the mouse pointer over the node, you'll see a red and green *+* signs appear.
-
-TIP: Using the red plus allows you to remove the node, the green plus lets you add the next node.
-
-* Click the green *+* sign
-* Choose *Web App Deploy* as the next Job (you might have to switch to the next page)
-* Leave *Type* set to *On Success*
-
-TIP: The type allows for more complex workflows. You could lay out different execution paths for successful and for failed Playbook runs.
-
-* Click *Select*
-* Click *Save*
-
-=== And Action
-
-Your workflow is ready to go, launch it.
-
-* In the *Template* view launch the *Deploy Webapp Server* workflow by clicking the rocket icon.
-* Wait until the job has finished. 
-
-TIP: Note how the workflow run is shown in the job view and you can choose the workflow nodes to get more information.  
-
-* To check everything worked fine, log into host1.example.com and host2.example.com from control.example.com and run:
-
-----
-[root@host1 ~]# curl http://localhost:8080/coolapp/
-----
-
-== Set Up and Use System Tracking (TODO)
-
-
-System Tracking is a cool feature that offers the ability to compare the results of two scan runs from different dates on one host or the same date on two hosts.
-
-WARNING: System Tracking, introduced as a new feature in Ansible Tower 2.2, is only available to those with Enterprise-level licenses!
-
-As System Tracking uses the facts collected by *Scan Runs*, these have to be setup first.
-
-=== Scan Job Templates
-
-Scan jobs are special Job Templates that only collect information about the host on which the job is running.
-
-Set up a scan job template:
-
-* As admin, add a new *Job Template*
-** *Name:* scanrun
-** *Job Type:* Scan
-** *Inventory:* Example Inventory
-** Project and Playbook will be automatically set to "Default", leave as is!
-** *Machine Credentials:* Example Credentials
-** Enable privilege escalation
-* Click *Save*
-
-Now run the scan job. Okay, this was nice, but we need another run. So just run the job again.
-
-=== System Tracking
-
-Now to the actual tracking:
-
-* Go to the *Inventories* view and click "Example Inventory"
-* Select host1.example.com
-* Click the *System Tracking* button.
-
-Tower will display the System Tracking results page. Have a look at the "Packages", "Services" and "Ansible" section. Looks all good apart from the fact there have been no changes...
-
-So to make system tracking more meaningful, we need to change something the scan job is looking for:
-
-* Run an ad hoc command against host1.example.com to install the package *tree*.
-* Run the scanrun job template again.
-* Run the System Tracking for host1.example.com again.
-
-Now the "Packages" section should show that package *tree* was absent and is now installed.
-
-WARNING: *Solution below*
-
-* Go to the *Inventories* view, choose "Example Inventory"
-* Select host1.example.com and click *Run Command*
-* Configure the ad hoc command:
-** *Module:* yum
-** *Arguments:* name=tree state=latest
-** *Machine Credentials:* Example Credentials
-** Enable privilege escalation
-* Click *Launch* and wait for the ad hoc command to finish
-* Go to *Templates* and launch the "scanjob" template by clicking the rocket symbol
-* Go to *Inventories*, select host1.example.com
-* Click the *System Tracking* button.
-
-== Final Lab or Putting it all Together (TODO)
-
-This is the final challenge where we try to put most of what you have learned together. 
+This is the final challenge where we try to put most of what you have learned together. For this lab log out of the web UI and log in as user *admin* again.
 
 === Let's set the stage
 
 Your operations team and your application development team like what they see in Tower. To really use it in their environment they put together these requirements:
 
-* All webservers (host1.example.com and host2.example.com) should go in one group
-* As the webservers can be used for development purposes or in production, there has to be a way to flag them accordingly as "stage dev" or "stage prod".
-** Currently host1 is used as a dev system and host2 in production.
-* Of course the content of the world famous application "index.html" will be different between dev and prod stages.  
-** There should be a headline stating the environment
-** There should be a content field
-* The content writer `wweb` should have access to a survey to change the content for dev and prod servers.
+* All switches (csr1.example.com and csr2.example.com) should go in one group
+* As the switches can be used for development purposes or in production, there has to be a way to flag them accordingly as "stage dev" or "stage prod".
+** Currently csr1 is used as a dev system and csr2 in production.
+* Of course the subnet and the famous description will be different between dev and prod stages.  
+** There should be an interface description stating the environment
+** There should be different subnets for each environment
+* The network admin `net-admin` should have access to a survey to change the subnet and description for dev and prod switches.
 
 === Set up the Git Repository
 
@@ -704,116 +542,117 @@ As a prerequsite you have to setup a new Git repo containing the needed files on
 
  * Create the bare Git repo:
 ----
-[git@control-<GUID> ~]$ git init --bare git-webserver
+[git@control-<GUID> ~]$ git init --bare git-switches
 ----
 
-* Create the working repo:
+* log out as user git, log in as user ansible:
 ----
-[git@control-<GUID> ~]$ mkdir git-webserver-work
-[git@control-<GUID> ~]$ cd git-webserver-work/
-[git@control-<GUID> git-webserver-work]$ git init .
+[git@control ~]$ exit
+logout
+[root@control ~]# su - ansible
+----
+
+* Create the working copy of the repo:
+----
+[ansible@control ~]$ mkdir git-switches
+[ansible@control ~]$ cd git-switches/
+[ansible@control git-switches]$ git init .
 ----
 
 * Set the bare repo as origin for the work repo (command is one line):
 ----
-[git@control-<GUID> git-webserver-work]$ git remote add origin git@control.example.com:/home/git/git-webserver
+[ansible@control git-switches]$ git remote add origin git@control.example.com:/home/git/git-switches
 ----
 
-* Create the files (a Playbook and two versions of index.html files) in the work repo _/home/git/git-webserver-work/_
+* Create the Playbook in the work repo _/home/ansible/git-switches_:
 
-_dev_index.html.j2_ 
-----
-<body>
-<h1>This is a development webserver, have fun!</h1>
-{{ dev_content }}
-</body>
-----
-
-_prod_index.html.j2_ 
-----
-<body>
-<h1>This is a production webserver, take care!</h1>
-{{ prod_content }}
-</body>
-----
-
-_stage_content.yml_
+_stage_switches.yml_
 ----
 ---
-- name: Deploy index.html
+- name: Deploy switch configuration
   hosts: all
   tasks:
 
-  - name: Creating index.html from template
-    template: 
-      src: "{{ stage }}_index.html.j2"
-      dest: /var/www/html/index.html
+    - name: change ip address
+      ios_config:
+        lines: "ip address 10.0.{{ wan_subnet }}.{{ wan_ip }} 255.255.255.0"
+        parents: interface GigabitEthernet 3
+
+    - name: change description
+      ios_config:
+        lines: description "{{ stage_switch }}"
+        parents: interface GigabitEthernet 3
 ----
 
 * Add the files, commit and push to origin:
 ----
-[git@control-<GUID> git-webserver-work]$ git add -A
-[git@control-<GUID> git-webserver-work]$ git commit -a -m "initial commit"
-[git@control-<GUID> git-webserver-work]$ git push origin master
+[ansible@control git-switches]$ git add stage_switches.yml
+[ansible@control git-switches]$ git commit -m "initial commit"
+[ansible@control git-switches]$ git push origin master
 ----
 
 === Prepare Inventory
 
 There is of course more then one way to accomplish this, but here is what you should do:
 
-* Put both hosts in the inventory group `Webserver`
-* Add a variable `stage: dev` to the inventory `Webserver`
-* Add a variable `stage: prod` to host2.example.com
+* Create an inventory `Switches` containing two sub-groups, `dev` and `prod`
+* Put `csr1.example.com` into group `dev`, and `csr2.example.com` into `prod`
+* Add a variable `stage_switch: dev` to group `dev` and `stage_switch: prod` to group `prod`
+* Add host specific variables to each switch setting the wan IP (not subnet).
 
 === Create the Project
 
-* Create a new *Project* named `Webcontent` using the new Git repository
+* Create a new *Project* named `Switch stages` using the new Git repository
 ** *Credentials*: control git
-** *SCM URL*: control.example.com:/home/git/git-webserver
+** *SCM URL*: control.example.com:/home/git/git-switches
 
 === Create the Template
 
-* Create a new *Template* named `Create Web Content` that 
-** targets the `Webserver` inventory 
-** uses the Playbook `stage_content.yml` from the new `Webcontent` Project
-** Defines two variables: `dev_content: default dev content` and `prod_content: default prod content`
+* Create a new *Template* named `Switch Stage Configuration` that 
+** targets the `Switches` inventory 
+** uses the Playbook `stage_switches.yml` from the new `Switch stages` Project
+** Define one variable: `wan_ip: 23`
 * Run the template
 
 === Check the results:
 
 ----
-[root@control ~]# curl http://host1.example.com
-<body>
-<h1>This is a development webserver, have fun!</h1>
-default dev content
-</body>
-----
-----
-[root@control ~]# curl http://host2.example.com
-<body>
-<h1>This is a production webserver, take care!</h1>
-default prod content
-</body>
+[ansible@control ~]$ ssh admin@csr2.example.com
+Password:
+csr2>enable
+Password:
+csr2#show running-config
+Building configuration...
+[...]
+interface GigabitEthernet3
+description "prod"
+ip address 10.0.23.110 255.255.255.0
+negotiation auto
+no mop enabled
+no mop sysid
+[...]
 ----
 
 === Add Survey
 
-* Add a survey to the Template to allow changing the variables `dev_content` and `prod_content` and make it available to user `wweb`.
-* Run the survey as user `wweb`
+* Add a survey to the Template to allow changing the variable `wan_subnet` and make it available to user `net-admin`.
+* Run the survey as user `net-admin`
 * Check the results:
 ----
-[root@control ~]# curl http://host1.example.com
-<body>
-<h1>This is a development webserver, have fun!</h1>
-This is somehow in development
-</body>
-----
-----
-[root@control ~]# curl http://host2.example.com
-<body>
-<h1>This is a production webserver, take care!</h1>
-This is my nice Prod Content
-</body>
+[ansible@control ~]$ ssh admin@csr2.example.com
+Password:
+csr2>enable
+Password:
+csr2#show running-config
+Building configuration...
+[...]
+interface GigabitEthernet3
+description "prod"
+ip address 10.0.111.110 255.255.255.0
+negotiation auto
+no mop enabled
+no mop sysid
+[...]
 ----
 
 === Solution
@@ -821,214 +660,4 @@ This is my nice Prod Content
 WARNING: *Solution Not Below*
 
 You have done all the required configuration steps in the lab already. If unsure, just refer back to the respective chapters. 
-
-== Optional: Ansible Tower Administration (TODO)
-
-Because the installation process takes a fair amount of time your Ansible Tower instance was already installed for you.
-
-But some words regarding the installation and basic administration should be in order. You should already have an SSH session open.
-
-=== Tower Installation
-
-Installation of Tower is really straight forward... I mean it's handled by Ansible. 
-
-* You download (preferably) the setup-bundle and unpack it on a minimal-install-RHEL machine.
-
-TIP: The setup-bundle installer includes all software so there will be no third-party Yum repos configured on the server... looks better in front of a customer.
-
-* You edit the inventory file and in the most simple case just put in a couple of passwords
-* You run `setup.sh` and lean back.
-
-TIP: For more options like an external database refer to the fine documentation.
-
-Have a look at your lab VM:
-
-* Change into the installer directory:
-----
-[root@tower ~]# cd /root/ansible-tower-setup-bundle-3.x.x.x.x/
-----
-
-* Have a look at the inventory file
-----
-[root@tower ansible-tower-setup-bundle-3.x.x.x.x]# cat inventory 
-[tower]
-localhost ansible_connection=local
-[...]
-----
-
-=== Basic Administration: Starting, Stopping, and Restarting Tower
-
-Ansible Tower includes an admin utility script, `ansible-tower-service`, that can start, stop, and restart the full tower infrastructure including the database and message queue. It resides in `/usr/bin/ansible-tower-service`.
-
-On your Tower VM, run:
-
-----
-[root@tower ~]# ansible-tower-service restart
-----
-
-And to get the status:
-
-----
-[root@tower ~]# ansible-tower-service status
-----
-
-=== Managing Tower with `tower-manage`
-
-The tool `tower-manage` can be used for a variety of administration tasks.
-
-On the Tower SSH console run the command to get an overview of the available commands:
-----
-[root@tower ~]# tower-manage  --help
-----
-
-As a starting point here are some examples. Run the commands and check the results in the web UI.
-
-* Change the password for a Tower user:
-----
-[root@tower ~]# tower-manage changepassword admin
-Changing password for user 'admin'
-Password: 
-Password (again): 
-Password changed successfully for user 'admin'
-----
-
-* Remove old jobs, project and inventory updates from the database.
-----
-[root@tower ~]# tower-manage cleanup_jobs -h # get help
-----
-Let's remove jobs:
-
-----
-[root@tower ~]# tower-manage cleanup_jobs --jobs --days=0 --dry-run # dry run
-[root@tower ~]# tower-manage cleanup_jobs --jobs --days=0 # do it
-----
-
-=== Python Usage in Tower
-
-Tower comes with a lot of Ansible Modules out of the box. But sometimes a Python dependency is missing or you would like to install another module. To separate the Python environments Tower is using a Python mechanism called "virtualenv". 
-
-Virtualenv creates isolated Python environments to avoid problems caused by conflicting dependencies and differing versions. Virtualenv works by simply creating a folder which contains all of the necessary executables and dependencies for a specific version of Python. 
-
-Ansible Tower creates two virtualenvs during installation in the home directory of user `awx` which Tower is running as. One is used to run Tower, while the other is used to run Ansible. This allows Tower to run in a stable environment, while allowing you to add or update modules to your Ansible Python environment.
-
-Have a look on your Tower:
-
-----
-[root@tower ~]# ll /var/lib/awx/venv/
-----
-
-If you have to modify or install something Python, leave the Tower virtualenv alone to ensure stable operation and  do changes to the virtualenv that Tower uses to run Ansible. Try it yourself:
-
-Become the `awx` user and switch to the Ansible virtualenv:
-
-----
-[root@tower ~]# su - awx
--bash-4.2$
--bash-4.2$ . /var/lib/awx/venv/ansible/bin/activate
-----
-
-Then you can install whatever you need using pip:
-
-----
-(ansible)-bash-4.2$ pip install packaging
-----
-
-TIP: This is actually a good example; on Tower 3.1.3 (at least) the Azure modules are not working because the module `packaging` is missing. 
-
-TIP: I'm not 100% sure if this has to be run as user `awx` but as all site-packages files for the virtualenv belong to user `awx` I'm reasonably sure... ;-) 
-
-== Optional: Tower Client (TODO)
-
-The tower-cli tool is a command line tool for Ansible Tower. It allows Tower commands to be easily run from the Unix command line. It can also be used as a client library for other python apps, or as a reference for others developing API interactions with Tower's REST API.
-
-=== Installation
-
-Tower-cli can be installed using pip or from the EPEL repository with Yum. To install tower-cli quick & dirty in your lab environment on control.example.com:
-
-* Open a terminal session to control.example.com 
-* As user root run
-----
-[root@control ~]# rpm -ivh /var/www/html/pub/epel/*
-----
-
-=== Configuration
-
-Configuration can be set in several places: tower-cli can edit its own configuration, or users can directly edit the configuration file.
-
-The preferred way to set configuration is with the tower-cli config command. The syntax is:
-
-----
-$ tower-cli config key value
-----
-
-By issuing tower-cli config with no arguments, you can see a full list of configuration options and where they are set.
-
-In most cases, you must set at least three configuration options (host, username, and password) which correspond to the location of your Ansible Tower instance and your credentials to authenticate to Tower.
-
-* Run:
-----
-[root@control ~]# tower-cli config host tower.example.com
-[root@control ~]# tower-cli config username admin
-[root@control ~]# tower-cli config password <Tower Admin PW>
-----
-
-=== Examples
-
-Here are some examples, just try a couple of them:
-
-----
-# List all users.
-$ tower-cli user list
-
-# Create a new user.
-$ tower-cli user create --username=guido --first-name=Guido \
-                        --last-name="Van Rossum" --email=guido@python.org \
-                        --password=password1234
-
-# List all non-superusers
-$ tower-cli user list --is-superuser=false
-
-# Get a user by ID.
-$ tower-cli user get <id>
-
-# Get the user with the given username.
-$ tower-cli user get --username=guido
-
-# Modify an existing user.
-# This would modify the first name of the user with the ID of <id> to "Gregor".
-$ tower-cli user modify <guido id> --first-name=Gregor
-
-# Modify an existing user, lookup by username.
-# This would use "username" as the lookup, and modify the first name.
-# Which fields are used as lookups vary by resource, but are generally
-# the resource's name.
-$ tower-cli user modify --username=guido --first-name=Guido
-
-# Delete a user.
-$ tower-cli user delete <id>
-
-# List jobs
-$ tower-cli job list
-
-# Launch a job.
-$ tower-cli job launch --job-template=<id>
-
-# Monitor a job.
-$ tower-cli job monitor <id>
-----
-
-=== Getting Help
-
-When in doubt, help is available!
-
-----
-$ tower-cli # help
-$ tower-cli user --help # resource specific help
-$ tower-cli user create --help # command specific help
-----
-
-
-
-
-
 
