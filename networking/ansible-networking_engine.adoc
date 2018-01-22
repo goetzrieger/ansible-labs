@@ -989,3 +989,12 @@ And finally test of this works:
 ----
 
 This should work nicely. You are now ready to go ahead to configure the VyOS router or run tasks on the CSR2 and the VyOS from one Playbook!
+
+=== Examples for Labs Tasks
+
+* Test the `vyos_config` module
+** Run backups of the config
+** Add it to the HTML report
+* Write a Playbook to write login banners for both router types
+** Have it write different content for the types
+ 
