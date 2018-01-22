@@ -885,3 +885,107 @@ WARNING: *Solution Below!*
 ----
 <td>{{hostvars[device]['ansible_net_memtotal_mb']}}</td>
 ----
+
+== It's Not all about CISCO...
+
+The real value of using Ansible for Network Automation is in managing heterogenous environments with one tool. So only playing with the beloved Cisco IOS is not everything we're after.
+
+To make this lab even more exciting we have added another brand of router: *VyOS*
+
+VyOS is an open source network operating system that started its live as a community fork of the Vyatta router platform when Vyatta Core got discontinued. VyOS is primarily based on Debian GNU/Linux and the Quagga routing engine. Its configuration syntax and command-line interface are loosely derived from Juniper JUNOS
+
+Unlike general purpose Linux distributions, VyOS uses "image installation" that mimics the user experience of traditional hardware routers and allows you to keep multiple VyOS versions on the same machine and switch to a previous version if something breaks after upgrade.
+
+=== Getting Started with VyOS
+
+To get a feel for the router, SSH into it and have a look around.
+
+TIP: The VyOS instance has already been configured with an IP address in the MGMT network and SSH has been enabled. The password of the *vyos* user is, well, *vyos*.
+
+----
+[ansible@control ansible-files]$ ssh vyos@vyos.example.com
+vyos@vyos:~$
+----
+
+The VyOS CLI is comprised of an operational mode and a configuration mode.
+
+* Operational mode:  allows to perform operational system tasks, view system and service status
+* Configuration mode: allows for the modification of system configuration.
+
+TIP: In the CLI the [?] key may be used to display available commands. The [tab] key can be used to auto-complete commands.
+
+Try this and play around a bit with the interface:
+
+----
+vyos@vyos:~$ s[tab]
+set   show
+vyos@vyos:~$ show[tab]
+vyos@vyos:~$ show login
+----
+
+=== Prepare the VyOS Router for Ansible
+
+Luckily Ansible comes with a good number of modules for VyOS out of the box. Exit the VyOS CLI and have a look:
+
+----
+[ansible@control ansible-files]$ ansible-doc -l | grep vyos
+----
+
+Looks not that different from what we have seen for our IOS devices. Let's start trying the *vyos_command* module first. To prepare the VyOS for Ansible management we basically have to go through the same steps as with the CSRs:
+
+* Make sure the connection works (SSH in this case) and you know the user/password.
+* Add the router to the inventory
+* Configure the connection settings as a provider data structure
+** You need to look up the provider parameter, most likely they will be different from the Cisco's.
+* Test the connection
+
+Try to do this on your own without the lab guide first
+
+==== Add the VyOS to the Inventory
+
+Edit the inventory file to make it look like this:
+
+----
+[csr]
+csr1.example.com
+csr2.example.com
+
+[vyos]
+vyos.example.com
+----
+
+==== Configure the `provider` Settings
+
+Look up the needed parameters, e.g.:
+
+----
+[ansible@control ansible-files]$ ansible-doc vyos_command
+----
+
+Okay, looks like we could use an SSH key or just user/password pair. For now we'll to the latter, for real life you would of course use an SSH key, wouldn't you?
+
+Add a new group_vars file for the `vyos` group and configure the provider:
+
+----
+[ansible@control ansible-files]$ cp group_vars/csr group_vars/vyos
+----
+
+Then go and change the file to look like this:
+
+----
+---
+vyos_connect:
+  host: "{{ inventory_hostname }}"
+  username: vyos
+  password: vyos
+
+ansible_connection: local
+----
+
+And finally test of this works:
+
+----
+[ansible@control ansible-files]$ ansible vyos.example.com -m vyos_command -a 'commands="show login" provider={{vyos_connect}}'
+----
+
+This should work nicely. You are now ready to go ahead to configure the VyOS router or run tasks on the CSR2 and the VyOS from one Playbook!
