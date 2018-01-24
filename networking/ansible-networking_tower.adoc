@@ -536,6 +536,11 @@ logout
 [ansible@control git-switches]$ git remote add origin git@control.example.com:/home/git/git-switches
 ----
 
+* Set the necessary identity data for Git:
+----
+[ansible@control git-switches]$ git config --global user.email "git@example.com" &&  git config --global user.name "git"
+----
+
 * Create the Playbook in the work repo _/home/ansible/git-switches_:
 
 _stage_switches.yml_
