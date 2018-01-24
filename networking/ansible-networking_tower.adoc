@@ -59,30 +59,7 @@ Essential for working with networking devices are the credentials used to access
 
 WARNING: This is one of the most important features of Tower: *Credential Separation*! Credentials are defined separately and not with the hosts or inventory settings.
 
-=== Better Safe then Sorry
-
-As this is an important part of your Tower setup, why not make sure I'm not making this up but to check credentials are properly setup for Ansible?
-
-* Open an SSH session to tower.example.com by SSH-ing into the control host and then jumping to Tower. On Tower become user `ansible`:
-----
-[root@control-<GUID> ~]# ssh tower.example.com
-[root@tower ~]# su - ansible
-----
-
-* SSH into `csr1.example.com` and `csr2.example.com` as the user `admin` with the password `cisco`, e.g.:
-
-----
-[ansible@tower ~]$ ssh admin@csr1.example.com
-csr1#show version
-Cisco IOS XE Software, Version 16.07.01
-Cisco IOS Software [Fuji], Virtual XE Software (X86_64_LINUX_IOSD-UNIVERSALK9-M), Version 16.7.1, RELEASE SOFTWARE (fc6)
-[...]
-csr1#exit
-----
-
-TIP: When you execute `show version` the information are shown in a *pager*. You can exit the pager by pressing the button `q`.
-
-=== Configure Networking Credentials
+* You should already have the web UI open, if not: Point your browser to *https://tower-GUID.rhpds.opentlc.com*, accept the certificate and log in as `admin`
 
 Now let's go and configure the credentials to access our managed hosts from Tower. In the Tower web UI click *Settings*, it is the gear-shaped icon to the upper right. From the settings choose the *Credentials* box. Now:
 
@@ -104,8 +81,6 @@ You have now setup credentials to use later for your networking devices.
 == Create an Inventory
 
 Additionally we need an inventory of your managed networking devices. This is the equivalent of an inventory file in Ansible Engine. There is a lot more to it (like dynamic inventories) but let's start with the basics.
-
-* You should already have the web UI open, if not: Point your browser to *https://tower-GUID.rhpds.opentlc.com*, accept the certificate and log in as `admin`
 
 Create the inventory:
 
