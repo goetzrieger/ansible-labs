@@ -117,7 +117,7 @@ For this lab you will use a pre-configured Git repository on `control.example.co
 
 ----
 ---
-- name: backup router configurations
+- name: change interface description
   hosts: all
   gather_facts: no
 
