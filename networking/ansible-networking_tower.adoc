@@ -284,7 +284,7 @@ In the SSH console on host control.example.com as user `git` create the playbook
       debug: var=new_config
 ----
 
-Note the similarity to the first playbook. However, in this case the description in the task *change description* is a variable: `interface_description`. Also, there is an additional task, *change ip address*, that defines the IP address for the third interface. The IP address is set together by two variables, `wan_ip` and `wan_ip`.
+Note the similarity to the first playbook. However, in this case the description in the task *change description* is a variable: `interface_description`. Also, there is an additional task, *change ip address*, that defines the IP address for the third interface. The IP address is set together by two variables, `wan_subnet` and `wan_ip`.
 
 === Add the Files to Git
 
