@@ -69,10 +69,10 @@ As this is an important part of your Tower setup, why not make sure I'm not maki
 [root@tower ~]# su - ansible
 ----
 
-* SSH into `csr1.example.com` and `csr2.example.com` and try something `sudo`, this should work without a password! E.g:
+* SSH into `csr1.example.com` and `csr2.example.com` as the user `admin` with the password `cisco`, e.g.:
 
 ----
-[ansible@tower ~]$ ssh csr1.example.com
+[ansible@tower ~]$ ssh admin@csr1.example.com
 csr1#show version
 Cisco IOS XE Software, Version 16.07.01
 Cisco IOS Software [Fuji], Virtual XE Software (X86_64_LINUX_IOSD-UNIVERSALK9-M), Version 16.7.1, RELEASE SOFTWARE (fc6)
