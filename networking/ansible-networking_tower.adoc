@@ -461,7 +461,7 @@ To allow users or teams to actually do something, you have to set permissions. T
 === Test Permissions
 
 Now log out of Tower's web UI and in again as the *nnetwork* user.
-g
+
 * Go to the *TEMPLATES* view, you should notice for Norbert only the `Networking Interface Configuration Template` is listed. The user is allowed to view and lauch, but not to edit the Template.
 * Launch the Job Template, enter the survey content: `42` as *WAN SUBNET* and `Ansible Tower controlled via user` as *INTERFACE DESCRIPTION*.
 * In the following *JOBS* view have a good look around, note that there where changes to the host (of course...).
