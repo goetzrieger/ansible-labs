@@ -406,8 +406,7 @@ There are four types of Tower Users:
 * *Normal User*: Have read and write access limited to the inventory and projects for which that user has been granted the appropriate roles and privileges.
 * *System Auditor*: Auditors implicitly inherit the read-only capability for all objects within the Tower environment.
 * *System Administrator*:  Has admin, read, and write privileges over the entire Tower installation.
-
-Also, when Tower is configured with multiple organizations (not covered in this lessons) there are organization admins: they have admin, read and write privileges in their entire organization, but not in others.
+* Also, when Tower is configured with multiple organizations (not covered in this lessons) there are *organization admins*: they have admin, read and write privileges in their entire organization, but not in others.
 
 Let's create a user:
 
