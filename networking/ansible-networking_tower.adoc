@@ -110,13 +110,15 @@ Additionally we need an inventory of your managed networking devices. This is th
 Create the inventory:
 
 * In the web UI go to *Inventories* and click *+ Add*
+* Pick *Inventory*
 * *Name:* `Networking Inventory`
 * *Organization:* Default
 * Click *Save*
 
 Add your managed hosts:
 
-* In the inventory view click the *HOSTS* button
+* Click on the just created inventory *Networking Inventory*
+* Click the *HOSTS* button
 * Click the *+Add Hosts* button
 * *Host Name:* `csr1.example.com`
 * Click *Save*
