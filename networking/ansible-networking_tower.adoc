@@ -59,9 +59,7 @@ Essential for working with networking devices are the credentials used to access
 
 WARNING: This is one of the most important features of Tower: *Credential Separation*! Credentials are defined separately and not with the hosts or inventory settings.
 
-* You should already have the web UI open, if not: Point your browser to *https://tower-GUID.rhpds.opentlc.com*, accept the certificate and log in as `admin`
-
-Now let's go and configure the credentials to access our managed hosts from Tower. In the Tower web UI click *Settings*, it is the gear-shaped icon to the upper right. From the settings choose the *Credentials* box. Now:
+You should already have the web UI open, if not: Point your browser to *https://tower-GUID.rhpds.opentlc.com*, accept the certificate and log in as `admin` with the given password. In the Tower web UI click *Settings*, it is the gear-shaped icon to the upper right. From the settings choose the *Credentials* box. Now:
 
 * Click the *+Add* button to add new credentials
 ** *Name:* Networking Credentials
@@ -72,7 +70,7 @@ TIP: Whenever you see a magnifiying glass icon next to an input field, clicking 
 ** *Type:* Network
 ** *Username:* admin
 
-As we are using password authentication, you have to provide a password - that can be used to access the networking devices - in the *PASSWORD* field.
+As we are using password authentication, you have to provide the password `cisco` - that can be used to access the networking devices - in the *PASSWORD* field.
 
 Additionally, often network devices require an additional *authorize* step to gain higher privileges. This can be activated via the check box in the part *OPTIONS* underneath the key field. Please do so, and enter the password again in the *AUTHORIZE PASSWORD* field.
 
