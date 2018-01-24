@@ -326,7 +326,7 @@ Now we have to pass the credentials to the module for authorization. Basically w
 
 TIP: As with the configuration of the connection parameters this will become more aligned with "regular" ansible in 2.5. E.g. there will be a parameter "become_method: enable". *As with all things roadmap: No guarantee*.
 
-Now the configuration backup should have worked on both devices. The backup is written to the directory `backup`. Have a look:
+Now the configuration backup should have worked on both devices. The backup is written to the directory `backup`. Have a look (your filenames will differ, of course):
 
 ----
 [ansible@control ansible-files]$ ll backup/
@@ -337,7 +337,11 @@ total 8
 
 TIP: You could easily use this to do regular backups of your device configurations. One thing to keep in mind though: Ansible by default deletes older files for the same host even while they are timestamped.
 
-As we have seen the configuration of the two devices should be different and we should be able to find this in the configuration backup. Have a quick look (your file names will differ):
+As we have seen the configuration of the two devices should be different and we should be able to find this in the configuration backup. Have a quick look:
+
+WARNING: You have to adapt the file names!
+
+TIP: This is one command line!
 
 ----
 [ansible@control ansible-files]$ diff -u backup/csr1.example.com_config.2018-01-15\@13\:47\:31 backup/csr2.example.com_config.2018-01-15\@13\:47\:31
@@ -532,7 +536,7 @@ Luckily Ansible can use Jinja2 templating to modify files before they are distri
 So let's convert the `master.cfg` file to a template to be used with our CSR routers. First clean up the file a bit and rename it to show it's a template:
 
 ----
-[ansible@control ansible-files]$ cat master.cfg | grep -v "!" > master_csr_config.j2
+[ansible@control ansible-files]$ cat master.cfg | grep -v '!' > master_csr_config.j2
 ----
 
 Delete the first couple of lines in `master_csr_config.j2`:
@@ -708,27 +712,27 @@ Now we need a Playbook to collect the facts and to write the HTML file based on 
 
 ----
 ---
-  - name: build IOS inventory
-    hosts: csr
-    connection: local
-    gather_facts:  False
+- name: build IOS inventory
+  hosts: csr
+  connection: local
+  gather_facts:  False
 
-    vars:
-       desired_ios_version: "16.06.01"
+  vars:
+    desired_ios_version: "16.06.01"
 
-    tasks:
+  tasks:
 
-      - name: gathering IOS facts
-        ios_facts:
-          provider: "{{ cisco_connect }}"
-        register: all_facts
+  - name: gathering IOS facts
+    ios_facts:
+      provider: "{{ cisco_connect }}"
+    register: all_facts
 
-      - name: create HTML report
-        template:
-          src: report_ios.j2
-          dest: ./report_ios.html
-        delegate_to: localhost
-        run_once: true
+  - name: create HTML report
+    template:
+      src: report_ios.j2
+      dest: ./report_ios.html
+    delegate_to: localhost
+    run_once: true
 ----
 
 Let's go through this:

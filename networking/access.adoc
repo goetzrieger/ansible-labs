@@ -1,0 +1,19 @@
+WARNING: Every seat has been assigned a GUID. 
+
+To find your GUID open this web page in your browser:
+
+*http://people.redhat.com/grieger/*
+
+To access your control host:
+
+* Open a terminal session
+* Log in to your control host as root using the hostname, the password will be given by the instructor.
+
+TIP: The hostname is: *control-<number>.rhpds.opentlc.com* 
+
+WARNING: *Replace <number> with the GUID assigned to your seat!*
+
+Example: If your GUID is "83d4", do this:
+----
+ssh root@control-83d4.rhpds.opentlc.com
+----
