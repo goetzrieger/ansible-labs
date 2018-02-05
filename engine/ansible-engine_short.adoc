@@ -597,7 +597,7 @@ stage: prod
 
 What is this about?
 
-* All servers in the `webserver` group are defined as members of the dev environment by default.
+* For all servers in the `webserver` group the variable `stage` with value `dev` is defined. So as default we flag them as members of the dev environment.
 * For server "host2.example.com" this is overriden and the host is flagged as a production server.
 
 === Create index.html Files
