@@ -106,16 +106,17 @@ Okay, let's get started. The first thing we need is an inventory of your managed
 
 Create the inventory:
 
-* In the web UI go to *Inventories* and click *+ Add*
-* *Name:* Example Inventory
-* *Organization:* Default
-* Click *Save*
+* In the web UI go to *INVENTORIES* and click *+ ADD->Inventory*
+* *NAME::* Example Inventory
+* *ORGANIZATION:* Default
+* Click *SAVE*
 
 Add your managed hosts:
 
-* In the inventory view click the *+Add Hosts* button
-* *Host Name:* host1.example.com
-* Click *Save*
+* In the inventory view click the *HOSTS* button
+* To the right click *+ADD HOST*
+* *HOST NAME:* host1.example.com
+* Click *SAVE*
 * Repeat to add `host2.example.com` as a second host.
 
 You have now created an inventory with two managed hosts.
@@ -124,7 +125,7 @@ You have now created an inventory with two managed hosts.
 
 One of the great features of Ansible Tower is to make credentials usable to users without making them visible. To allow Tower to execute jobs on remote hosts, you must configure connection credentials. 
 
-TIP: This is again the equivalent of what you would do to prepare hosts for "plain" Ansible. The managed hosts in your lab have already been setup to allow user ansible key authenticated SSH access and sudo rights from tower.example.com on the OS level. The only thing missing is to hand over the private key to Tower.
+TIP: This is the equivalent of what you would do to prepare hosts for "plain" Ansible. The managed hosts in your lab have already been setup to allow user ansible key authenticated SSH access and sudo rights from tower.example.com on the OS level. The only thing missing is to hand over the private key to Tower.
 
 WARNING: This is one of the most important features of Tower: *Credential Separation*! Credentials are defined separately and not with the hosts or inventory settings.
 
@@ -150,17 +151,17 @@ root:$6$
 
 === Configure Machine Credentials
 
-Now let's go and configure the credentials to access our managed hosts from Tower. In the Tower web UI click *Settings*, it is the gear-shaped icon to the upper right. From the settings choose the *Credentials* box. Now:
+Now let's go and configure the credentials to access our managed hosts from Tower. In the Tower web UI click *Settings*, it is the gear-shaped icon to the upper right. From the settings choose the *CREDENTIALS* box. Now:
 
-* Click the *+Add* button to add new credentials
-** *Name:* Example Credentials
-** *Organization:* Default
+* Click the *+ADD* button to add new credentials
+** *NAME:* Example Credentials
+** *ORGANIZATION:* Default
 
 TIP: Whenever you see a magnifiying glass icon next to an input field, clicking it will open a list to choose from.
 
-** *Type:* Machine
-** *Username:* ansible
-** *Privilege Escalation:* Sudo
+** *CREDENTIAL TYPE:* Machine
+** *USERNAME:* ansible
+** *PRIVILEGE ESCALATION METHOD:* Sudo
 
 As we are using SSH key authentication, you have to provide an SSH private key that can be used to access the hosts. You could also configure password authentication here.
 
@@ -170,9 +171,9 @@ As we are using SSH key authentication, you have to provide an SSH private key t
 [ansible@tower ~]$ cat .ssh/id_rsa
 ----
 
-* Copy the complete private key (including "BEGIN" and "END" lines) and paste it into the *Private Key* window in the web UI.
-* Click *Save*
-* Go back to *Settings -> Credentials -> Example Credentials* and note that the SSH key is not visible. 
+* Copy the complete private key (including "BEGIN" and "END" lines) and paste it into the *SSH PRIVATE KEY* field in the web UI.
+* Click *SAVE*
+* Go back to *Settings -> CREDENTIALS -> Example Credentials* and note that the SSH key is not visible. 
 
 You have now setup credentials to use later for your inventory hosts.
 
@@ -180,12 +181,12 @@ You have now setup credentials to use later for your inventory hosts.
 
 As you've probably done with Ansible before you can run ad hoc commands from Tower as well.
 
-* In the web UI go to *Inventories -> Example Inventory* 
-* Select the two hosts by ticking the boxes to the left of the host entries.
-* Click *Run Commands*. In the next screen you have to specify the ad hoc command:
-** As *Module* choose *Ping*
-** For *Machine Credentials* click the magnifying glass icon and choose *Example Credentials*.
-** Click *Launch*, lean back and enjoy the show... 
+* In the web UI go to *INVENTORIES -> Example Inventory* 
+* Click the *HOSTS* button to change into the hosts view and select the two hosts by ticking the boxes to the left of the host entries.
+* Click *RUN COMMANDS*. In the next screen you have to specify the ad hoc command:
+** As *MODULE* choose *Ping*
+** For *MACHINE CREDENTIAL* click the magnifying glass icon and select *Example Credentials*.
+** Click *LAUNCH*, lean back and enjoy the show... 
 
 TIP: After choosing the module to run, Tower will provide a link to the docs page of the module when clicking the question mark next to "Arguments". This is handy, give it a try.
 
@@ -194,18 +195,18 @@ Try other modules in ad hoc commands, as well:
 TIP: Don't forget the Credentials!
 
 * Find the userid of the executing user using an ad hoc command.
-** *Module:* command 
-** *Arguments:* id
+** *MODULE:* command 
+** *ARGUMENTS:* id
 
 TIP: The simple *Ping* module doesn't need options. For the command module you need to supply the command to run as an argument.
 
 * Print out _/etc/shadow_.
-** *Module:* command
-** *Arguments:* cat /etc/shadow
+** *MODULE:* command
+** *ARGUMENTS:* cat /etc/shadow
 
 Oops, the last one didn't went well, all red. 
 
-* Re-run the last ad hoc command but this time tick the "Enable Privilege Escalation" box. 
+* Re-run the last ad hoc command but this time tick the *ENABLE PRIVILEGE ESCALATION* box. 
 
 TIP: For tasks that have to run as root you need to escalate the privileges. This is the same as the *become: yes* you've probably used often in your Ansible Playbooks.
 
@@ -219,9 +220,9 @@ TIP: If unsure, consult the documentation either via the web UI as shown above o
 
 WARNING: *Solution below!*
 
-* *Module:* yum
-* *Arguments:* name=screen
-* Tick *Enable Privilege Escalation*
+* *MODULE:* yum
+* *ARGUMENTS:* name=screen
+* Tick *ENABLE PRIVILEGE ESCALATION*
 
 == Using Variables
 
