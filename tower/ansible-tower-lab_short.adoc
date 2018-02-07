@@ -228,15 +228,16 @@ WARNING: *Solution below!*
 
 You might have seen you can add variables for a host in the inventory.
 
-* Go to *Inventories -> Example Inventory* and edit `host1.example.com` by clicking the pen icon.
-* Add a variable named "file" by putting *file: /etc/passwd* under the YAML start (the three dashes)
+* Go to *INVENTORIES -> Example Inventory*, switch to the *HOSTS* view and edit `host1.example.com` by clicking the pen icon.
+* Add a variable named "file" by putting *file: /etc/passwd* in the *VARIABLES* field under the YAML start (the three dashes)
 
 TIP: There has to be a blank between the *file:* and the content string
 
-* Click *Save*
+* Click *SAVE*
 * Now run an ad hoc command on `host1.example.com`
-** *Module:* command
-** *Arguments:* cat {{ file }}
+** *MODULE:* command
+** *ARGUMENTS:* cat {{ file }}
+** *MACHINE CREDENTIAL:* Example Credentials
 * The output should now show the content of the file.
 
 == Add a new Project
@@ -289,7 +290,7 @@ To configure and use this repository as a *Source Control Management (SCM)* syst
 
 === Create Credentials
 
-First we have to create credentials again, this time to access the Git repository over SSH. As you will need the private key of user git (the repo owner) from control.example.com for the credentials:
+First we have to create credentials again, this time to access the Git repository over SSH. You will need the private key of user git (the repo owner) from control.example.com for the credentials:
 
 * In a terminal log in to control.example.com as root. Then become user git and `cat` the SSH private key:
 ----
@@ -299,62 +300,62 @@ First we have to create credentials again, this time to access the Git repositor
 
 * Copy the complete private key (including "BEGIN" and "END" lines) into the clipboard
 
-In the Tower web UI click the icon for *Settings*. From the settings choose the *Credentials* box. 
+In the Tower web UI click the gear-icon for *Settings*. From the settings choose the *CREDENTIALS* box. 
 
-* Click the *+Add* button to add new credentials
-* *Name*: control git
-* *Type*: *Source Control*
-* *Username*: git
-* Paste the SSH private key for the git user from control.example.com into the box
-* Click *Save*
+* Click the *+ADD* button to add new credentials
+* *NAME*: control git
+* *CREDENTIAL TYPE*: *Source Control*
+* *USERNAME*: git
+* Paste the SSH private key for the git user from control.example.com into the *SCM PRIVATE KEY* field
+* Click *SAVE*
 
 === Create the Project
 
-* In the *Projects* view click *+Add*
-* *Name:* Control Git Repo
-* *Organization:* Default
-* *SCM Type:* Git
+* In the *PROJECTS* view click *+ADD*
+* *NAME:* Control Git Repo
+* *ORGANIZATION:* Default
+* *SCM TYPE:* Git
 * Point to the Git repo on the control host: 
 ** *SCM URL:* control.example.com:/home/git/git-repo
-* *SCM Credential:* control git
-* *SCM Update Options:* Tick all three boxes to always get a fresh copy of the repository and to update the repository when launching a job.
-* Click *Save*
+* *SCM CREDENTIAL:* Control Git
+* *SCM UPDATE OPTIONS:* Tick all three boxes to always get a fresh copy of the repository and to update the repository when launching a job.
+* Click *SAVE*
 
 TIP: The new Project will be synced after creation automatically. 
 
-Sync the Project again with the Git repository by going to the *Projects* view and clicking the cloudy *Start an SCM Update* icon to the right of the Project.
+Sync the Project again with the Git repository by going to the *PROJECTS* view and clicking the cloudy *Start an SCM Update* icon to the right of the Project.
 
-* After starting the sync job, go to the *Jobs* view, find your job and have a look at the details.
+* After starting the sync job, go to the *JOBS* view, find your job and have a look at the details.
 
 == Create a Job Template and Run a Job
 
 A job template is a definition and set of parameters for running an Ansible job. Job templates are useful to execute the same job many times. So before running an Ansible *Job* from Tower you must create a *Job Template* that pulls together:
 
-* Inventory: On what hosts should the job run?
-* Credentials for the hosts
-* Project: Where is the Playbook?
-* What Playbook to use?
+* *Inventory*: On what hosts should the job run?
+* *Credentials* for the hosts
+* *Project*: Where is the Playbook?
+* *What* Playbook to use?
 
 Okay, let's just do that:
 
-* Go to the *Templates* view and click *+Add* -> *Job Template*
-** *Name:* Apache
-** *Job Type:* Run
-** *Inventory:* Example Inventory
-** *Project:* Control Git Repo
-** *Playbook:* apache.yml
-** *Machine Credentials:* Example Credentials
+* Go to the *TEMPLATES* view and click *+ADD* -> *JOB TEMPLATE*
+** *NAME:* Apache
+** *JOB TYPE:* Run
+** *INVENTORY:* Example Inventory
+** *PROJECT:* Control Git Repo
+** *PLAYBOOK:* apache.yml
+** *CREDENTIAL:* Example Credentials
 ** We need to run the tasks as root so check *Enable privilege escalation*
-** Click *Save*
+** Click *SAVE*
 
-Start a Job using this Job Template by going to the *Templates* view and clicking the rocket icon. Have a good look at the information the view provides.
+Start a Job using this Job Template by going to the *TEMPLATES* view and clicking the rocket icon. Have a good look at the information the view provides.
 
-TIP: This will take a couple of minutes because you configured the Project to update the SCM on launch. 
+TIP: This might take some time because you configured the Project to update the SCM on launch. 
 
-After the Job has finished go to the *Jobs* view:
+After the Job has finished go to the *JOBS* view:
 
 * All jobs are listed here, you should see directly before the Playbook run an SCM update was started. 
-* This is the Git update we configured for the *Project* on launch!
+* This is the Git update we configured for the *PROJECT* on launch!
 
 === Challenge Lab: Check the Result
 
@@ -368,30 +369,30 @@ TIP: What about `systemctl status httpd`?
 
 WARNING: *Solution Below*
 
-* Go to *Inventories* -> *Example Inventory*
-* Select both hosts and click *Run Commands*
-* *Module:* command
-* *Arguments:* systemctl status httpd
-* *Machine Credentials:* Example Credentials
-* Click *Launch*
+* Go to *INVENTORIES* -> *Example Inventory*
+* In the *HOSTS* view select both hosts and click *RUN COMMANDS*
+* *MODULE:* command
+* *ARGUMENTS:* systemctl status httpd
+* *MACHINE CREDENTIALS:* Example Credentials
+* Click *LAUNCH*
 
 === Challenge Lab
 
 Here is another challenge:
 
 * Create a new inventory called `Webserver` and make only host1.example.com member of it.
-* Copy the `Apache` template to `Apache Ask` using the copy icon in the *Templates* view
-** Change the *Inventory* setting of the Project so it will ask for the inventory on launch
-** *Save*
-* Go to the *Templates* view and launch the `Apache Ask` template.
-* It will now ask for the inventory to use, choose the `Webserver` inventory and click *Launch*
+* Copy the `Apache` template to `Apache Ask` using the copy icon in the *TEMPLATES* view
+** Change the *INVENTORY* setting of the Project so it will ask for the inventory on launch
+** *SAVE*
+* Go to the *TEMPLATES* view and launch the `Apache Ask` template.
+* It will now ask for the inventory to use, choose the `Webserver` inventory and click *LAUNCH*
 * Wait until the Job has finished and make sure it run only on host1.example.com
 
 TIP: The Job didn't change anything because Apache was already installed in the latest version.
 
 == Create a Survey
 
-You might have noticed the *Add Survey* button in the *Template* configuration view. A survey is a way to create a simple form to ask for parameters that get used as variables when a *Template* is launched as a *Job*.
+You might have noticed the *ADD SURVEY* button in the *TEMPLATE* configuration view. A survey is a way to create a simple form to ask for parameters that get used as variables when a *Template* is launched as a *Job*.
 
 You have installed Apache on both hosts in the job you just run. Now we're going to extend on this, the task is to:
 
@@ -403,7 +404,7 @@ You have installed Apache on both hosts in the job you just run. Now we're going
 
 === Create the index.html Jinja Template
 
-In the SSH console on host control.example.com as user `git` create the _index.html_ template as _/home/git/git-work/index.j2_ with the following content: 
+In the SSH console on host control.example.com as user `git` create a template as _/home/git/git-work/index.j2_ with the following content: 
 ----
 <body>
 <h1>Apache is running fine</h1>
@@ -446,8 +447,8 @@ TIP: In real world scenarios you would structure your Git (or whatever SCM) in a
 
 Now that we have new content in the Git repo, you can update the *Project* with the new Git content:
 
-* Go to the *Projects* view and start an SCM update for "Control Git Repo" (the cloudy button). 
-* Change to the *Jobs* view, look for the job and click it. Watch the output and wait until the job has finished successfully.
+* Go to the *PROJECTS* view and start an SCM update for "Control Git Repo" (the cloudy button). 
+* Change to the *JOBS* view, look for the job and click it. Watch the output and wait until the job has finished successfully.
 
 TIP: As you've configured the Project to update on launch, this would have happenend anyway.
 
@@ -455,8 +456,8 @@ TIP: As you've configured the Project to update on launch, this would have happe
 
 Now you create a new Template that includes a survey:
 
-* Go to *Templates* and click *+Add* -> *Job Template*
-* *Name:* create index.html
+* Go to *TEMPLATES* and click *+ADD* -> *Job Template*
+* *NAME:* Create index.html
 * Set the proper parameters for the job to
 ** Use the new playbook
 ** To run on host1.example.com
@@ -466,34 +467,34 @@ Try for yourself, the solution is below.
 
 WARNING: *Solution Below!*
 
-* *Name:* create index.html
-* *Job Type:* Run
-* *Inventory:* Webserver
-* *Project:* Control Git Repo
-* *Playbook:* index_html_create.yml
-* *Machine Credentials:* Example Credentials
-* *Options:* Enable Privilege Escalation 
-* Click *Save*
+* *NAME:* create index.html
+* *JOB TYPE:* Run
+* *INVENTORY:* Webserver
+* *PROJECT:* Control Git Repo
+* *PLAYBOOK:* index_html_create.yml
+* *CREDENTIAL:* Example Credentials
+* *OPTIONS:* Enable Privilege Escalation 
+* Click *SAVE*
 
 ==== Add the Survey
 
-* In the Template, click the *Add Survey* button
-* Under *Add Survey Prompt* fill in:
-** *Prompt:* First Line
-** *Answer Variable Name:* first_line
-** *Answer Type:* Text
-* Click *+Add*
+* In the Template, click the *ADD SURVEY* button
+* Under *ADD SURVEY PROMPT* fill in:
+** *PROMPT:* First Line
+** *ANSWER VARIABLE NAME:* first_line
+** *ANSWER TYPE:* Text
+* Click *+ADD*
 * In the same way add a second *Survey Prompt*
-** *Prompt:* Second Line
-** *Answer Variable Name:* second_line
-** *Answer Type:* Text
-* Click *+Add*
-* Click *Save* for the Survey
-* Click *Save* for the Template
+** *PROMPT:* Second Line
+** *ANSWER VARIABLE NAME:* second_line
+** *ANSWER TYPE:* Text
+* Click *+ADD*
+* Click *SAVE* for the Survey
+* Click *SAVE* for the Template
 
 === Launch the Template
 
-Now go back to the *Template* view and launch *Create index.html*.
+Now go back to the *TEMPLATES* view and launch *Create index.html*.
 
 * Before the actual launch the survey will ask for *First Line* and *Second Line*. Fill in some text and launch.
 
@@ -530,16 +531,17 @@ There are three types of Tower Users:
 
 Let's create a user:
 
-* Go to *Settings* by clicking the "gear"-icon and choose *Users*
-* Click *+Add*
+* Go to *Settings* by clicking the "gear"-icon and choose *USERS*
+* Click *+ADD*
 * Fill in the values for the new user:
-** *First Name:* Werner
-** *Last Name:* Web
-** *Email:* wweb@example.com
-** *Username:* wweb
-** *User Type:* Normal User
-** *Password:* <as provided>
-* Click *Save*
+** *FIRST NAME:* Werner
+** *LAST NAME:* Web
+** *EMAIL:* wweb@example.com
+** *USERNAME:* wweb
+** *USER TYPE:* Normal User
+** *PASSWORD:* <as provided>
+** Confirm password
+* Click *SAVE*
 
 === Ansible Tower Teams
 
@@ -547,21 +549,21 @@ A Team is a subdivision of an organization with associated users, projects, cred
 
 Create a Team:
 
-* Go to *Settings* and choose *Teams*.
-* Click *+Add* and create a team named `Web Content`.
-* Click *Save*
+* Go to *Settings* and choose *TEAMS*.
+* Click *+ADD* and create a team named `Web Content`.
+* Click *SAVE*
 
 Now you can add a user to the Team:
 
-* Switch to the User view of the `Web Content` Team by clicking the *Users* button.
-* Click *+Add* and select the `wweb` user.
+* Switch to the Users view of the `Web Content` Team by clicking the *USERS* button.
+* Click *+ADD* and select the `wweb` user.
 * The dialog now asks for a role to assign, the following permission settings are available:
 ** Admin: This User should have privileges to manage all aspects of the team
 ** Member: This User should be a member of the team
 * Assign the *Member* role.
-* Click *Save*
+* Click *SAVE*
 
-Now click the *Permissions* button in the *Team*  view, you will be greeted with "No Permissions Have Been Granted".
+Now click the *PERMISSIONS* button in the *TEAMS*  view, you will be greeted with "No Permissions Have Been Granted".
 
 Permissions allow to read, modify, and administer projects, inventories, and other Tower elements. Permissions can be set for different resources.
 
@@ -569,21 +571,21 @@ Permissions allow to read, modify, and administer projects, inventories, and oth
 
 To allow users or teams to actually do something, you have to set permissions. The user *wweb* should only be allowed to modify content of the assigned webservers.
 
-* In the Permissions view of the Team `Web Content` click the *+ Add Permissions* button.
+* In the Permissions view of the Team `Web Content` click the *+ ADD PERMISSIONS* button.
 * A new window opens. You can choose to set permissions for a number of resources.
-** Select the resource type *Job Templates*
-** Choose the `create index.html` Template by ticking the box next to it.
+** Select the resource type *JOB TEMPLATES*
+** Choose the `Create index.html` Template by ticking the box next to it.
 * The second part of the window opens, here you assign roles to the selected resource.
-** Choose *Execute*
-* Click *Save*
+** Choose *EXECUTE*
+* Click *SAVE*
 
 === Test Permissions
 
 Now log out of Tower's web UI and in again as the *wweb* user.
 
-* Go to the *Templates* view, you should notice for Werner only the `create index.html` template is listed. He is allowed to view and lauch, but not to edit the Template.
+* Go to the *TEMPLATES* view, you should notice for Werner only the `Create index.html` template is listed. He is allowed to view and lauch, but not to edit the Template.
 * Launch the Job Template, enter the survey content to your liking.
-* In the following *Jobs* view have a good look around, note that there where changes to the host (of course...).
+* In the following *JOBS* view have a good look around, note that there where changes to the host (of course...).
 
 Check the result:
 
@@ -592,11 +594,19 @@ Check the result:
 [root@control ~]# curl http://host1.example.com
 ----
 
+Just recall what you have just done: You enabled a restricted user to run an Ansible Playbook
+
+* Without having access to the credentials
+* Without being able to change the Playbook itself
+* But with the ability to change variables you predefined!
+
+TIP: This capability is one of the main points of Ansible Tower!
+
 WARNING: For the next lab log out of the web UI and log in as user *admin* again. 
 
 == Ansible Tower Workflows
 
-Workflows where introduced as a major new feature in Ansible Tower 3.1. The basic idea of a workflow is to link multiple Job Templates together. They may or may not share inventory, playbooks or even permissions. The links can be conditional: 
+Workflows where introduced as a major new feature in Ansible Tower 3.1. The basic idea of a workflow is to link multiple Job Templates together. They may or may not share inventory, Playbooks or even permissions. The links can be conditional: 
 
 * if job template A succeeds, job template B is automatically executed afterwards
 * but in case of failure, job template C will be run. 
@@ -637,47 +647,47 @@ TIP: Because the Git repos are on the same server (control.example.com) and belo
 
 WARNING: *Solution Below*
 
-* Create the project for web operations. In the Projects view click *+Add*
-** *Name:* Webops Git Repo
-** *Organization:* Default
-** *SCM Type:* Git
+* Create the project for web operations. In the *PROJECTS* view click *+ADD*
+** *NAME:* Webops Git Repo
+** *ORGANIZATION:* Default
+** *SCM TYPE:* Git
 ** *SCM URL:* control.example.com:/home/git/git-webops
-** *SCM Credential:* control git
-** *SCM Update Options:* Tick all three boxes.
-* Click *Save*
+** *SCM CREDENTIAL:* Control Git
+** *SCM UPDATE OPTIONS:* Tick all three boxes.
+* Click *SAVE*
 
 * Create the project for the application developers. In the Projects view click *+Add*
-** *Name:* Webdev Git Repo
-** *Organization:* Default
-** *SCM Type:* Git
+** *NAME:* Webdev Git Repo
+** *ORGANIZATION:* Default
+** *SCM TYSPE:* Git
 ** *SCM URL:* control.example.com:/home/git/git-webdev
-** *SCM Credential:* control git
-** *SCM Update Options:* Tick all three boxes.
-* Click *Save*
+** *SCM CREDENTIAL:* Control Git
+** *SCM UPDATE OPTIONS:* Tick all three boxes.
+* Click *SAVE*
 
 === Set up Job Templates
 
-Now you have to create *Job Templates* like you would for "normal" Jobs.
+Now you have to create Job Templates like you would for "normal" Jobs.
 
-* Go to the Templates view and click *+Add* → *Job Template*
-** *Name:* Tomcat Deploy
-** *Job Type:* Run
-** *Inventory:* Example Inventory
-** *Project:* Webops Git Repo
-** *Playbook:* tomcat.yml
-** *Machine Credentials:* Example Credentials
-** Enable privilege escalation
-* Click *Save*
+* Go to the *TEMPLATES* view and click *+ADD* → *Job Template*
+** *NAME:* Tomcat Deploy
+** *JOB TYPE:* Run
+** *INVENTORY:* Example Inventory
+** *PROJECT:* Webops Git Repo
+** *PLAYBOOK:* tomcat.yml
+** *CREDENTIAL:* Example Credentials
+** *OPTIONS:* Enable privilege escalation
+* Click *SAVE*
 
-* Go to the Templates view and click *+Add* → *Job Template*
-** *Name:* Web App Deploy
-** *Job Type:* Run
-** *Inventory:* Example Inventory
-** *Project:* Webdev Git Repo
-** *Playbook:* create_jsp.yml
-** *Machine Credentials:* Example Credentials
-** Enable privilege escalation
-* Click *Save*
+* Go to the *TEMPLATES* view and click *+ADD* → *Job Template*
+** *NAME:* Web App Deploy
+** *JOB TYPE:* Run
+** *INVENTORY:* Example Inventory
+** *PROJECT:* Webdev Git Repo
+** *PLAYBOOK:* create_jsp.yml
+** *CREDENTIALS:* Example Credentials
+** *OPTIONS:* Enable privilege escalation
+* Click *SAVE*
 
 If you want to know what the Playbooks look like:
 
@@ -686,16 +696,16 @@ If you want to know what the Playbooks look like:
 
 === Set up the Workflow
 
-And now you finally set up the workflow. Workflows are configured in the *Templates* view, you might have noticed you can choose between *Job Template* and *Workflow Job Template* when adding a template so this is finally making sense.
+And now you finally set up the workflow. Workflows are configured in the *TEMPLATES* view, you might have noticed you can choose between *Job Template* and *Workflow Template* when adding a template so this is finally making sense.
 
-* Go to the *Templates* view and click *+Add* -> *Workflow Job Template*
-** *Name:* Deploy Webapp Server
-** *Organization:* Default
-* Click *Save*
-* Now the *Workflow Editor* button becomes active, click it to start the graphical editor.
-* Click on the *Start* button, a new node opens. To the right you can assign an action to the node, you can choose between *Jobs*, *Project Sync* and *Inventory Sync*. 
+* Go to the *TEMPLATES* view and click *+ADD* -> *Workflow Template*
+** *NAME:* Deploy Webapp Server
+** *ORGANIZATION:* Default
+* Click *SAVE*
+* Now the *WORKFLOW EDITOR* button becomes active, click it to start the graphical editor.
+* Click on the *START* button, a new node opens. To the right you can assign an action to the node, you can choose between *JOBS*, *PROJECT SYNC* and *INVENTORY SYNC*. 
 * In this lab we'll link Jobs together, so select the *Tomcat Deploy* job and click *Select*.
-* The node gets annotated with the name of the job. Hover the mouse pointer over the node, you'll see a red and green *+* signs appear.
+* The node gets annotated with the name of the job. Hover the mouse pointer over the node, you'll see a red *x* and a green *+* signs appear.
 
 TIP: Using the red plus allows you to remove the node, the green plus lets you add the next node.
 
@@ -705,14 +715,14 @@ TIP: Using the red plus allows you to remove the node, the green plus lets you a
 
 TIP: The type allows for more complex workflows. You could lay out different execution paths for successful and for failed Playbook runs.
 
-* Click *Select*
-* Click *Save*
+* Click *SELECT*
+* Click *SAVE*
 
 === And Action
 
 Your workflow is ready to go, launch it.
 
-* In the *Template* view launch the *Deploy Webapp Server* workflow by clicking the rocket icon.
+* In the *TEMPLATES* view launch the *Deploy Webapp Server* workflow by clicking the rocket icon.
 * Wait until the job has finished. 
 
 TIP: Note how the workflow run is shown in the job view and you can choose the workflow nodes to get more information.  
@@ -722,63 +732,6 @@ TIP: Note how the workflow run is shown in the job view and you can choose the w
 ----
 [root@host1 ~]# curl http://localhost:8080/coolapp/
 ----
-
-== Set Up and Use System Tracking
-
-System Tracking is a cool feature that offers the ability to compare the results of two scan runs from different dates on one host or the same date on two hosts.
-
-WARNING: System Tracking, introduced as a new feature in Ansible Tower 2.2, is only available to those with Enterprise-level licenses!
-
-As System Tracking uses the facts collected by *Scan Runs*, these have to be setup first.
-
-=== Scan Job Templates
-
-Scan jobs are special Job Templates that only collect information about the host on which the job is running.
-
-Set up a scan job template:
-
-* As admin, add a new *Job Template*
-** *Name:* scanrun
-** *Job Type:* Scan
-** *Inventory:* Example Inventory
-** Project and Playbook will be automatically set to "Default", leave as is!
-** *Machine Credentials:* Example Credentials
-** Enable privilege escalation
-* Click *Save*
-
-Now run the scan job. Okay, this was nice, but we need another run. So just run the job again.
-
-=== System Tracking
-
-Now to the actual tracking:
-
-* Go to the *Inventories* view and click "Example Inventory"
-* Select host1.example.com
-* Click the *System Tracking* button.
-
-Tower will display the System Tracking results page. Have a look at the "Packages", "Services" and "Ansible" section. Looks all good apart from the fact there have been no changes...
-
-So to make system tracking more meaningful, we need to change something the scan job is looking for:
-
-* Run an ad hoc command against host1.example.com to install the package *tree*.
-* Run the scanrun job template again.
-* Run the System Tracking for host1.example.com again.
-
-Now the "Packages" section should show that package *tree* was absent and is now installed.
-
-WARNING: *Solution below*
-
-* Go to the *Inventories* view, choose "Example Inventory"
-* Select host1.example.com and click *Run Command*
-* Configure the ad hoc command:
-** *Module:* yum
-** *Arguments:* name=tree state=latest
-** *Machine Credentials:* Example Credentials
-** Enable privilege escalation
-* Click *Launch* and wait for the ad hoc command to finish
-* Go to *Templates* and launch the "scanjob" template by clicking the rocket symbol
-* Go to *Inventories*, select host1.example.com
-* Click the *System Tracking* button.
 
 == Final Lab or Putting it all Together
 
@@ -790,58 +743,41 @@ Your operations team and your application development team like what they see in
 
 * All webservers (host1.example.com and host2.example.com) should go in one group
 * As the webservers can be used for development purposes or in production, there has to be a way to flag them accordingly as "stage dev" or "stage prod".
-** Currently host1 is used as a dev system and host2 in production.
+** Currently host1 is used as a development system and host2 is in production.
 * Of course the content of the world famous application "index.html" will be different between dev and prod stages.  
-** There should be a headline stating the environment
+** There should be a title on the page stating the environment
 ** There should be a content field
 * The content writer `wweb` should have access to a survey to change the content for dev and prod servers.
 
-=== Set up the Git Repository
+=== The Git Repository
 
-As a prerequsite you have to setup a new Git repo containing the needed files on control.example.com.
+As a prerequsite you need a Git repo containing the needed files on control.example.com. This has been done for you already, it's a lab about Tower and not Git, after all... but as Git is important when working with Tower the process is described in the Appendix.
 
-* Login via SSH to control.example.com and become user `git`:
+Login via SSH to control.example.com, become user `git` and review what you have got there:
 ----
 [root@control-<GUID> ~]# su - git
 ----
 
- * Create the bare Git repo:
-----
-[git@control-<GUID> ~]$ git init --bare git-webserver
-----
+* There are a number of files in the work repo _/home/git/git-webserver-work/_:
+** a Playbook 
+** two versions of index.html files) 
 
-* Create the working repo:
 ----
-[git@control-<GUID> ~]$ mkdir git-webserver-work
-[git@control-<GUID> ~]$ cd git-webserver-work/
-[git@control-<GUID> git-webserver-work]$ git init .
-----
+[git@control ~]$ cd git-webserver-work/
 
-* Set the bare repo as origin for the work repo (command is one line):
-----
-[git@control-<GUID> git-webserver-work]$ git remote add origin git@control.example.com:/home/git/git-webserver
-----
-
-* Create the files (a Playbook and two versions of index.html files) in the work repo _/home/git/git-webserver-work/_
-
-_dev_index.html.j2_ 
-----
+[git@control git-webserver-work]$ cat dev_index.html.j2 
 <body>
 <h1>This is a development webserver, have fun!</h1>
 {{ dev_content }}
 </body>
-----
 
-_prod_index.html.j2_ 
-----
+[git@control git-webserver-work]$ cat prod_index.html.j2 
 <body>
 <h1>This is a production webserver, take care!</h1>
 {{ prod_content }}
 </body>
-----
 
-_stage_content.yml_
-----
+[git@control git-webserver-work]$ cat stage_content.yml 
 ---
 - name: Deploy index.html
   hosts: all
@@ -853,34 +789,28 @@ _stage_content.yml_
       dest: /var/www/html/index.html
 ----
 
-* Add the files, commit and push to origin:
-----
-[git@control-<GUID> git-webserver-work]$ git add -A
-[git@control-<GUID> git-webserver-work]$ git commit -a -m "initial commit"
-[git@control-<GUID> git-webserver-work]$ git push origin master
-----
-
 === Prepare Inventory
 
 There is of course more then one way to accomplish this, but here is what you should do:
 
 * Put both hosts in the inventory group `Webserver`
 * Add a variable `stage: dev` to the inventory `Webserver`
-* Add a variable `stage: prod` to host2.example.com
+* Add a variable `stage: prod` to host2.example.com that overrides the inventory variable.
 
 === Create the Project
 
 * Create a new *Project* named `Webcontent` using the new Git repository
-** *Credentials*: control git
+** *SCM CREDENTIALS*: Control Git
 ** *SCM URL*: control.example.com:/home/git/git-webserver
 
 === Create the Template
 
-* Create a new *Template* named `Create Web Content` that 
+* Create a new *Job Template* named `Create Web Content` that 
 ** targets the `Webserver` inventory 
 ** uses the Playbook `stage_content.yml` from the new `Webcontent` Project
 ** Defines two variables: `dev_content: default dev content` and `prod_content: default prod content`
-* Run the template
+** Uses `Example Credentials` and runs with privilege escalation
+* Save and run the template
 
 === Check the results:
 
@@ -937,7 +867,7 @@ Installation of Tower is really straight forward... I mean it's handled by Ansib
 
 * You download (preferably) the setup-bundle and unpack it on a minimal-install-RHEL machine.
 
-TIP: The setup-bundle installer includes all software so there will be no third-party Yum repos configured on the server... looks better in front of a customer.
+TIP: The setup-bundle installer includes all software so there will be no third-party Yum repos configured on the server.
 
 * You edit the inventory file and in the most simple case just put in a couple of passwords
 * You run `setup.sh` and lean back.
@@ -1020,7 +950,7 @@ Have a look on your Tower:
 [root@tower ~]# ll /var/lib/awx/venv/
 ----
 
-If you have to modify or install something Python, leave the Tower virtualenv alone to ensure stable operation and  do changes to the virtualenv that Tower uses to run Ansible. Try it yourself:
+If you have to modify or install something Python, leave the Tower virtualenv alone to ensure stable operation and do changes to the virtualenv that Tower uses to run Ansible. Try it yourself:
 
 Become the `awx` user and switch to the Ansible virtualenv:
 
@@ -1036,7 +966,7 @@ Then you can install whatever you need using pip:
 (ansible)-bash-4.2$ pip install packaging
 ----
 
-TIP: This is actually a good example; on Tower 3.1.3 (at least) the Azure modules are not working because the module `packaging` is missing. 
+TIP: This package has already been installed, just to show an example. 
 
 TIP: I'm not 100% sure if this has to be run as user `awx` but as all site-packages files for the virtualenv belong to user `awx` I'm reasonably sure... ;-) 
 
@@ -1044,14 +974,17 @@ TIP: I'm not 100% sure if this has to be run as user `awx` but as all site-packa
 
 The tower-cli tool is a command line tool for Ansible Tower. It allows Tower commands to be easily run from the Unix command line. It can also be used as a client library for other python apps, or as a reference for others developing API interactions with Tower's REST API.
 
+WARNING: While `tower-cli` is part of Ansible and its usage is described in Ansible's documentation it is not supported by Red Hat yet!
+
 === Installation
 
-Tower-cli can be installed using pip or from the EPEL repository with Yum. To install tower-cli quick & dirty in your lab environment on control.example.com:
+Tower-cli can be installed using pip or from EPEL (`python2-ansible-tower-cli`) . To install tower-cli quick & dirty in your lab environment on tower.example.com we'll use `pip`:
 
-* Open a terminal session to control.example.com 
-* As user root run
+* Open a terminal session to tower.example.com 
+* As user root switch to the Ansible's Python virtual environment and install `tower-cli`
 ----
-[root@control ~]# rpm -ivh /var/www/html/pub/epel/*
+[root@tower ~]# . /var/lib/awx/venv/ansible/bin/activate
+(ansible)[root@tower ~]# pip install ansible-tower-cli
 ----
 
 === Configuration
@@ -1070,9 +1003,9 @@ In most cases, you must set at least three configuration options (host, username
 
 * Run:
 ----
-[root@control ~]# tower-cli config host tower.example.com
-[root@control ~]# tower-cli config username admin
-[root@control ~]# tower-cli config password <Tower Admin PW>
+(ansible)[root@tower ~]# tower-cli config host tower.example.com
+(ansible)[root@tower ~]# tower-cli config username admin
+(ansible)[root@tower ~]# tower-cli config password <Tower Admin PW>
 ----
 
 === Examples
@@ -1129,6 +1062,74 @@ $ tower-cli # help
 $ tower-cli user --help # resource specific help
 $ tower-cli user create --help # command specific help
 ----
+
+== Appendix
+
+=== Simple Git Setup for Tower
+
+As source control (SCM) is a really important part when working with Tower, for reference here is how to set up the Git repositories for the putting it all together lab.
+
+Login via SSH to control.example.com, become user `git`:
+----
+[root@control-<GUID> ~]# su - git
+----
+
+ * Create a bare Git repo:
+----
+[git@control-<GUID> ~]$ git init --bare git-webserver
+----
+
+* Create a working repo:
+----
+[git@control-<GUID> ~]$ mkdir git-webserver-work
+[git@control-<GUID> ~]$ cd git-webserver-work/
+[git@control-<GUID> git-webserver-work]$ git init .
+----
+
+* Set the bare repo as origin for the work repo (command is one line):
+----
+[git@control-<GUID> git-webserver-work]$ git remote add origin git@control.example.com:/home/git/git-webserver
+----
+
+* Create the files (a Playbook and two versions of index.html files) in the work repo _/home/git/git-webserver-work/_
+
+_dev_index.html.j2_ 
+----
+<body>
+<h1>This is a development webserver, have fun!</h1>
+{{ dev_content }}
+</body>
+----
+
+_prod_index.html.j2_ 
+----
+<body>
+<h1>This is a production webserver, take care!</h1>
+{{ prod_content }}
+</body>
+----
+
+_stage_content.yml_
+----
+---
+- name: Deploy index.html
+  hosts: all
+  tasks:
+
+  - name: Creating index.html from template
+    template: 
+      src: "{{ stage }}_index.html.j2"
+      dest: /var/www/html/index.html
+----
+
+* Add the files, commit and push to origin:
+----
+[git@control-<GUID> git-webserver-work]$ git add -A
+[git@control-<GUID> git-webserver-work]$ git commit -a -m "initial commit"
+[git@control-<GUID> git-webserver-work]$ git push origin master
+----
+
+
 
 
 
