@@ -758,9 +758,9 @@ Login via SSH to control.example.com, become user `git` and review what you have
 [root@control-<GUID> ~]# su - git
 ----
 
-* There are a number of files in the work repo _/home/git/git-webserver-work/_:
+* There are a number of files in the work repository _/home/git/git-webserver-work/_:
 ** a Playbook 
-** two versions of index.html files) 
+** two versions of index.html files 
 
 ----
 [git@control ~]$ cd git-webserver-work/
