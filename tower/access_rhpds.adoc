@@ -1,0 +1,55 @@
+* Login to to rhpds.redhat.com
+* Change group to rhpds-partner-redhat (top right in the web UI)
+* Go to *Services->Catalogs*
+* From the *EMEA RHTE* catalog select *Getting Hands-On with Ansible Tower*
+
+=== Order Lab
+
+* Click Order.
+* Check the confirmation check box and in the lower right corner, click Submit.
+* After about 10 minutes, check your email for a message from Red Hat with information about how to access your environment.
+
+TIP: This email contains all of the direct links and IP addresses you need to access the environment, so store it carefully.
+
+== Access your Lab Environment
+
+=== Set Up SSH
+
+To make life easier we have opened direct root login via SSH to your control-host. 
+
+=== Access Environment With SSH
+
+* When your lab environment is up and running (you'll get an email saying your lab can authenticate):
+
+Open a terminal session and use SSH to remotely connect to the control host:
+
+----
+$ ssh root@control-GUID.rhpds.opentlc.com
+----
+
+TIP: When entering commands, replace GUID with your personal GUID, which is provided at the top of the lab provisioning email you received from Red Hat. 
+
+WARNING: To avoid problems, always use the FQDN hostname and not the IP or Ravello DNS entry when using SSH to connect to your RHPDS lab hosts.
+
+TIP: The root password on all machines will be given by the trainer
+
+----
+$ sudo -i
+----
+
+Because inside the lab environment SSH keys have already been distributed, you can now simply SSH into the Tower VM:
+
+----
+[root@control ~]# ssh tower.example.com
+----
+
+=== Access the Tower Web UI
+
+* Open a browser
+* Access the Tower web UI: \https://tower-GUID.rhpds.opentlc.com 
+* Accept the certificate
+* Log in user `admin` with the password given by the trainer.
+
+Now you will be greeted by your Ansible Tower's dashboard, congratulations! Let have a look at Tower's web UI and learn about the basics concepts.
+
+image::ansible_tower_ui.png[]
