@@ -257,6 +257,9 @@ TIP: Mandatory options are marked by a "=" in `ansible-doc`.
 === Running Ad Hoc Commands: `ios_command`
 
 Let's start with `ios_command`, this module allows to run IOS commands on your devices. The module is called with `-m` and the options are passed with `-a`. Give it a try:
+
+WARNING: Expect an error!
+
 ----
 [ansible@control ansible-files]$ ansible csr1.example.com -m ios_command -a 'commands="sh ip int br"'
 ----
@@ -285,6 +288,8 @@ Until now we executed the command on only one host. The real power of automation
 === Running Ad Hoc Commands: `ios_config`
 
 The `ios_config` module is extremly useful and has a fair number of arguments. It can be used to store, set, compare and check the configuration of IOS devices. The easiest way to use it is to create a full backup of the current `running-config' of your devices to a text file. Run the following ansible command:
+
+WARNING: Expect an error!
 
 ----
 [ansible@control ansible-files]$ ansible csr -m ios_config -a 'backup=yes provider={{cisco_connect}}'
@@ -361,10 +366,10 @@ How about adding a login banner to our CSRs?
 WARNING: *Solution below!*
 
 ----
-[ansible@control ansible-files]$ ansible csr -m ios_banner -a 'banner=login text="Managed by Ansible!" state=present provider={{ cisco_connect }}'
+[ansible@control ansible-files]$ ansible csr -m ios_banner -a 'banner=login text="Managed by Ansible!" state=present provider={{ cisco_connect }} authorize=yes auth_pass=cisco'
 ----
 ----
-[ansible@control ansible-files]$ ansible csr -m ios_banner -a 'banner=login text="Managed by Ansible!" state=absent provider={{ cisco_connect }}'
+[ansible@control ansible-files]$ ansible csr -m ios_banner -a 'banner=login text="Managed by Ansible!" state=absent provider={{ cisco_connect }} authorize=yes auth_pass=cisco'
 ----
 
 == Ansible Network Automation: Facts
@@ -424,7 +429,7 @@ Playbooks are files which describe the desired configurations or steps to implem
 
 TIP: Here is a nice analogy: When Ansible modules are the tools in your workshop, the inventory is the materials and the Playbooks are the instructions.
 
-The next chapter requires some working knowledge with creating edit running Playbooks.
+The next chapter requires some working knowledge creating, edit and running Playbooks.
 
 === Playbook: Check Configuration
 
