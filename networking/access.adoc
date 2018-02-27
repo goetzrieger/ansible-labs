@@ -2,9 +2,9 @@ WARNING: Every seat has been assigned a GUID.
 
 To find your GUID open this web page in your browser:
 
-*http://people.redhat.com/grieger/*
+*http://people.redhat.com/grieger/lab_list.html*
 
-To access your control host:
+==== Access your control host (SSH)
 
 * Open a terminal session
 * Log in to your control host as root using the hostname, the password will be given by the instructor.
@@ -17,3 +17,14 @@ Example: If your GUID is "83d4", do this:
 ----
 ssh root@control-83d4.rhpds.opentlc.com
 ----
+
+==== If your lab environment includes Ansible Tower
+
+Access the Tower Web UI
+
+* Open a browser
+* Access the Tower web UI: \https://tower-<GUID>.rhpds.opentlc.com 
+* Accept the certificate
+* Log in user `admin` with the same password as for root.
+
+Now you will be greeted by your Ansible Tower's dashboard. If you need to SSH access to Tower, first SSH into your control host and then jump to the Tower VM.
