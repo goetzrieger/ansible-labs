@@ -48,7 +48,7 @@ TIP: Ansible Tower has already been installed and licensed for you.
 
 == Lab Access
 
-include::access.adoc[]
+include::access_rhpds.adoc[]
 
 == Ansible Tower Concepts
 
@@ -106,8 +106,8 @@ Okay, let's get started. The first thing we need is an inventory of your managed
 
 Create the inventory:
 
-* In the web UI go to *INVENTORIES* and click *+ ADD->Inventory*
-* *NAME::* Example Inventory
+* In the web UI go to *INVENTORIES* and click *+ADD->Inventory*
+* *NAME:* Example Inventory
 * *ORGANIZATION:* Default
 * Click *SAVE*
 

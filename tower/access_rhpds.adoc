@@ -1,5 +1,5 @@
 * Login to to rhpds.redhat.com
-* Make sure group "rhpds-access" (top right in the web UI)
+* Make sure the group is set to "rhpds-access" (top right in the web UI)
 * Go to *Services->Catalogs*
 * From the *Cloud Infrastructure Demos* catalog select *Hands-On with Ansible Tower*
 
