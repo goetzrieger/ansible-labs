@@ -59,13 +59,13 @@ Essential for working with networking devices are the credentials used to access
 
 WARNING: This is one of the most important features of Tower: *Credential Separation*! Credentials are defined separately and not with the hosts or inventory settings.
 
-You should already have the web UI open, if not: Point your browser to *https://tower-GUID.rhpds.opentlc.com*, accept the certificate and log in as `admin` with the given password. In the Tower web UI click *Settings*, it is the gear-shaped icon to the upper right. From the settings choose the *Credentials* box. Now:
+You should already have the web UI open, if not: Point your browser to *\https://tower-GUID.rhpds.opentlc.com*, accept the certificate and log in as `admin` with the given password. In the Tower web UI click *Settings*, it is the gear-shaped icon to the upper right. From the settings choose the *CREDENTIALS* box. Now:
 
-* Click the *+Add* button to add new credentials
-** *Name:* Networking Credentials
-** *Organization:* Default
-** *Type:* Network
-** *Username:* admin
+* Click the *+ADD* button to add new credentials
+** *NAME:* Networking Credentials
+** *ORGANIZATION:* Default
+** *TYPE:* Network
+** *USERNAME:* admin
 
 As we are using password authentication, you have to provide the password `cisco` - that can be used to access the networking devices - in the *PASSWORD* field. Also, the password needs to be entered again in the *AUTHORIZE PASSWORD* field. This is necessary since often network devices require an additional *authorize* step to gain higher privileges.
 
@@ -79,26 +79,25 @@ Additionally we need an inventory of your managed networking devices. This is th
 
 Create the inventory:
 
-* In the web UI go to *Inventories* and click *+ Add*
-* Pick *Inventory*
-* *Name:* `Networking Inventory`
-* *Organization:* Default
-* Click *Save*
+* In the web UI go to *INVENTORIES* and click *+ ADD->INVENTORY*
+* *NAME:* `Networking Inventory`
+* *ORGANIZATION:* Default
+* Click *SAVE*
 
 Add your managed hosts:
 
 * Click on the just created inventory *Networking Inventory*
 * Click the *HOSTS* button
-* Click the *+Add Hosts* button
-* *Host Name:* `csr1.example.com`
-* Click *Save*
+* Click the *+ADD HOSTS* button
+* *HOST NAME:* `csr1.example.com`
+* Click *SAVE*
 * Repeat to add `csr2.example.com` as a second host.
 
 You have now created an inventory with two managed hosts.
 
 == Using Variables
 
-You might have seen you can add variables for a host in the inventory. We will use this to enfore the connection type to `lcoal` for all devices in this inventory. This is required for modules of the IOS type.
+You might have seen you can add variables for a host in the inventory. We will use this to enforce the connection type to `local` for all devices in this inventory. This is required for modules of the IOS type.
 
 * Go to *INVENTORIES -> Networking Inventory*
 * In the box *VARIABLES* enter `ansible_connection: local` underneath the three existing dashes
@@ -176,7 +175,7 @@ In the Tower web UI click the icon for *Settings*. From the settings choose the 
 
 * Click the *+ADD* button to add new credentials
 * *NAME*: control git
-* *TYPE*: `Source Control`
+* *CREDENTIAL TYPE*: `Source Control`
 * *USERNAME*: git
 * Paste the SSH private key for the git user from control.example.com into the box
 * Click *SAVE*
@@ -216,7 +215,7 @@ Okay, let's just do that:
 ** *INVENTORY:* `Networking Inventory`
 ** *PROJECT:* `Control Git Repo`
 ** *PLAYBOOK:* `interface-description.yml`
-** *CREDENTIAL:* Here you need to pick two: first, pick the `Demo Credential`, and afterwards, in the crendetial dialog, click on the drop down menu *CREDENTIAL TYPE*, click on *Network*, and pick the previously created `Networking Credentials`
+** *CREDENTIAL:* Here you need to pick two: first, pick the `Demo Credential`, and afterwards, in the credential dialog, click on the drop down menu *CREDENTIAL TYPE*, click on *Network*, and pick the previously created `Networking Credentials`
 ** Click *SAVE*
 
 Start a Job using this Job Template by going to the *TEMPLATES* view and clicking the rocket icon. Have a good look at the information the view provides.
@@ -300,8 +299,8 @@ TIP: In real world scenarios you would structure your Git (or whatever SCM) in a
 
 Now that we have new content in the Git repo, you can update the *Project* with the new Git content:
 
-* Go to the *Projects* view and start an SCM update for "Control Git Repo" (the cloudy button). 
-* Change to the *Jobs* view, look for the job and click it. Watch the output and wait until the job has finished successfully.
+* Go to the *PROJECTS* view and start an SCM update for "Control Git Repo" (the cloudy button). 
+* Change to the *JOBS* view, look for the job and click it. Watch the output and wait until the job has finished successfully.
 
 TIP: As you've configured the Project to update on launch, this would have happenend anyway.
 
@@ -384,7 +383,7 @@ Building configuration...
 [...]
 ----
 
-Press *space* two times to get the full output. The interface configuration rather at the end. It shows the new description and the new subnet:
+Press *space* two times to get the full output. The interface configuration is printed near the end. It shows the new description and the new subnet:
 
 ----
 interface GigabitEthernet3
@@ -494,8 +493,8 @@ This is the final challenge where we try to put most of what you have learned to
 
 Your operations team and your application development team like what they see in Tower. To really use it in their environment they put together these requirements:
 
-* All switches (csr1.example.com and csr2.example.com) should go in one group
-* As the switches can be used for development purposes or in production, there has to be a way to flag them accordingly as "stage dev" or "stage prod".
+* All routers (csr1.example.com and csr2.example.com) should go in one group
+* As the routers can be used for development purposes or in production, there has to be a way to flag them accordingly as "stage dev" or "stage prod".
 ** Currently csr1 is used as a dev system and csr2 in production.
 * Of course the subnet and the famous description will be different between dev and prod stages.  
 ** There should be an interface description stating the environment
@@ -513,7 +512,7 @@ As a prerequsite you have to setup a new Git repo containing the needed files on
 
  * Create the bare Git repo:
 ----
-[git@control-<GUID> ~]$ git init --bare git-switches
+[git@control-<GUID> ~]$ git init --bare git-routers
 ----
 
 * log out as user git, log in as user ansible:
@@ -525,27 +524,27 @@ logout
 
 * Create the working copy of the repo:
 ----
-[ansible@control ~]$ mkdir git-switches
-[ansible@control ~]$ cd git-switches/
-[ansible@control git-switches]$ git init .
+[ansible@control ~]$ mkdir git-routers
+[ansible@control ~]$ cd git-routers/
+[ansible@control git-routers]$ git init .
 ----
 
 * Set the bare repo as origin for the work repo (command is one line):
 ----
-[ansible@control git-switches]$ git remote add origin git@control.example.com:/home/git/git-switches
+[ansible@control git-routers]$ git remote add origin git@control.example.com:/home/git/git-routers
 ----
 
 * Set the necessary identity data for Git:
 ----
-[ansible@control git-switches]$ git config --global user.email "git@example.com" &&  git config --global user.name "git"
+[ansible@control git-routers]$ git config --global user.email "git@example.com" &&  git config --global user.name "git"
 ----
 
-* Create the Playbook in the work repo _/home/ansible/git-switches_:
+* Create the Playbook in the work repo _/home/ansible/git-routers_:
 
-_stage_switches.yml_
+_stage_routers.yml_
 ----
 ---
-- name: Deploy switch configuration
+- name: Deploy router configuration
   hosts: all
   tasks:
 
@@ -556,38 +555,39 @@ _stage_switches.yml_
 
     - name: change description
       ios_config:
-        lines: description "{{ stage_switch }}"
+        lines: description "{{ stage_router }}"
         parents: interface GigabitEthernet 3
 ----
 
 * Add the files, commit and push to origin:
 ----
-[ansible@control git-switches]$ git add stage_switches.yml
-[ansible@control git-switches]$ git commit -m "initial commit"
-[ansible@control git-switches]$ git push origin master
+[ansible@control git-routers]$ git add stage_routers.yml
+[ansible@control git-routers]$ git commit -m "initial commit"
+[ansible@control git-routers]$ git push origin master
 ----
 
 === Prepare Inventory
 
 There is of course more then one way to accomplish this, but here is what you should do:
 
-* Create an inventory `Switches` containing two sub-groups, `dev` and `prod`
+* Create an inventory `Routers` containing two sub-groups, `dev` and `prod`
+* Add the variable `ansible_connection: local` to the main inventory
 * Put `csr1.example.com` into group `dev`, and `csr2.example.com` into `prod`
-* Add a variable `stage_switch: dev` to group `dev` and `stage_switch: prod` to group `prod`
-* Add host specific variables to each switch setting the wan IP (not subnet).
+* Add a variable `stage_router: dev` to group `dev` and `stage_router: prod` to group `prod`
+* Add the host variable `wan_ip: 100` to `csr1.example.com` and `wan_ip: 110` to `csr2.example.com`
 
 === Create the Project
 
-* Create a new *Project* named `Switch stages` using the new Git repository
+* Create a new *Project* named `Router stages` using the new Git repository
 ** *Credentials*: control git
-** *SCM URL*: control.example.com:/home/git/git-switches
+** *SCM URL*: control.example.com:/home/git/git-routers
 
 === Create the Template
 
-* Create a new *Template* named `Switch Stage Configuration` that 
-** targets the `Switches` inventory 
-** uses the Playbook `stage_switches.yml` from the new `Switch stages` Project
-** Define one variable: `wan_ip: 23`
+* Create a new *Template* named `Router Stage Configuration` that 
+** targets the `Router` inventory 
+** uses the Playbook `stage_routers.yml` from the new `Router stages` Project
+** Define one variable: `wan_subnet: 23`
 * Run the template
 
 === Check the results:
@@ -608,6 +608,8 @@ no mop enabled
 no mop sysid
 [...]
 ----
+
+Do the same for `csr1.example.com`, the description shoud be `dev`.
 
 === Add Survey
 
