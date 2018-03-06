@@ -5,6 +5,7 @@
 :numbered:
 :icons: font
 
+// Tested with BP: EMEA-PARTNERS-Ansible_Tower32_rhpds-0.3.2-bp
 
 == Your Lab Environment
 
