@@ -1,0 +1,48 @@
+
+== Access your Lab Environment
+
+WARNING: Every seat has been assigned a *GUID*. 
+
+To find your *GUID* open this web page in your browser:
+
+*http://people.redhat.com/grieger/lab_list.html*
+
+=== To access your control host:
+
+* Look up your GUID
+* Open a terminal session
+* Log in to your control host as root using the hostname, the password will be given by the instructor.
+
+TIP: The hostname is: *control-<number>.rhpds.opentlc.com* 
+
+WARNING: *Replace <number> with the GUID assigned to your seat!*
+
+Example: If your GUID is "83d4", do this:
+----
+ssh root@control-83d4.rhpds.opentlc.com
+----
+
+TIP: When entering commands, replace GUID with your personal GUID, which is provided at the top of the lab provisioning email you received from Red Hat. 
+
+WARNING: To avoid problems, always use the FQDN hostname and not the IP or Ravello DNS entry when using SSH to connect to your RHPDS lab hosts.
+
+----
+$ sudo -i
+----
+
+Because inside the lab environment SSH keys have already been distributed, you can now simply SSH into the Tower VM:
+
+----
+[root@control ~]# ssh tower.example.com
+----
+
+=== Access the Tower Web UI
+
+* Open a browser
+* Access the Tower web UI: \https://tower-<GUID>.rhpds.opentlc.com 
+* Accept the certificate
+* Log in user `admin` with the same password as for root.
+
+Now you will be greeted by your Ansible Tower's dashboard, congratulations! Let have a look at Tower's web UI and learn about the basics concepts.
+
+image::ansible_tower_ui.png[]
