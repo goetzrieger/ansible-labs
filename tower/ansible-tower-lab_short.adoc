@@ -5,6 +5,8 @@
 :icons: font
 :imagesdir: ./images
 
+// Tested with BP: EMEA-PARTNERS-Ansible_Tower32_rhpds-0.3.3-bp
+
 == Introduction to Ansible Tower
 === Why Ansible Tower?
 
