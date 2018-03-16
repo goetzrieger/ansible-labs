@@ -135,7 +135,16 @@ WARNING: This is one of the most important features of Tower: *Credential Separa
 
 As this is an important part of your Tower setup, why not make sure I'm not making this up but to check credentials are properly setup for Ansible?
 
-* Open an SSH session to tower.example.com by SSH-ing into the control host and then jumping to Tower. On Tower become user `ansible`:
+To access the Tower host via SSH do the following:
+
+* Open an SSH session to your control host (replace <GUID>):
+----
+# ssh root@control-<GUID>.rhpds.opentlc.com
+----
+
+* From here you can "jump" to the Tower host `tower.example.com` 
+* On Tower become user `ansible`
+
 ----
 [root@control-<GUID> ~]# ssh tower.example.com
 [root@tower ~]# su - ansible
