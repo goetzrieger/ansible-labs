@@ -50,7 +50,7 @@ TIP: Ansible Tower has already been installed and licensed for you.
 
 == Lab Access
 
-include::access_rhpds.adoc[]
+include::access_event.adoc[]
 
 == Ansible Tower Concepts
 
