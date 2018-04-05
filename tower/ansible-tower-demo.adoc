@@ -5,9 +5,9 @@
 :icons: font
 :imagesdir: ./images
 
-// Tested with BP: EMEA-PARTNERS-Ansible_Tower32_rhpds-0.3.3-bp
+// Tested with BP: EMEA-PARTNERS-Ansible_Tower_Demo-0.1-bp
 
-== Ansible Tower Concepts
+== Recap Ansible Tower Concepts
 
 === Dashboard
 
@@ -64,7 +64,7 @@ Add hosts:
 
 * Host SSH & Sudo prep like for "plain" Ansible has to be done.
 
-=== Show SSH Access and Sudo
+=== Optional: Show SSH access and Sudo works
 
 * Open an SSH session to tower.example.com
 
@@ -103,7 +103,7 @@ Copy SSH private key:
 
 * Copy the complete private key (including "BEGIN" and "END" lines) and paste it into the *SSH PRIVATE KEY* field in the web UI.
 * Click *SAVE*
-* Go back to *Settings -> CREDENTIALS -> Example Credentials* and note that the SSH key is not visible. 
+* Show that the SSH key is not visible anymore and marked encrypted. 
 
 == Optional: Run Ad Hoc Commands
 
@@ -176,11 +176,19 @@ In the Tower UI in *CREDENTIALS*:
 * *SCM UPDATE OPTIONS:* Tick all three boxes to always get a fresh copy of the repository and to update the repository when launching a job.
 * Click *SAVE*
 
-Sync the Project again
+Sync the Project again:
+
 * In the *PROJECTS* view click *Start an SCM Update* icon 
 * Go to the *JOBS* view, find your job and have a look at the details.
 
 == Create a Job Template and Run a Job
+
+If you want to show the Playbook:
+
+----
+[git@control ~]$ cd git-work/
+[git@control git-work]$ cat apache.yml
+----
 
 * Go to the *TEMPLATES* view and click *+ADD* -> *JOB TEMPLATE*
 ** *NAME:* Apache
@@ -237,7 +245,7 @@ TIP: Point out the two variables used in the template!
 * Go to *TEMPLATES* and click *+ADD* -> *Job Template*
 * *NAME:* create index.html
 * *JOB TYPE:* Run
-* *INVENTORY:* Webserver
+* *INVENTORY:* Example Inventory
 * *PROJECT:* Control Git Repo
 * *PLAYBOOK:* index_html_create.yml
 * *CREDENTIAL:* Example Credentials
@@ -339,11 +347,12 @@ To allow users or teams to actually do something, you have to set permissions. T
 
 Now log out of Tower's web UI and in again as the *wweb* user.
 
-* Go to the *TEMPLATES* view, you should notice for Werner only the `Create index.html` template is listed. He is allowed to view and lauch, but not to edit the Template.
-* Launch the Job Template, enter the survey content to your liking.
-* In the following *JOBS* view have a good look around, note that there where changes to the host (of course...).
+* Go to the *TEMPLATES* view and show Werner can only see the `Create index.html` template
+* Show he is allowed to view and lauch, but not to edit the Template.
+* Show the 
+* Optional: Launch the Job Template, enter the survey content to your liking.
 
-Check the result:
+Optional: Check the result:
 
 * In the SSH console on control.example.com check the web page:
 ----
@@ -455,7 +464,7 @@ TIP: Point out the type allows for more complex workflows. You could lay out dif
 * In the *TEMPLATES* view launch the *Deploy Webapp Server* workflow by clicking the rocket icon.
 * Wait until the job has finished. 
 
-TIP: Note how the workflow run is shown in the job view and you can choose the workflow nodes to get more information.  
+TIP: Note how the workflow run is shown in the job view and you can choose the workflow nodes to get more information by clicking "DETAILS".  
 
 * To check log into host1.example.com and host2.example.com from control.example.com and run:
 
