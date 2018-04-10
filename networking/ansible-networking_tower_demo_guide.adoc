@@ -1,0 +1,191 @@
+:scrollbar:
+:data-uri:
+:toc: left
+:numbered:
+:icons: font
+:imagesdir: ./images
+
+== About the Demo
+
+This demo is based on Ravello BP: EMEA-PARTNERS-ansible-network-demo-0.2-bp
+
+== Networking Credentials
+
+* Pre-configured in Tower.
+* Show and explain
+
+== Create an Inventory
+
+* Pre-configured
+* Show and explain
+
+== Using Variables
+
+* Go to *INVENTORIES -> Networking Inventory*
+* In the box *VARIABLES* enter `ansible_connection: local` underneath the three existing dashes
+
+Explain this will go away with Ansible 2.5
+
+== Add a new Project
+
+In the SSH console on host control.example.com as user `git` show the playbook _/home/git/git-work/interface-description.yml_:
+
+----
+[git@control ~]$ cat git-work/interface-description.yml
+----
+
+* Point out differences to other Playbooks
+** No `become`
+** `hosts` is set to `all`
+** `gather_facts` is set to `no` (since the initial connect is local, the `gather_facts` would only gather the facts of the Tower)
+* Show the 	Control Git Repo Project
+
+== Create a Job Template and Run a Job
+
+* Show the Template "Networking Interface Description Template"
+* Start the Job
+
+After the Job has finished go to the *JOBS* view:
+
+* All jobs are listed here, you should see directly before the Playbook run an SCM update was started. 
+* This is the Git update we configured for the *Project* on launch!
+
+== Check Results
+
+From `control.example.com` log in to `csr1.example.com` and check the interface description the Playbook changed:
+
+----
+[ansible@control ~]$ ssh admin@csr1
+csr1#sh int desc
+Interface                      Status         Protocol Description
+Gi1                            up             up       
+Gi2                            up             up       
+Gi3                            up             up       "Ansible controlled interface"
+----
+
+Do the same on `csr2.example.com`.
+
+== Demo Playbook with Survey
+
+=== Create the Playbook
+
+In the SSH console on host control.example.com as user `git` show the playbook _/home/git/git-work/networking-configuration.yml_:
+----
+[git@control ~]$ cat git-work/networking-configuration.yml
+----
+
+* Show the description in the task *change description* is a variable: `interface_description`. 
+* Show additional task, *change ip address*, that defines the IP address for the third interface. 
+* The IP address is set together by two variables, `wan_subnet` and `wan_ip`.
+
+=== Host specific variables
+
+* The above mentioned playbook changes the IP for the third interface. 
+* Since they are both connected to the same wan, they should not have the exact same address. 
+* Thus we will set the variable `wan_ip` for each host in the inventory.
+
+* For both hosts show the variable `wan_ip:`
+
+=== Show Template and Survey, then Run
+
+* Show `Networking Interface Configuration Template`
+* Show survey for subnet and interface description 
+* Launch template
+
+=== Check Results
+
+In the SSH console on control.example.com, run: 
+----
+[ansible@control ~]# ssh admin@csr1.example.com
+----
+
+In the following password query, enter the password `cisco`. 
+
+To verify the changes, run these commands:
+
+----
+csr1#sh ip int br
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet1       192.168.0.100   YES NVRAM  up                    up      
+GigabitEthernet2       192.168.1.100   YES NVRAM  up                    up      
+GigabitEthernet3       10.0.112.100    YES manual up                    up
+----
+
+----
+csr1#sh int desc
+Interface                      Status         Protocol Description
+Gi1                            up             up       
+Gi2                            up             up       
+Gi3                            up             up       Ansible controlled interface
+----
+
+In addition you could have a look at the configuration:
+
+----
+csr1#enable
+csr1#show running-config  
+Building configuration...
+[...]
+----
+
+Press *space* two times to get the full output. The interface configuration is printed near the end. It shows the new description and the new subnet:
+
+----
+interface GigabitEthernet3
+ description "Ansible Tower controlled"
+ ip address 10.0.112.100 255.255.255.0
+ negotiation auto
+ no mop enabled
+ no mop sysid
+----
+
+== Ansible Tower Role Based Access Control
+
+You have already learned how Tower separates credentials from users. Another advantage of Ansible Tower is the user and group rights management.
+
+=== Ansible Tower Users
+
+* Show user nnetwork
+
+=== Ansible Tower Teams
+
+A Team is a subdivision of an organization with associated users, projects, credentials, and permissions. Teams provide a means to implement role-based access control schemes and delegate responsibilities across organizations. For instance, permissions may be granted to a whole Team rather than each user on the Team.
+
+* Show team named `Network Team`
+* Show member and role
+
+=== Permissions
+
+Permissions allow to read, modify, and administer projects, inventories, and other Tower elements. Permissions can be set for different resources.
+
+=== Granting Permissions
+
+To allow users or teams to actually do something, you have to set permissions. The user *nnetwork* should only be allowed to execute content to configure the assigned switches.
+
+* In the Permissions view of the Team `Network Team` show permissions
+
+=== Demo Permissions
+
+Now log out of Tower's web UI and in again as the *nnetwork* user.
+
+* Go to the *TEMPLATES* view, you should notice for Norbert only the `Networking Interface Configuration Template` is listed. The user is allowed to view and lauch, but not to edit the Template.
+* Launch the Job Template
+** Enter the survey content: `42` as *WAN SUBNET* and `Ansible Tower controlled via user` as *INTERFACE DESCRIPTION*.
+* In the following *JOBS* view have a good look around
+
+=== Demo Result
+
+----
+csr1#sh int desc
+Interface                      Status         Protocol Description
+Gi1                            up             up       
+Gi2                            up             up       
+Gi3                            up             up       "Changed by nnetwork"
+csr1#sh ip int br
+          
+csr1#sh ip int br  
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet1       192.168.0.100   YES NVRAM  up                    up      
+GigabitEthernet2       192.168.1.100   YES NVRAM  up                    up      
+GigabitEthernet3       10.0.42.100     YES manual up                    up 
+----
