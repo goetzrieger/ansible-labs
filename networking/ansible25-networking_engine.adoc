@@ -6,6 +6,9 @@
 :icons: font
 :imagesdir: ./images
 
+// Not fully tested after upgrade to 2.5
+// tested with Ravello BP EMEA-PARTNERS-ansible-network-0.7.8-bp
+
 == About this Lab
 
 This lab will get you started with Ansible Network Automation. As example devices we will use Cisco CSR1000V routers, so most network pros will find their Cisco IOS commands in here. It´s assumed that you understand Ansible´s concepts and have some hands-on knowledge. Otherwise please go through a getting started lab first.
