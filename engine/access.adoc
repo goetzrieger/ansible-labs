@@ -2,10 +2,11 @@ WARNING: Every seat has been assigned a GUID.
 
 To find your GUID open this web page in your browser:
 
-*http://people.redhat.com/grieger/*
+*http://people.redhat.com/grieger/lab_list.html*
 
 To access your control host:
 
+* Look up your *GUID*
 * Open a terminal session
 * Log in to your control host as root using the hostname, the password will be given by the instructor.
 
