@@ -553,7 +553,7 @@ Current configuration : 1590 bytes
 version 16.7
 ----
 
-That's better. Now the important part: We want to replace some commands (or part of them) with variables. Open the file in your editor and edit the hostname and ip configuration commands to look like this:
+That's better. Now the important part: We want to replace some commands (or part of them) with variables. Open the file in your editor and edit the hostname and replace the ip configuration lines with the variables:
 
 ----
 [...]
