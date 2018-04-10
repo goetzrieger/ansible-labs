@@ -110,9 +110,9 @@ A Tower *PROJECT* is a logical collection of Ansible playbooks. You can manage p
 
 You should definitely keep your Playbooks under version control. In this lab we'll use Playbooks kept in a Git repository.
 
-=== Setup Git Repository
+=== Create the Playbook
 
-For this lab you will use a pre-configured Git repository on `control.example.com` that can be accessed via SSH. A Playbook has already been commited to the repository:
+In the SSH console on host control.example.com as user `git` create the playbook _/home/git/git-work/interface-description.yml_:
 
 ----
 ---
@@ -151,6 +151,17 @@ For this lab you will use a pre-configured Git repository on `control.example.co
 ----
 
 TIP: Note the difference to other Playbooks you might have written! Most importantly there is no `become` and `hosts` is set to `all`. Also, `gather_facts` is set to `no`: this is due to the way network devices are currently queried: since the initial connect is local, the `gather_facts` would only gather the facts of the Tower.
+
+=== Add the Playbook to Git
+
+Now add the file to Git, commit and push to origin:
+
+----
+[git@control ~]$ cd /home/git/git-work
+[git@control git-work]$ git add interface-description.yml
+[git@control git-work]$ git commit -a -m "Interface description Playbook added"
+[git@control git-work]$ git push origin master
+----
 
 For education purpose this playbook does print out the content of the configuration two times: before changes are done, and after changes are done. This provides a better understanding and control of what happens. However, in production this would not be done usually.
 
@@ -226,6 +237,21 @@ After the Job has finished go to the *JOBS* view:
 
 * All jobs are listed here, you should see directly before the Playbook run an SCM update was started. 
 * This is the Git update we configured for the *Project* on launch!
+
+== Check Results
+
+From `control.example.com` log in to `csr1.example.com` and check the interface description the Playbook changed:
+
+----
+[ansible@control ~]$ ssh admin@csr1
+csr1#sh int desc
+Interface                      Status         Protocol Description
+Gi1                            up             up       
+Gi2                            up             up       
+Gi3                            up             up       "Ansible controlled interface"
+----
+
+Do the same on `csr2.example.com`.
 
 == Create a Survey
 
@@ -367,14 +393,34 @@ TIP: Note how the two survey lines are shown to the left of the Job view as *EXT
 
 After the job has completed, check the output of the Playbook run in Tower. Note that the new subnet IP is shown, also note the new description.
 
-To highlight these changes, let's check them online:
+=== Check Results
 
 In the SSH console on control.example.com, run: 
 ----
 [ansible@control ~]# ssh admin@csr1.example.com
 ----
 
-In the following password query, enter the password `cisco`. After that, read the main configuration:
+In the following password query, enter the password `cisco`. 
+
+To verify the changes, run these commands:
+
+----
+csr1#sh ip int br
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet1       192.168.0.100   YES NVRAM  up                    up      
+GigabitEthernet2       192.168.1.100   YES NVRAM  up                    up      
+GigabitEthernet3       10.0.112.100    YES manual up                    up
+----
+
+----
+csr1#sh int desc
+Interface                      Status         Protocol Description
+Gi1                            up             up       
+Gi2                            up             up       
+Gi3                            up             up       Ansible controlled interface
+----
+
+In addition you could have a look at the configuration:
 
 ----
 csr1#enable
