@@ -50,7 +50,7 @@ TIP: Ansible Tower has already been installed and licensed for you.
 
 == Lab Access
 
-include::access_event.adoc[]
+include::access_rhpds.adoc[]
 
 == Ansible Tower Concepts
 
@@ -978,8 +978,6 @@ Then you can install whatever you need using pip:
 ----
 
 TIP: This package has already been installed, just to show an example. 
-
-TIP: I'm not 100% sure if this has to be run as user `awx` but as all site-packages files for the virtualenv belong to user `awx` I'm reasonably sure... ;-) 
 
 == Optional: Tower Client
 
