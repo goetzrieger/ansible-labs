@@ -1,32 +1,33 @@
-= Ansible Getting Started
+= Lab: Getting Started with Ansible
 :scrollbar:
 :data-uri:
 :toc: left
 :numbered:
 :icons: font
-
-// Tested with BP: EMEA-PARTNERS-Ansible_Tower32_rhpds-0.3.2-bp
+:imagesdir: ./images
 
 == Your Lab Environment
 
-In this lab you work in a pre-configured lab environment that has already been deployed for you. 
-
+In this lab you work in a pre-configured lab environment. 
 You will have access to the following hosts:
 
+[cols="v,v,v,v"]
 |===
-|Hostname|Internal IP|Role
-|control.example.com|192.168.0.10|The host you will run Ansible on to manage the other hosts. Only this host is accessible from the Internet.
-|host1.example.com|192.168.0.20|Managed host1
-|host2.example.com|192.168.0.30|Managed host2
+|Role|Hostname Ext|Hostname Int|Internal IP
+
+|Jump Host & Ansible Control Host|control-<GUID>.rhpds.opentlc.com|control.example.com|192.168.0.10
+|Managed Host 1||host1.example.com|192.168.0.20
+|Managed Host 2||host2.example.com|192.168.0.30
+
 |===
 
 WARNING: You will be able to SSH into the control host, from here you need to SSH into the other hosts. 
 
-=== Access your Lab Environment
+=== Deploy your Lab Environment
 
-include::access.adoc[]
+include::access_rhpds.adoc[]
 
-=== Check the Prerequisites
+== Check the Prerequisites
 
 Most prerequisite tasks have already been done for you:
 
@@ -37,7 +38,7 @@ Most prerequisite tasks have already been done for you:
 Check Ansible has been installed correctly
 ----
 [root@control ~]# ansible --version
-ansible 2.4.2.0
+ansible 2.5.0
   config file = /etc/ansible/ansible.cfg
 [...]
 ----
@@ -71,7 +72,7 @@ NOTE: *In all subsequent exercises you should work as the ansible user on the co
 You might have guessed by now this lab is pretty commandline-centric... :-)
 
 * Don't type everything manually, use copy & paste from the browser when appropriate. But don't stop to think and understand... ;-)
-* All labs where prepared using Vi, but feel free to install nano or even emacs.
+* All labs where prepared using Vi, but feel free to use mc (function keys can be reached via Esc-<n>) or nano.
 
 TIP: In the lab guide commands you are supposed to run are shown with or without the expected output, whatever makes more sense in the context. 
 
@@ -109,7 +110,7 @@ The most basic host pattern is the name for a single managed host listed in the 
     host1.example.com
 ----
 
-An inventory file can contain a lot more information. To organize your hosts in groups, change your inventory file so it looks like this:
+An inventory file can contain a lot more information, it can organize your hosts in groups or define variables. You will use grouping most of the times, change your inventory file to look like this:
 ----
 [webserver]
 host1.example.com
@@ -153,12 +154,10 @@ inventory=/home/ansible/ansible-files/inventory
 Your Ansible inventory was used without providing the `-i` option. To double-check, run the command again from outside `~/ansible-files/`:
 
 ----
-[ansible@control ~]$ ansible all --list-hosts
- [WARNING]: Could not match supplied host pattern, ignoring: all
-
- [WARNING]: provided hosts list is empty, only localhost is available
-
- [WARNING]: No hosts matched, nothing to do
+[ansible@control-6656 ~]$ ansible all --list-hosts
+ 
+ [WARNING]: provided hosts list is empty, only localhost is available. Note that
+the implicit localhost does not match 'all'
 
   hosts (0):
 ---- 
@@ -225,6 +224,8 @@ Sometimes it's desirable to have the output for a host on one line:
 Using the `copy` module, execute an ad hoc command on control.example.com to change the contents of the `/etc/motd` file on host1.example.com. *The content is handed to the module through an option in this case*. 
 
 Run:
+
+WARNING: Expect an error!
 
 ----
 [ansible@control ansible-files]$ ansible host1.example.com -m copy -a 'content="Managed by Ansible\n" dest=/etc/motd' 
@@ -577,12 +578,12 @@ For understanding and practice let's do a lab. Following up on the theme "Let's 
 On control.example.com as user ansible create the directories to hold the variable definitions in `~/ansible-files/`:
 
 ----
-[ansible@control ansible-files]$ mkdir {host_vars,group_vars}
+[ansible@control ansible-files]$ mkdir host_vars group_vars
 ----
 
 === Create the Variable Files
 
-Now create two files containing variable definitions which point to an environment:
+Now create two files containing variable definitions. We'll define a variable named `stage` which will point to different environments, `dev` or `prod`:
 
 * `~/ansible-files/group_vars/webserver` with this content:
 ----
