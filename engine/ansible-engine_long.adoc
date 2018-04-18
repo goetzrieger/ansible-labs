@@ -21,25 +21,7 @@ WARNING: You will be able to SSH into the control host, from here you need to SS
 
 == Access the Lab Environment
 
-WARNING: Every seat has been assigned a GUID.
-
-To find your GUID open this web page in your browser:
-
-*http://people.redhat.com/grieger/*
-
-To access your control host:
-
-* Open a terminal session
-* Log in to your control host as root using the hostname, the password will be given by the instructor.
-
-TIP: The hostname is: *control-<number>.rhpds.opentlc.com*
-
-WARNING: *Replace <number> with the GUID assigned to your seat!*
-
-Example: If your GUID is "83d4", do this:
-----
-ssh root@control-83d4.rhpds.opentlc.com
-----
+include::access_event.adoc[]
 
 == Ansible Deployment
 
@@ -59,12 +41,9 @@ TIP: For some time in order to use Ansible on RHEL you had to install it from th
 * Check Ansible has been installed correctly
 ----
 [root@control ~]# ansible --version
-ansible 2.4.1.0
+ansible 2.5.0
   config file = /etc/ansible/ansible.cfg
-  configured module search path = [u'/root/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
-  ansible python module location = /usr/lib/python2.7/site-packages/ansible
-  executable location = /usr/bin/ansible
-  python version = 2.7.5 (default, Aug  2 2016, 04:20:16) [GCC 4.8.5 20150623 (Red Hat 4.8.5-4)]
+  [...]
 ----
 
 NOTE: Ansible is keeping configuration management simple. Ansible requires no database or running daemons and can run easily on a laptop. On the managed hosts it needs no running agent.
@@ -123,6 +102,14 @@ To allow user ansible to execute commands on host1 and host2 as root you have to
 ----
 
 * When finished, exit the SSH session to host1 and repeat the steps for host2.example.com.
+* After configuration of host2.example.com, do a final test to check if you can:
+** run commands over SSH
+** without password
+** using sudo
+
+----
+[ansible@control ~]$ ssh -t host1.example.com "sudo cat /etc/shadow"
+----
 
 TIP: In real world environments you would integrate these steps into you deployment process so your nodes are already configured for using Ansible over SSH.
 
@@ -1025,12 +1012,14 @@ Often you’ll want to do many things in one task, such as
 
 Ansible supports loops to iterate over a set of values and saves administrators from writing repetitive tasks that use the same module.
 
-Ansible supports three types of loops: simple loops, list of hashes and nested loops. In this lab we'll have a quick look at the first two:
+Ansible supports three types of loops: simple loops, list of hashes and nested loops. In this lab we'll have a quick look at the first two.
+
+WARNING: Ansible 2.5 brought a new and easier way do work with loops: The `loop` keyword. Before 2.5 Ansible mainly used the `with_<lookup>` keywords to create loops, the new `loop` keyword is basically analogous to `with_list`. You'll find a lot of Ansible examples using `with_items` or `with_nested` on the Internet.
 
 ==== Simple Loops
 
 Simple loops are a list of items that Ansible iterates over. They are
-defined by providing a list of items to the `with_items` keyword. Create the following Playbook and run it:
+defined by providing a list of items to the `loop` keyword. Create the following Playbook and run it:
 ----
 ---
 - name: Loop demo
@@ -1040,7 +1029,7 @@ defined by providing a list of items to the `with_items` keyword. Create the fol
       service:
         name: "{{ item }}"
         state: started
-      with_items:
+      loop:
         - httpd
         - sshd
 ----
@@ -1059,7 +1048,7 @@ The list of items to loop over could also be supplied as an array in the vars se
       service:
         name: "{{ item }}"
         state: started
-      with_items: "{{ check_services }}"
+      loop: "{{ check_services }}"
 ----
 
 
@@ -1078,7 +1067,7 @@ following Playbook shows how an array with key-pair values is passed to the user
         name: "{{ item.name }}"
         state: present
         groups: "{{ item.groups }}"
-      with_items:
+      loop:
         - { name: 'jane', groups: 'wheel' }
         - { name: 'joe', groups: 'root' }
 ----
@@ -1089,15 +1078,15 @@ A bit more complicated are nested loop. To get an idea of how they work here is 
 ----
 ---
 - name: Nested loop demo
-  hosts: host1.example.com
+  hosts: localhost
   become: no
   tasks:
     - name: Loop over the nested items
       shell: echo "nested test a={{ item[0] }} b={{ item[1] }} c={{ item[2] }}"
-      with_nested:
-        - [ 'red', 'blue' ]
-        - [ 1, 2 ]
-        - [ 'up', 'down']
+      loop: "{{ lookup('nested',
+            [ 'red0', 'blue0' ],
+            [ '1', '2', ],
+            [ 'up', 'down' ]) }}"
 ----
 
 TIP: There is a lot more you can do with Ansible loops: http://docs.ansible.com/ansible/playbooks_loops.html
