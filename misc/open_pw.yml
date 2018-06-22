@@ -1,0 +1,42 @@
+#
+# Modify control host in the lab environment to
+# - have a lab-user
+# - allow password login with 'r3......'
+# - add lab-user to sudoers
+#
+
+# add all your control hosts to the inventory file to the [lab] group
+# run with "ansible-playbook -u <your-rhpds-user-name> --private-key=summit_lab_rsa -i inventory modi.yml"
+
+# generate an encoded password with
+# python -c 'import crypt,getpass; print crypt.crypt(getpass.getpass())'
+
+- name: modify lab control host
+  hosts: lab
+  become: yes
+  become_method: sudo
+
+  vars:
+    sshdconfig: /etc/ssh/sshd_config
+
+  tasks:
+    - name: add lab user
+      user:
+        name: lab-user
+        groups: wheel
+        password: '$6$dvVkzbC0niMJ1I3f$1TOvw8dsqcPjCCIO5GTyZCTxup4Zfor0bMDv3cgDZ87mz3rNRXJgGmrJqyzILv8tJCdylaXEUZg02qnGEZJDV.
+'
+
+    - name: set PasswordAuthentication yes
+      lineinfile: dest="{{ sshdconfig }}" regexp="^PasswordAuthentication no" line="PasswordAuthentication yes" state=present
+
+    - name: reload sshd service
+      service: name=sshd state=reloaded
+
+    - name: allow 'wheel' group to have passwordless sudo
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: '^%wheel'
+        line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
