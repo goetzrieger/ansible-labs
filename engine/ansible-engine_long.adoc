@@ -4,6 +4,8 @@
 :numbered:
 :icons: font
 
+// Tested with BP EMEA-PARTNERS-Ansible_Tower32_rhpds-long-0.3.6.1-bp
+
 == Your Lab Environment
 
 You will work in a lab environment that has already been deployed for you.
@@ -1869,17 +1871,17 @@ Getting errors from Playbooks at execution time will happen frequently to you, m
 
 Have Ansible step through the tasks interactively:
 ----
-[ansible@control ansible-files]$ ansible-playbook play.yml --step
+[ansible@control ansible-files]$ ansible-playbook debug.yml --step
 ----
 
 Start execution from a given task:
 ----
-[ansible@control ansible-files]$ ansible-playbook play.yml --start-at-task="start httpd service"
+[ansible@control ansible-files]$ ansible-playbook apache.yml --start-at-task="Apache enabled and running"
 ----
 
 Check the syntax of a Playbook:
 ----
-[ansible@control ansible-files]$ ansible-playbook play.yml --syntax-check
+[ansible@control ansible-files]$ ansible-playbook apache.yml --syntax-check
 ----
 
 === Keeping Ansible Files on Host
@@ -1887,7 +1889,7 @@ Check the syntax of a Playbook:
 When Ansible executes a command on a remote host, usually a Python script is copied, executed and removed immediately. However, for debugging it might make sense to keep the script and execute it locally. Ansible can be persuaded to keep a script by setting the variable ANSIBLE_KEEP_REMOTE_FILES to true at the command line:
 
 ----
-[ansible@control ansible-files]$ ANSIBLE_KEEP_REMOTE_FILES=1 ansible-playbook playbook.yml -vvv
+[ansible@control ansible-files]$ ANSIBLE_KEEP_REMOTE_FILES=1 ansible-playbook apache.yml -vvv
 ----
 
 ----
@@ -2011,6 +2013,8 @@ simple vhost index
 <h1>This is a development webserver, have fun!</h1>
 </body>
 ----
+
+TIP: Output might vary depending if you run the command in "Keeping Ansible Files on Host".
 
 === Bonus Lab: Change a Configuration File
 
