@@ -117,18 +117,20 @@ This is what the arguments are for:
 
 == Configure the Ansible Control Host for WinRM
 
-Now a couple of preparation steps have to be done on `control.example.com` to allow Ansible to use WinRM. Open the SSH connection to the host and:
+Now a couple of preparational steps have to be run on `control.example.com` to allow Ansible to use WinRM. Open the SSH connection to the host and install Python WinRM from EPEL:
+
+----
+[root@control ~]# yum install python2-winrm
+----
+
+Or use the pip supplied Python packages:
 
 ----
 [root@control ~]# yum install python2-pip
 [root@control ~]# pip install "pywinrm>=0.3.0"
 ----
 
-TIP: In this case we are installing Python's PIP package manager from locally cached EPEL packages and then using pip we install WinRM.
-
-----
-[root@control ~]# yum install python2-winrm
-----
+TIP: In the latter case we are installing Python's PIP package manager from locally cached EPEL packages and then using pip we install WinRM.
 
 == Authentication
 
