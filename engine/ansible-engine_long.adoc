@@ -1040,7 +1040,7 @@ defined by providing a list of items to the `loop` keyword. Create the following
         - sshd
 ----
 
-The list of items to loop over could also be supplied as an array in the vars section or in a file. In this example the array is called `check_services`. Create this Paybook and run it:
+The list of items to loop over could also be supplied as an array in the vars section or in a file. In this example the array is called `check_services`. Create this Playbook and run it:
 ----
 ---
 - name: Loop demo
