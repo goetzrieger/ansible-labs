@@ -780,10 +780,14 @@ WARNING: *Solution below!*
 ---
 stage: prod
 service: httpd
+----
+----
 [ansible@control ansible-files]$ cat group_vars/webserver
 ---
 stage: dev
 service: sshd
+----
+----
 [ansible@control ansible-files]$ cat check_service.yml
 ---
 - name: Check if  service is enabled and started
@@ -794,7 +798,7 @@ service: sshd
     service:
       name: "{{ service }}"
       enabled: true
-      state: started
+      state: restarted
 
 [ansible@control ansible-files]$ ansible-playbook check_service.yml -v
 ----
