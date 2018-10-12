@@ -38,7 +38,7 @@ Most prerequisite tasks have already been done for you:
 Check Ansible has been installed correctly
 ----
 [root@control ~]# ansible --version
-ansible 2.5.0
+ansible 2.7.0
   config file = /etc/ansible/ansible.cfg
 [...]
 ----
@@ -72,11 +72,15 @@ NOTE: *In all subsequent exercises you should work as the ansible user on the co
 You might have guessed by now this lab is pretty commandline-centric... :-)
 
 * Don't type everything manually, use copy & paste from the browser when appropriate. But don't stop to think and understand... ;-)
-* All labs where prepared using Vi, but feel free to use mc (function keys can be reached via Esc-<n>) or nano.
+* All labs where prepared using Vi, but feel free to install mc (`yum install 
+mc`, function keys can be reached via Esc-<n>) or nano.
 
 TIP: In the lab guide commands you are supposed to run are shown with or without the expected output, whatever makes more sense in the context. 
 
-TIP: The command line can wrap on the web page from time to time. Therefor the output is separated from the command line for better readability by an empty line. *Anyway, the line you should actually run should be recognizable by the prompt.* :-) 
+TIP: The command line can wrap on the HTML page from time to time. Therefor the 
+output is separated from the command line for better readability by an empty 
+line. *Anyway, the line you should actually run should be recognizable by the 
+prompt.* :-) 
 
 === Challenge Labs
 
