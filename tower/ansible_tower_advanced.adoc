@@ -1,0 +1,389 @@
+= Ansible Tower Advanced: Getting Started with Clustering and Isolated Nodes
+:scrollbar:
+:data-uri:
+:toc: left
+:numbered:
+:icons: font
+:imagesdir: ./images
+
+== Introduction to Ansible Tower Clustering
+
+With version 3.1 Ansible Tower introduced clustering, replacing the redundancy solution configured with the active-passive nodes. Clustering is sharing load between Tower nodes/instances. Each Tower instance is able to act as an entry point for UI and API access. 
+
+TIP: Using a load balancer in front of the Tower nodes is possible, but optional because an Ansible Tower cluster can be accessed via all Tower instances.
+
+Each instance in a Tower cluster expands the cluster's capacity to execute jobs. Jobs can and will run anywhere rather than be directed on where to run. 
+
+=== Setup Considerations
+
+Here are a number of things to consider when planning a clustered Tower deployment:
+
+* The PostgreSQL database is a central component of the cluster. Ansible Tower is not taking care of availabilty, redundancy or replication of the database, this has to be configured "outside" of Tower.
+* The number of instances in a cluster should always be an *odd number* and a minimum number of three is strongly recommended.
+* RabbitMQ is a core component, so a lot of the requirements are dictated by it. Like e.g. the odd node count for quorum...
+* Typical cluster considerations apply: All nodes need to be able to reliably connect to each other, stable address/hostname resolution, geographically co-located with reliable low-latency connections between instances.
+* Remember there is no concept of primary/secondary instance, all systems are primary.
+
+== Installing an Ansible Tower Cluster
+
+For initial configuration of a Tower cluster and for adding new instances the default Ansible installer is used, but the inventory file needs to be extended. Some important basic concepts:
+
+* There has to be at least an inventory group named `tower`. We'll cover instance groups later, but keep in mind the nodes in this group are responsible for housekeeping tasks like where to launch jobs or to process playbook events. 
+* If all Tower instances in this group fail, jobs might not run and playbook events might not get written. Somake sure there are enough instances in this group.
+* The database can be installed and configured by the installer by adding the host to the `database` group. If the database host is provisioned separately, leave the group empty.
+
+=== Create the Installer Inventory File
+
+In this lab you will build a cluster of three Tower instances with a separate database instance which the installer will install and configure.
+
+TIP: Keep in mind when working with clustered Ansible Tower that the database will not be clustered or replicated by the installer. This is something you have to take care of yourself.
+
+Login to `control.example.com` VM of your lab environment. In root's home directory you'll find the Ansible Tower bundle installer as a tar ball.
+
+Unpack it and change into the new directoy:
+----
+[root@control ~]# tar xfvz ansible-tower-setup-bundle-3.2.5-1.el7.tar.gz 
+[root@control ~]# cd ansible-tower-setup-bundle-3.2.x.y/
+----
+
+Now adapt the inventory file to look like this:
+----
+[tower]
+tower1.example.com
+tower2.example.com
+tower3.example.com
+
+[database]
+towerdb.example.com
+
+[all:vars]
+ansible_become=true
+
+admin_password='r3dh4t1!'
+
+pg_host='towerdb.example.com'
+pg_port='5432'
+
+pg_database='tower'
+pg_username='tower'
+pg_password='r3dh4t1!'
+
+rabbitmq_port=5672
+rabbitmq_vhost=tower
+rabbitmq_username=tower
+rabbitmq_password='r3dh4t1!'
+rabbitmq_cookie=rabbitmqcookie
+
+# Needs to be true for fqdns and ip addresses
+rabbitmq_use_long_name=true
+----
+
+WARNING: In this lab this has been taken care of, but remember all instances have to able to resolve all hostnames and to reach each other!
+
+Now from the directory run the installer like you would do in a single-instance installation. Then go get a coffee.
+
+----
+[root@control ansible-tower-setup-bundle-3.2.5-1.el7]# ./setup.sh
+----
+
+After the installation has finished open your browser and login to all three nodes web UIs:
+
+* `tower1-<GUID>.rhpds.opentlc.com`
+* `tower2-<GUID>.rhpds.opentlc.com` 
+* `tower3-<GUID>.rhpds.opentlc.com`.
+
+All three should ask for a license file the same way as when working with a single-instance Tower. Ready for the first cluster-moment?
+
+* In one of the Tower instances web UI, upload the license provided.
+* In the other two Tower instances logout and in again.
+
+All three nodes should automagically have a valid license now, your cluster is functional. To learn about your cluster and it's state, in one of the instances web UI access *Settings* -> *INSTANCE GROUPS*. Here you will get an overview of the cluster by instance groups. Explore the information provided, of course there is no capacity used yet and now Jobs have run.
+
+You can also get information about your cluster on the command line. From `control.exmaple.com` SSH to one of the Tower instances, e.g.:
+
+----
+[root@control ~]# ssh tower1.example.com
+----
+
+And run the following command:
+----
+[root@tower1 ~]# awx-manage list_instances
+----
+
+== Creating Inventory and Credentials
+
+The next steps don't really differ from what you would do with a single-instance Tower. To run Ansible jobs from Tower you need an inventory and machine credentials.
+
+=== Create an Inventory
+
+You should already have the web UI open, if not: Point your browser to one of the Tower instances, why not `tower2` this time: *\https://tower2-<GUID>.rhpds.opentlc.com* (replace "<GUID>")`
+
+Create the inventory:
+
+* In the web UI go to *INVENTORIES* and click *+ADD->Inventory*
+* *NAME:* Example Inventory
+* *ORGANIZATION:* Default
+* Click *SAVE*
+
+Add your managed hosts:
+
+* In the inventory view click the *HOSTS* button
+* To the right click *+ADD HOST*
+* *HOST NAME:* host1.example.com
+* Click *SAVE*
+* Repeat to add `host2.example.com` as a second host.
+
+You have now created an inventory with two managed hosts.
+
+=== Create Machine Credentials
+
+TIP: SSH keys have already been created and distributed in your lab environment and `sudo` has been setup on the managed hosts.
+
+Now let's go and configure the credentials to access our managed hosts from Tower. In the Tower web UI click *Settings*, it is the gear-shaped icon to the upper right. From the settings choose the *CREDENTIALS* box. Now:
+
+* Click the *+ADD* button to add new credentials
+** *NAME:* Example Credentials
+** *ORGANIZATION:* Default
+
+TIP: Whenever you see a magnifiying glass icon next to an input field, clicking it will open a list to choose from.
+
+** *CREDENTIAL TYPE:* Machine
+** *USERNAME:* ansible
+** *PRIVILEGE ESCALATION METHOD:* sudo
+
+As we are using SSH key authentication, you have to provide an SSH private key that can be used to access the hosts. You could also configure password authentication here.
+
+* Bring up your SSH terminal on Tower, become user `ansible` and `cat` the SSH private key:
+----
+[root@tower ~]# su - ansible
+[ansible@tower ~]$ cat .ssh/id_rsa
+----
+
+* Copy the complete private key (including "BEGIN" and "END" lines) and paste it into the *SSH PRIVATE KEY* field in the web UI.
+* Click *SAVE*
+* Go back to *Settings -> CREDENTIALS -> Example Credentials* and note that the SSH key is not visible. 
+
+You have now setup credentials to use later for your inventory hosts.
+
+=== It's a Cluster After All
+
+So far nothing special. But we are operating in a clustered environment. Login to the other Tower instances (the ones you didn't configured the inventory and credentials on). Have a good look around, everything we configured on one Tower instance was synced automatically to the other nodes. Inventory, credentials, all there. 
+
+== Run a Job in the Cluster
+
+Before we can start jobs we need to configure some more things. This is again the same as in single-instance Tower deployments, so the guide will just walk you through the required steps. Take note how everything you configure is syncronized to the other nodes, too.
+
+For this lab you will use a pre-configured Git repository on `control.example.com` that can be accessed via SSH. The configuration steps can be run on either of the Tower instances.
+
+=== Create Credentials
+
+First create the credentials for the repository. You will need the private key of user `git` (the repo owner) from `control.example.com` for the credentials:
+
+* In a terminal log in to `control.example.com` as root. Then become user git and `cat` the SSH private key:
+----
+[root@control ~]# su - git
+[git@control ~]$ cat .ssh/id_rsa
+----
+
+* Copy the complete private key (including "BEGIN" and "END" lines) into the clipboard
+
+In one of the Tower web UI's click the gear-icon for *Settings*. From the settings choose the *CREDENTIALS* box. 
+
+* Click the *+ADD* button to add new credentials
+* *NAME*: Control Git
+* *CREDENTIAL TYPE*: *Source Control*
+
+TIP: You will have to change the page in the *SELECT CREDENTIAL TYPE* window.
+
+* *USERNAME*: git
+* Paste the SSH private key for the git user from `control.example.com` into the *SCM PRIVATE KEY* field
+* Click *SAVE*
+
+=== Create the Project
+
+A Playbook to install the Apache webserver has already been commited to the repository.
+
+* In the *PROJECTS* view click *+ADD*
+* *NAME:* Control Git Repo
+* *ORGANIZATION:* Default
+* *SCM TYPE:* Git
+* Point to the Git repo on the control host: 
+** *SCM URL:* control.example.com:/home/git/git-repo
+* *SCM CREDENTIAL:* Control Git
+* *SCM UPDATE OPTIONS:* Tick all three boxes to always get a fresh copy of the repository and to update the repository when launching a job.
+* Click *SAVE*
+
+=== Create a Job Template
+
+A job template is a definition and set of parameters for running an Ansible job. Job templates are useful to execute the same job many times. So before running an Ansible *Job* from Tower you must create a *Job Template* that pulls together:
+
+* *Inventory*: On what hosts should the job run?
+* *Credentials* for the hosts
+* *Project*: Where is the Playbook?
+* *What* Playbook to use?
+
+Okay, let's just do that:
+
+* Go to the *TEMPLATES* view and click *+ADD* -> *JOB TEMPLATE*
+** *NAME:* Apache
+** *JOB TYPE:* Run
+** *INVENTORY:* Example Inventory
+** *PROJECT:* Control Git Repo
+** *PLAYBOOK:* apache.yml
+** *CREDENTIAL:* Example Credentials
+** We need to run the tasks as root so check *Enable privilege escalation*
+** Click *SAVE*
+
+=== Run a Job
+
+Now you are ready to start a job in your Tower cluster. In the *TEMPLATES* view select the new Job Template and run it by clicking the rocket icon. Again this is at first not different from a standard Tower. But as this is a cluster of active nodes every node could have run the job. And the Job output in Tower's web UI doesn't tell you where it run.
+
+==== So what Instance run the Job?
+
+But there is help. In one of the Tower instances web UI go to the *Settings* page and then choose *INSTANCE GROUPS*. Click the `tower` instance group, this will get you to an overview of the instances in this group together with currently running jobs and the used capacity. Selecting the *JOBS* view here will show you the jobs that run in this instance group.
+
+To see on what instance a job actually run go back to the *INSTANCES* view. If you click one of the instances, you will get a list of jobs that this Tower executed.
+
+But it would still be nice to see where a job run (not the other way round) and to get an idea how jobs are distributed to the available instances. For this we have to use the API.
+
+To run a number of jobs (so the cluster has something to distribute) we could just fire of a couple of the Apache job templates, but doing this using the web UI is tiresome. So let's install and use the `tower-cli` commandline utility on one of the Tower instances:
+
+First login to a Tower instance:
+----
+[root@control ~]# ssh tower2.example.com
+----
+
+Then install the tool in the correct Python venv and do the inital configuration:
+----
+[root@tower2 ~]# . /var/lib/awx/venv/ansible/bin/activate
+[root@tower2 ~]# pip install ansible-tower-cli
+[root@tower2 ~]# tower-cli config host tower2.example.com
+[root@tower2 ~]# tower-cli config username admin
+[root@tower2 ~]# tower-cli config password r3dh4t1!
+----
+
+Now that we have `tower-cli`, use it to run some jobs, e.g.:
+
+----
+[root@tower2 ~]# for i in `seq 1 5`; do tower-cli job launch -J Apache ; sleep 5 ; done
+----
+
+And now query the API for the instance/node the jobs where executed on:
+
+----
+[root@tower2 ~]# curl -s -k -u admin:r3dh4t1! https://tower2.example.com/api/v2/jobs/ | python -m json.tool | grep execution_node
+            "execution_node": "tower3.example.com",
+            "execution_node": "tower1.example.com",
+            "execution_node": "tower3.example.com",
+            "execution_node": "tower2.example.com",
+            "execution_node": "tower2.example.com",
+----
+
+Now you can see how the Tower cluster distributed the jobs between the instances! And for the fun of it you can of course change the Tower instance to query in the `curl` command and see that you get the same information.
+
+== Tower Instance Groups
+
+Ansible Tower clustering was introduced with Tower 3.1 and allows you to easily add capacity to your Tower infrastructure by adding nodes. What it doesn't allow is to dedicate capacity or nodes to a purpose, be it a group of people, a department or a location. In a single-group Tower cluster where all nodes are within the `tower` group there is no way to influence what node will run a job, as you saw the cluster will take care of scheduling Jobs on nodes as it sees fit.
+
+To enable more control over what node is running a job, Tower 3.2 saw the introduction of the instance groups feature. Instance groups allow you to organize your cluster nodes into groups. In turn Jobs can be assigned to Instance Groups by configuring the Groups in Organizations, Inventories or Job Templates.
+
+TIP: The order of priority is Job Template > Inventory > Organization. So Instance Groups configured in Job Templates take precedence over those configured in Inventories, which take precedence over Organizations
+
+Some things to keep in mind about Instance Groups:
+
+* Nodes in an Instance Group share a job queue
+* You can have as many Instance Groups as you like as long as there is at least one node in the `tower` group
+* Nodes can be in one or more Instance Groups
+* Group can not be named `instance_group_tower`!
+* Tower instances can't have the same name as a group
+
+This allows for some pretty cool setups, e.g. you could have some nodes shared over the whole cluster (by putting them into all groups) but then have other nodes that are dedicated to one group to reserve some capacity.
+
+WARNING: Remember the base `tower` group does house keeping like processing events from jobs for all groups so the node count of this group has to scale with your overall cluster load, even if these nodes are not used to run Jobs.
+
+Talking about the `tower` group: As you have learned this group is crucial for the operations of a Tower cluster. Apart from the house keeping tasks, if a resource is not associated with an Instance Group, one of the nodes from the `tower` group will run the Job. So if there are no operational nodes in the base group, the cluster will not be able to run Jobs. 
+
+WARNING: It is important to have enough nodes in the `tower` group
+
+TIP: Here is a really great blog post going into Instance Groups with a lot more depth: https://www.ansible.com/blog/ansible-tower-feature-spotlight-instance-groups-and-isolated-nodes.
+
+=== Creating Instance Groups
+
+Having the introduction out of the way, let's get back to our lab and give Instance Groups a try. First have a look at our setup as described in the installers inventory file. In your SSH session change into the Ansible installer directory and do the following:
+
+----
+[root@control ansible-tower-setup-bundle-3.2.5-1.el7]# cat inventory
+[tower]
+tower1.example.com
+tower2.example.com
+tower3.example.com
+
+[database]
+towerdb.example.com
+
+[...]
+----
+
+In this basic cluster setup we just have the `tower` base group. Let's configure two new Instance groups and add Tower instances. As an example scenario we'll take one node out of the `tower` group and share another node between groups.
+
+WARNING: This is not best practice, it's just for the sake of this lab! Any jobs that are launched targeting a group without active nodes will be stuck in a waiting state until instances become available. So one-instance groups are never a good idea. 
+
+The global tower group can still be associated with a resource, just like any of the custom instance groups defined in the playbook. This can be used to specify a preferred instance group on the job template or inventory, but still allow the job to be submitted to any instance if those are out of capacity.
+
+Instance groups are prefixed with `instance_group_`. Adapt the inventory groups to make it look like this:
+
+----
+[root@control ansible-tower-setup-bundle-3.2.5-1.el7]# cat inventory
+[tower]
+tower1.example.com
+tower2.example.com
+
+[instance_group_prod]
+tower3.example.com
+
+[instance_group_dev]
+tower2.example.com
+
+[database]
+towerdb.example.com
+
+[...]
+----
+
+After editing the inventory, start the installer to make the desired changes:
+
+----
+[root@control ansible-tower-setup-bundle-3.2.5-1.el7]# ./setup.sh
+----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
