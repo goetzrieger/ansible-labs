@@ -6,7 +6,7 @@
 :icons: font
 :imagesdir: ./images
 
-image::forum_wien_banner.jpg[]
+//image::forum_wien_banner.jpg[]
 
 // Updated to Tower 3.3
 
@@ -41,15 +41,13 @@ In this lab you work in a pre-configured lab environment. You will have access t
 
 |===
 
-TIP: You will be able to SSH into `control.example.com` using the external hostname, from here you need to SSH into the other hosts to run tasks on the commandline. 
+TIP: Your lab environment will get a unique *<GUID>*. You will be able to SSH into `control.example.com` using the external hostname `control-<GUID>.rhpds.opentlc.com`, from here you need to SSH into the other hosts to run tasks on the commandline. 
 
-TIP: Ansible Tower's web UI will be reachable over HTTP/HTTPS.
+TIP: Ansible Tower has already been installed and licensed for you, the web UI will be reachable over HTTP/HTTPS. 
 
-TIP: Ansible Tower has already been installed and licensed for you. 
+== Lab Access
 
-// == Lab Access
-
-include::access_forum.adoc[]
+include::access_rhpds.adoc[]
 
 == Ansible Tower Introduction
 
