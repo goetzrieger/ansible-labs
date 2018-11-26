@@ -895,7 +895,7 @@ TIP: Make sure to keep the three dashes that mark the YAML start!
 ** Uses `Example Credentials` and runs with privilege escalation
 * Save and run the template
 
-=== Check the results:
+=== Check the results
 
 ----
 [root@control ~]# curl http://host1.example.com
