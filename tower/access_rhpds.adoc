@@ -1,11 +1,11 @@
-* Login to to rhpds.redhat.com
-* Make sure the group is set to "rhpds-access" (top right in the web UI)
+* Login to to *rhpds.redhat.com*
+* Make sure the group is set to *rhpds-access* (top right in the web UI)
 * Go to *Services->Catalogs*
 * From the *Red Hat Summit 2018* catalog select *Getting Hands-On with Ansible Tower 3.3*
 
 === Order Lab
 
-* Click Order.
+* Click *Order*
 * Check the confirmation check box and in the lower right corner, click Submit.
 * After about 10 minutes, check your email for a message from Red Hat with information about how to access your environment.
 
