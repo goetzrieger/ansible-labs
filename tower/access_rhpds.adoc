@@ -1,7 +1,7 @@
 * Login to to rhpds.redhat.com
 * Make sure the group is set to "rhpds-access" (top right in the web UI)
 * Go to *Services->Catalogs*
-* From the *Cloud Infrastructure Demos* catalog select *Hands-On with Ansible Tower*
+* From the *Red Hat Summit 2018* catalog select *Getting Hands-On with Ansible Tower 3.3*
 
 === Order Lab
 
@@ -24,11 +24,9 @@ Open a terminal session and use SSH to remotely connect to the control host:
 $ ssh root@control-<GUID>.rhpds.opentlc.com
 ----
 
+TIP: The password for all user accounts in this lab environment is: *r3dh4t1!*
+
 TIP: When entering commands, replace GUID with your personal GUID, which is provided at the top of the lab provisioning email you received from Red Hat. 
-
-WARNING: To avoid problems, always use the FQDN hostname and not the IP or Ravello DNS entry when using SSH to connect to your RHPDS lab hosts.
-
-TIP: You can find the root password for all machines in the lab description on RHPDS
 
 ----
 $ sudo -i
