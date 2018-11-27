@@ -43,6 +43,8 @@ For the full documentation go https://www.nano-editor.org/dist/v3/nano.html[here
 
 === Syntax Highlighting
 
+WARNING: This will not work for older Nano version (like in RHEL 7).
+
 To enable syntax highlighting for YAML files:
 ----
 [ansible@control ~]$ mkdir -p ~/.nano/syntax
