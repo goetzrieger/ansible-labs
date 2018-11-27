@@ -127,7 +127,7 @@ Add your managed hosts:
 * To the right click the image:green_plus.png[20,20] button.
 * *HOST NAME:* host1.example.com
 * Click *SAVE*
-* Repeat to add `host2.example.com` as a second host.
+* Go back to *HOSTS* and repeat to add `host2.example.com` as a second host.
 
 You have now created an inventory with two managed hosts.
 
