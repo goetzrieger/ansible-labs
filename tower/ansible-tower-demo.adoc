@@ -7,6 +7,50 @@
 
 // Tested with BP: EMEA-PARTNERS-Ansible_Tower_Demo-0.1-bp
 
+== What to Demo
+
+Depends heavily on customers skills and use case, of course. Time is important, of course. Even the most prepared and streamlined demo will take 30 minutes easily! 
+
+=== Customer with Ansible Know-How
+
+You can assume an understanding of Ansible concepts. So no explaining of inventory, Playbooks etc.
+
+Preconfigure Tower:
+
+* Inventory
+* Credentials
+* Projects (One basic, two for workflow)
+* User wweb
+
+Demo:
+
+Open SSH and Tower Web UI.
+
+* Show web UI navigation introduction, then:
+** Show prepared Inventory
+** Show prepared Credentials (show how credentials can be created and how content of SSH key is not visible anymore, but just show a mock version. Use the precreated credentials later)
+* Show Projects
+** Jump to SSH console and show the Git repos and the Playbooks inside
+** Show the Project in Tower
+** Do a Project update
+* Demo Job Template
+** First show how Towers Ansible user can connect to managed hosts via SSH *Like with in Ansible cmdline*
+** Then create Job Template *See how we now tie everything together?*
+** Run Job Template, show output in Web UI
+** After successful run show job list, show how Project was updated first
+* Demo Surveys
+** Add a Survey to the Job Template
+** Run it
+* Show user 
+** Show wweb user
+* Demo giving permissions to Job Template to user
+** Run the Job Template as wweb
+* Recap: User with no access to credentials or change right to Playbook/automation can parameterize Playbook and run it.
+* Demo Workflows
+
+
+
+
 == Recap Ansible Tower Concepts
 
 === Dashboard
