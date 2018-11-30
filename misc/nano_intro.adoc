@@ -39,9 +39,15 @@ Move the cursor to the position where you want it and paste:
 Ctrl-u
 ----
 
+=== Show Whitespaces
+
+Ansible uses YAML so it comes in handy to mark whitespaces from time to time. In Nano just press *Alt-p* to toggle whitespaces.
+
 For the full documentation go https://www.nano-editor.org/dist/v3/nano.html[here] or use the man page.
 
 === Syntax Highlighting
+
+WARNING: This will not work for older Nano version (like in RHEL 7).
 
 To enable syntax highlighting for YAML files:
 ----
@@ -96,6 +102,4 @@ include /usr/share/nano/*
 
 TIP: This `.nanorc` will enable YAML and all other syntax highlighting coming with Nano.
 
-=== Show Whitespaces
 
-Ansible uses YAML so it comes in handy to mark whitespaces from time to time. In Nano just press *Alt-p* to toggle whitespaces.
