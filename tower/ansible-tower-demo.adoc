@@ -39,6 +39,7 @@ Open SSH and Tower Web UI.
 ** Run Job Template, show output in Web UI
 ** After successful run show job list, show how Project was updated first
 * Demo Surveys
+** Show */home/git/git-work/index.j2* and */home/git/git-work/index_html_create.yml*
 ** Add a Survey to the Job Template
 ** Run it
 * Show user 
