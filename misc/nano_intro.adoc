@@ -43,7 +43,7 @@ Ctrl-u
 
 === Show Whitespaces
 
-Ansible uses YAML so it comes in handy to mark whitespaces from time to time. 
+Ansible uses YAML so it comes in handy to mark whitespaces (or reveal *tabs* ;-). 
 
 * First use Nano to create a _nanorc_ file in your home directory so it looks like this:
 ----
