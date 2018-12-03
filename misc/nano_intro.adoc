@@ -43,7 +43,16 @@ Ctrl-u
 
 === Show Whitespaces
 
-Ansible uses YAML so it comes in handy to mark whitespaces from time to time. In Nano just press *Alt-p* to toggle whitespaces.
+Ansible uses YAML so it comes in handy to mark whitespaces from time to time. 
+
+* First use Nano to create a _nanorc_ file in your home directory so it looks like this:
+----
+set whitespace "»·"
+----
+
+* To toggle *tab* and *whitespace* display in Nano just press *Alt-p*.
+
+=== More Help
 
 For the full documentation for Nano 2 (included in RHEL 7) go https://www.nano-editor.org/dist/v2.2/nano.html[here], for the recent version 3 go here https://www.nano-editor.org/dist/v3/nano.html[here] or use the man page.
 
