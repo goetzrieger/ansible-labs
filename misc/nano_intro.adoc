@@ -45,7 +45,7 @@ Ctrl-u
 
 Ansible uses YAML so it comes in handy to mark whitespaces (or reveal *tabs* ;-). 
 
-* First use Nano to create a _nanorc_ file in your home directory so it looks like this:
+* First use Nano to create a _.nanorc_ file in your home directory so it looks like this:
 ----
 set whitespace "»·"
 ----
