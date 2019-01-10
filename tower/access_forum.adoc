@@ -1,0 +1,39 @@
+In your browser, open:
+
+* https://bit.ly/2MHwzTC
+** Choose the lab: *L2-Erste Schritte mit Ansible Tower*
+** Enter Activation Key: *tower*
+** Click *Next*
+
+The next page will show all information you need:
+
+* Your *unique lab ID* (GUID)
+* Lab *access* information
+* Link to the *lab guide* (you are here already, anyway…​ ;-)
+* SSH *command* to use for console access
+* URL to access the *Tower web interface*
+
+WARNING: Every lab environment has been assigned a GUID in the URLs and external hostnames.
+
+=== To access your control host:
+
+* Open a terminal session
+* Run *ssh root@control-<GUID>.rhpds.opentlc.com* or use the command from https://bit.ly/2MHwzTC
+* *Log in* to your control host as user *root* using the password *r3dh4t1!*
+
+TIP: When following the lab guide, replace <GUID> with your personal GUID
+
+Because inside the lab environment SSH keys have already been distributed, from the control host you can now simply SSH into the Tower VM:
+
+----
+[root@control ~]# ssh tower.example.com
+----
+
+=== Access the Tower Web UI
+
+* Open a browser
+* Access the Tower web UI: *https://tower-<GUID>.rhpds.opentlc.com* or use the URL from https://bit.ly/2MHwzTC
+* Accept the certificate
+* Log in user admin with the same password as for root.
+
+Now you will be greeted by your Ansible Tower’s dashboard, congratulations! Let have a look at Tower’s web UI and learn about the basics concepts.
