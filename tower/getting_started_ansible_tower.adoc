@@ -6,7 +6,7 @@
 :icons: font
 :imagesdir: ./images
 
-//image::forum_wien_banner.jpg[]
+image::forum.jpg[]
 
 // Updated to Tower 3.3
 
@@ -45,9 +45,9 @@ TIP: Your lab environment will get a unique *<GUID>*. You will be able to SSH in
 
 TIP: Ansible Tower has already been installed and licensed for you, the web UI will be reachable over HTTP/HTTPS. 
 
-== Lab Access
+== Access your Lab Environment
 
-include::access_rhpds.adoc[]
+include::access_forum.adoc[]
 
 == Ansible Tower Introduction
 
@@ -1125,7 +1125,7 @@ case if you left the shell you must re-run `[root@tower ~]# .
 
 Create a new inventory:
 ----
-tower-cli inventory create -n inventory-cli --organization Default --force-on-exists
+(ansible)[root@tower ~]# tower-cli inventory create -n inventory-cli --organization Default --force-on-exists
 ----
 
 Add a host to the inventory:
