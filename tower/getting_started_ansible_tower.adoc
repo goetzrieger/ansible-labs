@@ -8,7 +8,7 @@
 
 image::forum.jpg[]
 
-// Updated to Tower 3.3
+// Updated to Tower 3.4
 
 == Introduction to Ansible Tower
 === Why Ansible Tower?
@@ -256,13 +256,21 @@ TIP: The yellow output of the command indicates Ansible has actually done someth
 
 == Add a new Project
 
-A Tower *Project* is a logical collection of Ansible playbooks. You can manage playbooks by either placing them manually on your Tower server, or by placing your playbooks into a source code management (SCM) system supported by Tower, including Git, Subversion, and Mercurial.
+A Tower *Project* is a logical collection of Ansible Playbooks. You can manage playbooks by either placing them manually on your Tower server, or by placing your playbooks into a source code management (SCM) system supported by Tower, including Git, Subversion, and Mercurial.
 
 You should definitely keep your Playbooks under version control. In this lab we'll use Playbooks kept in a Git repository.
 
 === Setup Git Repository
 
-For this lab you will use a pre-configured Git repository on `control.example.com` that can be accessed via SSH. A Playbook to install the Apache webserver has already been commited to the repository:
+Your lab environment includes Gitea, a Git-service that comes with a web ui and much more. Gitea runs on `control.example.com` and can be accessed via HTTP. Go and have a look around by accessing: 
+
+*\http://control-<GUID>.rhpds.opentlc.com/gitea*.
+
+All repos on Gitea are configured as private e.g. you need to login to access the content. Log in as user *git* with the usual password.
+
+A Playbook to install the Apache webserver has already been commited to the repository *Apache*:
+
+TIP: Note the difference to other Playbooks you might have written! Most importantly there is no `become` and `hosts` is set to `all`.
 
 ----
 ---
@@ -295,54 +303,47 @@ For this lab you will use a pre-configured Git repository on `control.example.co
       state: started
 ----
 
-TIP: Note the difference to other Playbooks you might have written! Most importantly there is no `become` and `hosts` is set to `all`.
-
 To configure and use this repository as a *Source Control Management (SCM)* system in Tower you have to:
 
-* Create credentials to access it using SSH with key authentication
-* Create a Project that uses the repository
+* Create *Credentials* to access the Git repo
+* Create a *Project* that uses the repository
 
 === Create Credentials
 
-First we have to create credentials again, this time to access the Git repository over SSH. You will need the private key of user `git` (the repo owner) from `control.example.com` for the credentials:
-
-* In a terminal log in to `control.example.com` as root. Then become user git and `cat` the SSH private key:
-----
-[root@control ~]# su - git
-[git@control ~]$ cat .ssh/id_rsa
-----
-
-WARNING: Make sure you are user *git* on host *control.example.com*!
-
-* Copy the complete private key (including "BEGIN" and "END" lines) into the clipboard
+First we have to create credentials again, this time to access the Git repository over HTTP.
 
 In the Tower web UI go to *Resources->Credentials*. Now: 
 
 * Click the image:green_plus.png[20,20] button to add new 
 credentials
-* *NAME*: Control Git
+* *NAME*: Gitea Control
 * *CREDENTIAL TYPE*: Choose *Source Control*
 
 TIP: You will have to change the page in the *SELECT CREDENTIAL TYPE* window.
 
 * *USERNAME*: git
-* Paste the SSH private key for the git user from `control.example.com` into the *SCM PRIVATE KEY* field
+* *PASSWORD*: r3dh4t1!
 * Click *SAVE*
 
 === Create the Project
 
 * Go to *Projects* in the side menu view click 
 the image:green_plus.png[20,20] button. Fill in the form:
-* *NAME:* Control Git Repo
+
+* *NAME:* Apache
 * *ORGANIZATION:* Default
 * *SCM TYPE:* Git
-* Point to the Git repo on the control host: 
-** *SCM URL:* control.example.com:/home/git/git-repo
-* *SCM CREDENTIAL:* Control Git
+
+Now you need the HTTP URL to access the repo. Go to the Gitea web UI, choose the *Apache* repository and copy the HTTP clone URL. Enter the URL into the Project configuration:
+
+** *SCM URL:* \http://control.example.com/gitea/git/Apache.git
+* *SCM CREDENTIAL:* Gitea Control
 * *SCM UPDATE OPTIONS:* Tick all three boxes to always get a fresh copy of the repository and to update the repository when launching a job.
 * Click *SAVE*
 
-TIP: The new Project will be synced after creation automatically. 
+TIP: The new Project will be synced after creation automatically.
+
+TIP: You can use `control.example.com` as hostname in *SCM URL* because it resolves inside the environment. For accessing the Gitea web UI in your browser you need to use `\http://control-<GUID>.rhpds.opentlc.com/gitea`.
 
 Sync the Project again with the Git repository by going to the *Projects* view 
 and clicking the circular arrow *Get latest SCM revision* icon to the 
@@ -353,7 +354,7 @@ look at the details.
 
 What have you done in this Chapter? You have:
 
-* Created new credentials to access a version control system with Ansible content
+* Created new *Credentials* to access a version control system with Ansible content
 * Created a *Project* pointing to a Git repository using the new credentials
 
 == Create a Job Template and Run a Job
@@ -369,10 +370,10 @@ Okay, let's just do that:
 
 * Go to the *Templates* view and click the image:green_plus.png[20,20] 
 button and choose *Job Template*.
-** *NAME:* Apache
+** *NAME:* Install Apache
 ** *JOB TYPE:* Run
 ** *INVENTORY:* Example Inventory
-** *PROJECT:* Control Git Repo
+** *PROJECT:* Apache
 ** *PLAYBOOK:* apache.yml
 ** *CREDENTIAL:* Example Credentials
 ** We need to run the tasks as root so check *Enable privilege escalation*
@@ -412,11 +413,11 @@ WARNING: *Solution Below*
 Here is another challenge:
 
 * Create a new inventory called `Webserver` and make only `host1.example.com` member of it.
-* Copy the `Apache` template using the copy icon in the *Templates* view
-* Change the name to `Apache Ask` 
+* Copy the `Install Apache` template using the copy icon in the *Templates* view
+* Change the name to `Install Apache Ask` 
 ** Change the *INVENTORY* setting of the Project so it will ask for the inventory on launch
 ** *SAVE*
-* Go to the *Templates* view and launch the `Apache Ask` template.
+* Go to the *Templates* view and launch the `Install Apache Ask` template.
 * It will now ask for the inventory to use, choose the `Webserver` inventory and click *LAUNCH*
 * Wait until the Job has finished and make sure it run only on `host1.example.com`
 
@@ -435,66 +436,33 @@ used as variables when a *Template* is launched as a *Job*.
 
 You have installed Apache on both hosts in the job you just run. Now we're going to extend on this, the task is to:
 
-* Create a Playbook and a Jinja2 template to deploy an _index.html_ file
-* The content of the _index.html_ should result from a survey
-* Add the Playbook and _index.html_ template to the Git repository.
-* Create a Template with a survey
+* Create a *Project* with a Playbook and a Jinja2 template to deploy an _index.html_ file
+* The content of the *index.html* should result from a survey
+* Create a *Template* with a survey
 * Launch it
 
-=== Create the index.html Jinja Template
+=== Create the Project
 
-In the SSH console on host `control.example.com` as user `git` create a template as _/home/git/git-work/index.j2_ with the following content: 
+The Playbook and Jinja template you need already exist in the repo *Survey* on your Gitea server. Head over to the Gitea UI and have a look at the content.
 
-WARNING: Make sure you are adding the files to Git as user `git`, e.g. you might have to run `su - git` as `root` on the control host!
+TIP: Note the two variables in the *index.j2* template file marked by `{{...}}`!
 
-----
-<body>
-<h1>Apache is running fine</h1>
-<h1>This is survey field "First Line": {{ first_line }}</h1>
-<h1>This is survey field "Second Line": {{ second_line }}</h1>
-</body>
-----
+TIP: Check out the *Playbook* named *index_html_create.yml* that deploys the file from the template. What is this Playbook doing? It creates a file (*dest*) on the managed hosts from the template (*src*)
 
-TIP: Note the two variables marked by `{{...}}` used in the template!
+TIP: BTW while working with the repo: In real world scenarios you would structure your Git (or whatever SCM) in a meaningful way. *And* you would use Ansible Roles, so the location of all files would be clear, instead of having the files "just" in the Git repo.
 
-=== Create the Playbook
+Now create the *Project* to make the Gitea content accessible to a *Template*:
 
-Again as user `git` create the playbook _/home/git/git-work/index_html_create.yml_ to distribute the index.html file from the template:
-----
----
-- name: Create index.html from template
-  hosts: all
-  tasks:
-  - name: Create index.html
-    template:
-      src: index.j2
-      dest: /var/www/html/index.html
-      owner: root
-      group: root
-      mode: 0644
-----
+* Go to *Projects* in the side menu view click 
+the image:green_plus.png[20,20] button. Fill in the form:
 
-What is this Playbook doing?
-
-* It creates a file ("dest") on the managed hosts from the template you created ("src")
-
-=== Add the Files to Git
-
-Now run the following commands to add the files to the Git repository, commit and push to origin:
-----
-[git@control ~]$ cd /home/git/git-work
-[git@control git-work]$ git add index_html_create.yml
-[git@control git-work]$ git add index.j2
-[git@control git-work]$ git commit -a -m "index.j2 and playbook added"
-[git@control git-work]$ git push origin master
-----
-
-TIP: In real world scenarios you would structure your Git (or whatever SCM) in a meaningful way. *And* you would use Ansible Roles, so the location of all files would be clear, instead of having the template file "just" in the Git repo.
-
-Now that we have new content in the Git repo, you can update the *Project* with the new Git content:
-
-* Go to the *Projects* view and start an SCM update for "Control Git Repo" (the 
-arrows button). 
+* *NAME:* Survey
+* *ORGANIZATION:* Default
+* *SCM TYPE:* Git
+* *SCM URL:* \http://control.example.com/gitea/git/Survey.git
+* *SCM CREDENTIAL:* Gitea Control
+* *SCM UPDATE OPTIONS:* Tick all three boxes.
+* Click *SAVE*
 
 TIP: Take note of the *REVISION* number in the *Projects* view, it will change 
 when the Git repo content changed.
@@ -506,13 +474,15 @@ TIP: As you've configured the Project to update on launch, this would have happe
 
 === Create a Template with a Survey
 
-Now you create a new Template that includes a survey:
+Now you create a new Template that includes a survey.
+
+==== Create Template
 
 * Go to *Templates* and click the image:green_plus.png[20,20] button and choose 
 *Job Template*
 * *NAME:* Create index.html
-* Set the proper parameters for the job to
-** Use the new playbook
+* Configure the template to:
+** Use the new *Project* and *Playbook*
 ** To run on host1.example.com
 ** To run as root
 
@@ -523,7 +493,7 @@ WARNING: *Solution Below!*
 * *NAME:* create index.html
 * *JOB TYPE:* Run
 * *INVENTORY:* Webserver
-* *Project:* Control Git Repo
+* *Project:* Survey
 * *PLAYBOOK:* index_html_create.yml
 * *CREDENTIAL:* Example Credentials
 * *OPTIONS:* Enable Privilege Escalation 
@@ -644,7 +614,7 @@ Now log out of Tower's web UI and in again as the *wweb* user.
 * Go to the *Templates* view, you should notice for Werner only the `Create 
 index.html` template is listed. He is allowed to view and lauch, but not to edit 
 the Template.
-* Launch the Job Template, enter the survey content to your liking.
+* Run the Job Template by clicking the rocket icon. Enter the survey content to your liking and launch the job.
 * In the following *Jobs* view have a good look around, note that there where 
 changes to the host (of course...).
 
@@ -696,15 +666,13 @@ TIP: For the sake of this lab everything needed already exists in Git repositori
 
 First you have to set up the Git repos as Projects like you normally would. You have done this before, try to do this on your own. Detailed instructions can be found below. 
 
-TIP: Because the Git repos are on the same server (control.example.com) and belong to the same user (git) like the one you already configured, you can use the existing credentials.
-
 * Create the project for web operations:
 ** It should be named *Webops Git Repo*
-** The URL to access the repo is *control.example.com:/home/git/git-webops*
+** The URL to access the repo is *\http://control.example.com/gitea/git/Webops.git*
 
 * Create the project for the application developers:
 ** It should be named *Webdev Git Repo*
-** The URL to access the repo is *control.example.com:/home/git/git-webdev*
+** The URL to access the repo is *\http://control.example.com/gitea/git/Webdev.git*
 
 WARNING: *Solution Below*
 
@@ -713,8 +681,8 @@ image:green_plus.png[20,20] and fill in:
 ** *NAME:* Webops Git Repo
 ** *ORGANIZATION:* Default
 ** *SCM TYPE:* Git
-** *SCM URL:* control.example.com:/home/git/git-webops
-** *SCM CREDENTIAL:* Control Git
+** *SCM URL:* \http://control.example.com/gitea/git/Webops.git
+** *SCM CREDENTIAL:* Gitea Control
 ** *SCM UPDATE OPTIONS:* Tick all three boxes.
 * Click *SAVE*
 
@@ -723,8 +691,8 @@ click image:green_plus.png[20,20] and fill in:
 ** *NAME:* Webdev Git Repo
 ** *ORGANIZATION:* Default
 ** *SCM TYPE:* Git
-** *SCM URL:* control.example.com:/home/git/git-webdev
-** *SCM CREDENTIAL:* Control Git
+** *SCM URL:* \http://control.example.com/gitea/git/Webdev.git
+** *SCM CREDENTIAL:* Gitea Control
 ** *SCM UPDATE OPTIONS:* Tick all three boxes.
 * Click *SAVE*
 
@@ -754,10 +722,7 @@ Template*:
 ** *OPTIONS:* Enable privilege escalation
 * Click *SAVE*
 
-If you want to know what the Playbooks look like:
-
-* Log in via SSH to `control.example.com` as root
-* Have a look at the files in _/home/git/git-webops-work/_ and _/home/git/git-webdev-work/_
+TIP: If you want to know what the Playbooks look like, use the *Gitea* web UI!
 
 === Set up the Workflow
 
@@ -825,37 +790,33 @@ Your operations team and your application development team like what they see in
 
 === The Git Repository
 
-As a prerequsite you need a Git repo containing the needed files on control.example.com. This has been done for you already, it's a lab about Tower and not Git, after all...
+As a prerequisite you need a Git repo containing the needed files on control.example.com. This has been done for you again, it's a lab about Tower and not Git, after all...
 
-Login via SSH to `control.example.com`, become user `git` and review what you have got there:
-----
-[root@control-<GUID> ~]# su - git
-----
+Bring up Gitea's web UI at `*\http://control-<GUID>.rhpds.opentlc.com/gitea*`, login as user `git` and review the files in the *Webserver* repository:
 
-* There are a number of files in the work repository _/home/git/git-webserver-work/_:
+* There are three files:
 ** a Playbook 
 ** two versions of index.html template files 
 
+dev_index.html.j2 
 ----
-[git@control ~]$ cd git-webserver-work/
-
-[git@control git-webserver-work]$ cat dev_index.html.j2 
 <body>
 <h1>This is a development webserver, have fun!</h1>
 {{ dev_content }}
 </body>
 ----
 
+prod_index.html.j2 
 ----
-[git@control git-webserver-work]$ cat prod_index.html.j2 
 <body>
 <h1>This is a production webserver, take care!</h1>
 {{ prod_content }}
 </body>
 ----
 
+
+stage_content.yml 
 ----
-[git@control git-webserver-work]$ cat stage_content.yml 
 ---
 - name: Deploy index.html
   hosts: all
@@ -880,15 +841,15 @@ TIP: Make sure to keep the three dashes that mark the YAML start!
 
 === Create the Project
 
-* Create a new *Project* named `Webcontent` using the new Git repository
-** *SCM CREDENTIALS*: Control Git
-** *SCM URL*: control.example.com:/home/git/git-webserver
+* Create a new *Project* named `Webserver` using the new Git repository
+** *SCM CREDENTIALS*: Gitea Control
+** *SCM URL*: \http://control.example.com/gitea/git/Webserver.git
 
 === Create the Template
 
 * Create a new *Job Template* named `Create Web Content` that 
 ** targets the `Webserver` inventory 
-** uses the Playbook `stage_content.yml` from the new `Webcontent` Project
+** uses the Playbook `stage_content.yml` from the new `Webserver` Project
 ** Defines two variables: `dev_content: default dev content` and `prod_content: default prod content` in the *EXTRA VARIABLES FILED*
 ** Uses `Example Credentials` and runs with privilege escalation
 * Save and run the template
