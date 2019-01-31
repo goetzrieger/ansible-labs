@@ -1096,7 +1096,7 @@ Add a host to the inventory:
 
 Create a new Project:
 ----
-(ansible)[root@tower ~]# tower-cli project create -n project-cli -d "test project" --organization Default --scm-type git --scm-credential "Control Git" --scm-url "control.example.com:/home/git/git-webdev"
+(ansible)[root@tower ~]# tower-cli project create -n project-cli -d "test project" --organization Default --scm-type git --scm-credential "Gitea Control" --scm-url "http://control.example.com/gitea/git/Webserver.git"
 ----
 
 Go to the Tower web UI and check that these items have been created.
