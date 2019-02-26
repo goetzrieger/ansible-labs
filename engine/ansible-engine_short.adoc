@@ -25,7 +25,7 @@ WARNING: You will be able to SSH into the control host, from here you need to SS
 
 === Deploy your Lab Environment
 
-include::access_rhpds.adoc[]
+include::access_grabber.adoc[]
 
 == Check the Prerequisites
 

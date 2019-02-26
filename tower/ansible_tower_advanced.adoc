@@ -19,7 +19,7 @@ Each instance in a Tower cluster expands the cluster's capacity to execute jobs.
 Here are a number of things to consider when planning a clustered Tower deployment:
 
 * The PostgreSQL database is a central component of the cluster. Ansible Tower is not taking care of availabilty, redundancy or replication of the database, this has to be configured "outside" of Tower.
-* The number of instances in a cluster should always be an *odd number* and a minimum number of three is strongly recommended.
+* The number of instances in a cluster should always be an *odd number* and a minimum number of three is strongly recommended with a maximum of 20.
 * RabbitMQ is a core component, so a lot of the requirements are dictated by it. Like e.g. the odd node count for quorum...
 * Typical cluster considerations apply: All nodes need to be able to reliably connect to each other, stable address/hostname resolution, geographically co-located with reliable low-latency connections between instances.
 * Remember there is no concept of primary/secondary instance, all systems are primary.

@@ -6,7 +6,7 @@
 :icons: font
 :imagesdir: ./images
 
-image::forum.jpg[]
+// image::forum.jpg[]
 
 // Updated to Tower 3.4
 
@@ -47,7 +47,7 @@ TIP: Ansible Tower has already been installed and licensed for you, the web UI w
 
 == Access your Lab Environment
 
-include::access_forum.adoc[]
+include::access_grabber.adoc[]
 
 == Ansible Tower Introduction
 

@@ -1,0 +1,24 @@
+In your browser, open:
+
+* https://bit.ly/2MHwzTC
+** Choose the lab: *L1 - Getting Started with Ansible*
+** Enter Activation Key: *engine*
+** Click *Next*
+
+The next page will show all information you need:
+
+* Your *unique lab ID* (GUID)
+* Lab *access* information
+* Link to the *lab guide* (you are here already, anyway…​ ;-)
+* SSH *command* to use for console access
+
+WARNING: Every lab environment has been assigned a GUID in the URLs and external hostnames.
+
+=== To access your control host:
+
+* Open a terminal session
+* Run *ssh root@control-<GUID>.rhpds.opentlc.com* or use the command from https://bit.ly/2MHwzTC
+* *Log in* to your control host as user *root* using the password *r3dh4t1!*
+
+TIP: When following the lab guide, replace <GUID> with your personal GUID
+

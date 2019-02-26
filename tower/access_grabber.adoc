@@ -1,7 +1,7 @@
 In your browser, open:
 
 * https://bit.ly/2MHwzTC
-** Choose the lab: *L2-Hands-On with Ansible Tower*
+** Choose the lab: *L2 - Hands-On with Ansible Tower*
 ** Enter Activation Key: *tower*
 ** Click *Next*
 
