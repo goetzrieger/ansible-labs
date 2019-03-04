@@ -70,6 +70,8 @@ WARNING: In this lab this has been taken care of, but remember all instances hav
 
 == Know your Cluster
 
+=== Access the Tower Web UI
+
 For the first contact to your cluster open your browser and login to all three nodes web UIs (you'll have to accept the self-signed certificates):
 
 WARNING: Replace the *<REPL>* string with your GUID!
@@ -82,7 +84,16 @@ Just from the web UI you wouldn't know you've got a Tower cluster at your hands 
 
 From this view you can already see the instance count is three, click on *INSTANCES* to get more information about your cluster's Tower instances. In the instances view you can toggle nodes off/online and adjust the number of forks.
 
-You can also get information about your cluster on the command line. From `control.example.com` SSH to one of the Tower instances, e.g.:
+=== Access you Tower Cluster via SSH
+
+You can also get information about your cluster on the command line. In a terminal window, bring up an SSH session to your control host *control.example.com*:
+
+----
+# ssh root@control-<GUID>.rhpds.opentlc.com
+----
+
+
+From `control.example.com` jump to one of the Tower instances, e.g.:
 
 ----
 [root@control ~]# ssh tower1.example.com
@@ -98,53 +109,159 @@ And run the following command:
 
 ----
 
+TIP: The *awx-manage* (formerly tower-manage) utility can be used to administer a lot of the more internal aspects of Tower. You can e.g. use it to clean up old data, for token and session management and for cluster management.  
+
+== There is more to Tower then the Web UI
+
+This is an advanced Tower lab so we don't really want you to use the web UI for everything. Tower's web UI is well done and helps with a lot of tasks, but same as in system administration it's often handy to be able to use the command line or scripts for certain tasks.
+
+We've incorporated different ways to work with Tower in this lab guide and hope you'll find it helpful. The first step we do is install the *tower-cli* utility.
+
+TIP: *tower-cli* is an open source project currently under development and, until a complete implementation occurs, only implements a subset of Tower’s features. Right now you can install `tower-cli` from Python Pip or from the EPEL repository. 
+
+We'll install it on your control host using locally cached RPM packages. Exit the SSH session to *tower1.example.com* or open a new one to the control host:
+
+----
+# ssh root@control-<GUID>.rhpds.opentlc.com
+[root@control ~]# yum install python2-ansible-tower-cli -y
+----
+
+After installing the tool, you have to do some basic configuration:
+
+----
+[root@control ~]# tower-cli config host tower2.example.com
+[root@control ~]# tower-cli config username admin
+[root@control ~]# tower-cli config password r3dh4t1!
+----
+
+TIP: It doesn't really matter what node you have it talking to.
+
+Now test *tower-cli* is working. First run it without arguments to get a list of resources you can manage with it:
+
+----
+[root@control ~]# tower-cli --help
+----
+
+And then test something, e.g.:
+
+----
+[root@control ~]# tower-cli inventory list
+----
+
+TIP: When trying to find a *tower-cli* command line for something you want to do, just move one by one.
+
+Example:
+
+----
+tower-cli --help
+----
+
+Okay, there is an *inventory* resource. Let's see...
+
+----
+tower-cli inventory --help
+----
+
+Well, *create* sounds like what I had in mind. But what arguments do I need?
+
+----
+tower-cli inventory create
+----
+
+Bingo! Take note of the *REQUIRED* mark.
+
+TIP: When you start using *tower-cli* this file is very helpful as it provides a lot of examples: https://raw.githubusercontent.com/ansible/tower-cli/master/docs/source/cli_ref/examples/fake_data_creator.sh 
+
 == Creating Inventory and Credentials
 
 The next steps don't really differ from what you would do with a single-instance Tower. To run Ansible jobs from Tower you need an inventory and machine credentials.
 
 === Create an Inventory
 
-You should already have the web UI open, if not: Point your browser to one of the Tower instances, why not `tower2` this time: *\https://tower2-<GUID>.rhpds.opentlc.com* (replace "<GUID>")`
+As said we don't really want you to go to the web UI to configure your static inventory. I mean, if you really want to, go ahead. But here we'll use *tower-cli* to create an inventory, we'll get to dynamic inventories later on.
 
-Create an inventory:
+First create the inventory in Tower using *tower-cli*. Try to get the proper invocation of *tower-cli* yourself and create an inventory name *Example Inventory* (yup, very creative, we know).
 
-* In the web UI under RESOURCES click *Inventories* and click *+ADD->Inventory*
-* *NAME:* Example Inventory
-* *ORGANIZATION:* Default
-* Click *SAVE*
+TIP: *tower-cli* behaves pretty UNIXy, just use *--help* to get down to the needed command.
 
-Add managed hosts:
+WARNING: *Solution Below*!
 
-* Open the *Example Inventory* inventory view
-* Click the image:green_plus.png[20,20] button to add a host.
-* *HOST NAME:* host1.example.com
-* Click *SAVE*
-* Repeat to add `host2.example.com` as a second host.
+----
+[root@control ~]# tower-cli inventory create --name "Example Inventory" --organization "Default"
+----
 
-You have now created an inventory with two managed hosts.
+==== Add Hosts to the Inventory using *tower-cli*
+
+Now that we have the empty inventory created, add your two managed hosts *host1.example.com* and *host2.example.com*, again using *tower-cli*. 
+
+TIP: Use *tower-cli* to get the resources you can use it on, then (in this case) *tower-cli host --help* and finally get the proper invocation help with *tower-cli host create --help*.
+
+WARNING: *Solution Below*!
+
+----
+[root@control ~]# tower-cli host create --name "host1.example.com" --inventory "Example Inventory"
+[root@control ~]# tower-cli host create --name "host2.example.com" --inventory "Example Inventory"
+----
+
+==== Add Hosts using *awx-manage*
+
+It's fine to use *tower-cli* to add hosts but there is another way using the command line: *awx-manage* can add hosts by importing existing inventory files. Let's give this a try, too:
+
+First create a new inventory named *Imported Inventory* using *tower-cli* on the control host or from the web UI:
+
+----
+[root@control ~]# tower-cli inventory create --name "Imported Inventory" --organization "Default"
+----
+
+Then open a SSH session to *tower1.example.com* (or one of the other nodes):
+
+----
+[root@control ~]# ssh tower1.example.com
+----
+
+And create a file with a simple inventory:
+
+----
+host1.example.com
+host2.example.com
+----
+
+Use *awx-manage* on the Tower node to add the hosts to your *Imported Inventory* inventory:
+
+----
+[root@tower1 ~]# awx-manage inventory_import --source=./example_inventory --inventory-name="Imported Inventory"
+
+    1.808 INFO     Updating inventory 2: Example Inventory
+    1.910 INFO     Reading Ansible inventory source: /root/example_inventory
+    2.764 INFO     Processing JSON output...
+    2.764 INFO     Loaded 0 groups, 2 hosts
+    2.876 INFO     Inventory import completed for  (Example Inventory - 6) in 1.1s
+----
+
+Now go to the web UI of all three Tower nodes and check your *Example Inventory* and *Imported Inventory* exist and both contains the two hosts.
+
+TIP: Take note everything we did so far on one Tower cluster node is automatically replicated to the other cluster nodes. 
 
 === Create Machine Credentials
 
-TIP: SSH keys have already been created and distributed in your lab environment and `sudo` has been setup on the managed hosts.
+TIP: SSH keys have already been created and distributed in your lab environment and `sudo` has been setup on the managed hosts to allow password-less login for user *ansible* on *control.example.com*. 
 
-Now let's go and configure the credentials to access our managed hosts from Tower. In the Tower web UI under *RESOURCES* click *Credentials*. Now:
+Now configure the credentials to access our managed hosts from Tower. As configuring credentials with SSH keys from *tower-cli* on the command line is a bit cumbersome, just this time use the web UI. In one of the Tower web UI under *RESOURCES -> Credentials*:
+
 
 * Click the image:green_plus.png[20,20] button to add new credentials
 * *NAME:* Example Credentials
 * *ORGANIZATION:* Default
-
-TIP: Whenever you see a magnifiying glass icon next to an input field, clicking it will open a list to choose from.
-
-** *CREDENTIAL TYPE:* Machine
-** *USERNAME:* ansible
-** *PRIVILEGE ESCALATION METHOD:* sudo
+* *CREDENTIAL TYPE:* Machine
+* *USERNAME:* ansible
+* *PRIVILEGE ESCALATION METHOD:* sudo
 
 As we are using SSH key authentication, you have to provide an SSH private key that can be used to access the hosts. You could also configure password authentication here.
 
-* Bring up your SSH terminal on Tower, become user `ansible` and `cat` the SSH private key:
+* Bring up an SSH terminal on *control.example.com*, become user `ansible` and `cat` the SSH private key:
 ----
-[root@tower ~]# su - ansible
-[ansible@tower ~]$ cat .ssh/id_rsa
+[root@control ~]# su - ansible
+[ansible@control ~]$ cat .ssh/id_rsa
 ----
 
 * Copy the complete private key (including "BEGIN" and "END" lines) and paste it into the *SSH PRIVATE KEY* field in the web UI.
@@ -174,9 +291,9 @@ To configure and use this repository as a *Source Control Management (SCM)* syst
 * Create *Credentials* to access the Git repo
 * Create a *Project* that uses the repository
 
-=== Create Credentials
+=== Create SCM Credentials
 
-First we have to create credentials again, this time to access the Git repository over HTTP.
+First we have to create credentials again, this time to access the Git repository over HTTP. This credential is user/password based, so feel free to use the web UI again or find out how to use *tower-cli* to create it.
 
 In the Tower web UI go to *Resources->Credentials*. Now: 
 
@@ -191,7 +308,24 @@ TIP: You will have to change the page in the *SELECT CREDENTIAL TYPE* window.
 * *PASSWORD*: r3dh4t1!
 * Click *SAVE*
 
+If you want to use *tower-cli*:
+
+* Use the help function to find the needed arguments
+* The credential type is "Source Control", as "inputs" you need "user" and "password"
+
+WARNING: *SOLUTION BELOW!*
+
+----
+[root@control ~]# tower-cli credential create --credential-type="Source Control" \
+                    --name="Gitea Credentails" \
+                    --inputs='{"username": "git", "password": "r3dh4t1!"}' \
+                    --organization="Default"
+----
 === Create the Project
+
+Now with the SCM credentials configured, either in the web UI or using *tower-cli* create a *Project* for one of your Gitea repositories.
+
+==== In the web UI
 
 * Go to *Projects* in the side menu view click 
 the image:green_plus.png[20,20] button. Fill in the form:
@@ -207,13 +341,27 @@ Now you need the HTTP URL to access the repo. Go to the Gitea web UI, choose the
 * *SCM UPDATE OPTIONS:* Tick all three boxes to always get a fresh copy of the repository and to update the repository when launching a job.
 * Click *SAVE*
 
+==== Or Using *tower-cli* on the control host
+
+----
+[root@control ~]# tower-cli project create --name="Apache" \
+                    --scm-type=git \
+                    --scm-url="http://control.example.com/gitea/git/Apache.git" \
+                    --scm-credential="Gitea" \
+                    --organization "Default" \ 
+                    --scm-clean --scm-delete-on-update --scm-update-on-launch\
+                    --wait
+----
+
 TIP: The new Project will be synced after creation automatically.
 
 TIP: You can use `control.example.com` as hostname in *SCM URL* because it resolves inside the environment. For accessing the Gitea web UI in your browser you need to use `\http://control-<GUID>.rhpds.opentlc.com/gitea`.
 
-== Create a Job Template and Run a Job
+=== Create a Job Template
 
 Before running an Ansible *Job* from your Tower cluster you must create a *Job Template*, again business as usual for Tower users.
+
+==== In the Web UI
 
 * Go to *Templates* in the *RESOURCES* section of the menu, click the image:green_plus.png[20,20] button and choose *Job Template*.
 
@@ -221,14 +369,28 @@ Before running an Ansible *Job* from your Tower cluster you must create a *Job T
 ** *JOB TYPE:* Run
 ** *INVENTORY:* Example Inventory
 ** *PROJECT:* Apache
-** *PLAYBOOK:* apache.yml
+** *PLAYBOOK:* apache_install.yml
 ** *CREDENTIAL:* Example Credentials
 ** We need to run the tasks as root so check *Enable privilege escalation*
 ** Click *SAVE*
 
+==== Or Using *tower-cli*
+
+----
+[root@control ~]# tower-cli job_template create \
+                    --name="Install Apache" \
+                    --inventory="Example Inventory" \
+                    --credential="Example Credentials" \
+                    --project=Apache \
+                    --playbook=apache_install.yml \
+                    --become-enabled="yes"
+----
+
 === Run a Job
 
-Now you are ready to start a job in your Tower cluster. In the *TEMPLATES* view select the new Job Template and run it by clicking the rocket icon. Again this is at first not different from a standard Tower. But as this is a cluster of active nodes every node could have run the job. And the Job output in Tower's web UI doesn't tell you where it run, just the instance group.
+Now you are ready to start a job in your Tower cluster. In the web UI's *Templates* view select the new Job Template and run it by clicking the rocket icon. Again this is at first not different from a standard Tower. 
+
+TIP: But as this is a cluster of active nodes every node could have run the job. And the Job output in Tower's web UI doesn't tell you where it run, just the instance group.
 
 ==== So what Instance run the Job?
 
@@ -238,27 +400,7 @@ To see on what instance a job actually run go back to the *Instance Groups* view
 
 But it would still be nice to see where a job run (not the other way round) and to get an idea how jobs are distributed to the available instances. For this we have to use the API.
 
-To run a number of jobs (so the cluster has something to distribute) we could just fire of a couple of the Apache job templates, but doing this using the web UI is tiresome. So let's install and use the `tower-cli` commandline utility:
-
-TIP: The tower-cli software is an open source project currently under development and, until a complete implementation occurs, only implements a subset of Tower’s features. Right now you can install `tower-cli` from Python Pip or from the EPEL repository. 
-
-To install it on your control host using locally cached RPM packages:
-
-----
-[root@control ~]# yum install python2-ansible-tower-cli -y
-----
-
-After installing the tool, you have to do some basic configuration:
-
-----
-[root@control ~]# tower-cli config host tower2.example.com
-[root@control ~]# tower-cli config username admin
-[root@control ~]# tower-cli config password r3dh4t1!
-----
-
-TIP: Again it doesn't really matter what node you have it talking to.
-
-Now that we have `tower-cli`, use it to run some jobs, what about just running the *Install Apache* Template five times?
+To run a number of jobs (so the cluster has something to distribute) we could just fire of a couple of the Apache job templates, but doing this using the web UI is tiresome. So let's use *tower-cli* to run some jobs, what about just running the *Install Apache* Template five times?
 
 ----
 [root@control ~]# for i in `seq 1 5`; do tower-cli job launch -J "Install Apache" ; sleep 5 ; done
