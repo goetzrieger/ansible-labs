@@ -392,7 +392,9 @@ Now you are ready to start a job in your Tower cluster. In the web UI's *Templat
 
 TIP: But as this is a cluster of active nodes every node could have run the job. And the Job output in Tower's web UI doesn't tell you where it run, just the instance group.
 
-==== So what Instance run the Job?
+=== So what instance run the job? Check the results!
+
+==== Via command line and curl
 
 But there is help. In one of the Tower instances web UI go to the *Instance Groups* menu item. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs. 
 
@@ -418,6 +420,10 @@ And now query the API for the instance/node the jobs where executed on:
 ----
 
 Now you can see how the Tower cluster distributed the jobs between the instances! And for the fun of it you can of course change the Tower instance to query in the `curl` command and see that you get the same information.
+
+==== Via API in the browser
+
+The Tower API can also be opened in the browser. Find the job you just executed in `https://tower1.example.com/#/jobs` and remember the number. Now opene the job via the API interface: open the URL `https://tower1.example.com/api/v2/jobs/<NUMBER>/` where `<NUMBER>` is the number of the job you just looked up in the UI. Search the page for the string `execution_node`, the tower instance on which the job was executed is listed there.
 
 == Tower Instance Groups
 
