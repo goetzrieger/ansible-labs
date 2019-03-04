@@ -374,7 +374,7 @@ button and choose *Job Template*.
 ** *JOB TYPE:* Run
 ** *INVENTORY:* Example Inventory
 ** *PROJECT:* Apache
-** *PLAYBOOK:* apache.yml
+** *PLAYBOOK:* apache_install.yml
 ** *CREDENTIAL:* Example Credentials
 ** We need to run the tasks as root so check *Enable privilege escalation*
 ** Click *SAVE*
