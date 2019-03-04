@@ -1,4 +1,4 @@
-= Ansible Tower Advanced: Getting Started with Clustering and Isolated Nodes
+= Ansible Tower Advanced
 :scrollbar:
 :data-uri:
 :toc: 
