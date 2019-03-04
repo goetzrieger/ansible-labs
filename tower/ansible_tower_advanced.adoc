@@ -1,7 +1,7 @@
 = Ansible Tower Advanced: Getting Started with Clustering and Isolated Nodes
 :scrollbar:
 :data-uri:
-:toc: left
+:toc: 
 :numbered:
 :icons: font
 :imagesdir: ./images
@@ -29,24 +29,15 @@ Here are a number of things to consider when planning a clustered Tower deployme
 For initial configuration of a Tower cluster and for adding new instances the default Ansible installer is used, but the inventory file needs to be extended. Some important basic concepts:
 
 * There has to be at least an inventory group named `tower`. We'll cover instance groups later, but keep in mind the nodes in this group are responsible for housekeeping tasks like where to launch jobs or to process playbook events. 
-* If all Tower instances in this group fail, jobs might not run and playbook events might not get written. Somake sure there are enough instances in this group.
+* If all Tower instances in this group fail, jobs might not run and playbook events might not get written. So make sure there are enough instances in this group.
 * The database can be installed and configured by the installer by adding the host to the `database` group. If the database host is provisioned separately, leave the group empty.
 
-=== Create the Installer Inventory File
+=== The Installer Inventory File
 
-In this lab you will build a cluster of three Tower instances with a separate database instance which the installer will install and configure.
+In this lab a three node Ansible Tower cluster is provided ready to go as installing it would eat too much of your lab time. It's pretty straight forward anyway. The inventory file here is just for giving you an idea what you are using here and for reference.
 
 TIP: Keep in mind when working with clustered Ansible Tower that the database will not be clustered or replicated by the installer. This is something you have to take care of yourself.
 
-Login to `control.example.com` VM of your lab environment. In root's home directory you'll find the Ansible Tower bundle installer as a tar ball.
-
-Unpack it and change into the new directoy:
-----
-[root@control ~]# tar xfvz ansible-tower-setup-bundle-3.2.5-1.el7.tar.gz 
-[root@control ~]# cd ansible-tower-setup-bundle-3.2.x.y/
-----
-
-Now adapt the inventory file to look like this:
 ----
 [tower]
 tower1.example.com
@@ -73,33 +64,25 @@ rabbitmq_vhost=tower
 rabbitmq_username=tower
 rabbitmq_password='r3dh4t1!'
 rabbitmq_cookie=rabbitmqcookie
-
-# Needs to be true for fqdns and ip addresses
-rabbitmq_use_long_name=true
 ----
 
 WARNING: In this lab this has been taken care of, but remember all instances have to able to resolve all hostnames and to reach each other!
 
-Now from the directory run the installer like you would do in a single-instance installation. Then go get a coffee.
+== Know your Cluster
 
-----
-[root@control ansible-tower-setup-bundle-3.2.5-1.el7]# ./setup.sh
-----
+For the first contact to your cluster open your browser and login to all three nodes web UIs (you'll have to accept the self-signed certificates):
 
-After the installation has finished open your browser and login to all three nodes web UIs:
+WARNING: Replace the *<REPL>* string with your GUID!
 
-* `tower1-<GUID>.rhpds.opentlc.com`
-* `tower2-<GUID>.rhpds.opentlc.com` 
-* `tower3-<GUID>.rhpds.opentlc.com`.
+* *https://tower1-<REPL>.rhpds.opentlc.com*
+* *https://tower2-<REPL>.rhpds.opentlc.com*
+* *https://tower3-<REPL>.rhpds.opentlc.com*
 
-All three should ask for a license file the same way as when working with a single-instance Tower. Ready for the first cluster-moment?
+Just from the web UI you wouldn't know you've got a Tower cluster at your hands here. To learn more about your cluster and it's state, in one of the instances web UI under *ADMINISTRATION* choose *Instance Groups*. Here you will get an overview of the cluster by instance groups. Explore the information provided, of course there is no capacity used yet and now Jobs have run.
 
-* In one of the Tower instances web UI, upload the license provided.
-* In the other two Tower instances logout and in again.
+From this view you can already see the instance count is three, click on *INSTANCES* to get more information about your cluster's Tower instances. In the instances view you can toggle nodes off/online and adjust the number of forks.
 
-All three nodes should automagically have a valid license now, your cluster is functional. To learn about your cluster and it's state, in one of the instances web UI access *Settings* -> *INSTANCE GROUPS*. Here you will get an overview of the cluster by instance groups. Explore the information provided, of course there is no capacity used yet and now Jobs have run.
-
-You can also get information about your cluster on the command line. From `control.exmaple.com` SSH to one of the Tower instances, e.g.:
+You can also get information about your cluster on the command line. From `control.example.com` SSH to one of the Tower instances, e.g.:
 
 ----
 [root@control ~]# ssh tower1.example.com
@@ -108,6 +91,11 @@ You can also get information about your cluster on the command line. From `contr
 And run the following command:
 ----
 [root@tower1 ~]# awx-manage list_instances
+[tower capacity=177]
+	tower1.example.com capacity=59 version=3.4.1 heartbeat="2019-02-26 15:00:25"
+	tower3.example.com capacity=59 version=3.4.1 heartbeat="2019-02-26 15:00:15"
+	tower2.example.com capacity=59 version=3.4.1 heartbeat="2019-02-26 15:00:07"
+
 ----
 
 == Creating Inventory and Credentials
@@ -118,17 +106,17 @@ The next steps don't really differ from what you would do with a single-instance
 
 You should already have the web UI open, if not: Point your browser to one of the Tower instances, why not `tower2` this time: *\https://tower2-<GUID>.rhpds.opentlc.com* (replace "<GUID>")`
 
-Create the inventory:
+Create an inventory:
 
-* In the web UI go to *INVENTORIES* and click *+ADD->Inventory*
+* In the web UI under RESOURCES click *Inventories* and click *+ADD->Inventory*
 * *NAME:* Example Inventory
 * *ORGANIZATION:* Default
 * Click *SAVE*
 
-Add your managed hosts:
+Add managed hosts:
 
-* In the inventory view click the *HOSTS* button
-* To the right click *+ADD HOST*
+* Open the *Example Inventory* inventory view
+* Click the image:green_plus.png[20,20] button to add a host.
 * *HOST NAME:* host1.example.com
 * Click *SAVE*
 * Repeat to add `host2.example.com` as a second host.
@@ -139,11 +127,11 @@ You have now created an inventory with two managed hosts.
 
 TIP: SSH keys have already been created and distributed in your lab environment and `sudo` has been setup on the managed hosts.
 
-Now let's go and configure the credentials to access our managed hosts from Tower. In the Tower web UI click *Settings*, it is the gear-shaped icon to the upper right. From the settings choose the *CREDENTIALS* box. Now:
+Now let's go and configure the credentials to access our managed hosts from Tower. In the Tower web UI under *RESOURCES* click *Credentials*. Now:
 
-* Click the *+ADD* button to add new credentials
-** *NAME:* Example Credentials
-** *ORGANIZATION:* Default
+* Click the image:green_plus.png[20,20] button to add new credentials
+* *NAME:* Example Credentials
+* *ORGANIZATION:* Default
 
 TIP: Whenever you see a magnifiying glass icon next to an input field, clicking it will open a list to choose from.
 
@@ -161,74 +149,78 @@ As we are using SSH key authentication, you have to provide an SSH private key t
 
 * Copy the complete private key (including "BEGIN" and "END" lines) and paste it into the *SSH PRIVATE KEY* field in the web UI.
 * Click *SAVE*
-* Go back to *Settings -> CREDENTIALS -> Example Credentials* and note that the SSH key is not visible. 
 
 You have now setup credentials to use later for your inventory hosts.
 
 === It's a Cluster After All
 
-So far nothing special. But we are operating in a clustered environment. Login to the other Tower instances (the ones you didn't configured the inventory and credentials on). Have a good look around, everything we configured on one Tower instance was synced automatically to the other nodes. Inventory, credentials, all there. 
+So far nothing special. But we are working in a clustered environment. Login to the other Tower instances Web UIs (the ones you didn't configured the inventory and credentials on). Have a good look around, everything we configured on one Tower instance was synced automatically to the other nodes. Inventory, credentials, all there. 
 
 == Run a Job in the Cluster
 
-Before we can start jobs we need to configure some more things. This is again the same as in single-instance Tower deployments, so the guide will just walk you through the required steps. Take note how everything you configure is syncronized to the other nodes, too.
+Before we can start jobs we need to configure some more things. This is again the same as in single-instance Tower deployments, so the guide will just walk you through the required steps. Take note how everything you configure is syncronized to the other nodes again.
 
-For this lab you will use a pre-configured Git repository on `control.example.com` that can be accessed via SSH. The configuration steps can be run on either of the Tower instances.
+Your lab environment includes Gitea, a Git-service that comes with a web ui and much more. Gitea runs on `control.example.com` and can be accessed via HTTP. Go and have a look around by accessing: 
+
+*\http://control-<GUID>.rhpds.opentlc.com/gitea*.
+
+All repos on Gitea are configured as private e.g. you need to login to access the content. Log in as: 
+
+* *User*: git
+* *Password*: r3dh4t1!
+
+To configure and use this repository as a *Source Control Management (SCM)* system in Tower you have to:
+
+* Create *Credentials* to access the Git repo
+* Create a *Project* that uses the repository
 
 === Create Credentials
 
-First create the credentials for the repository. You will need the private key of user `git` (the repo owner) from `control.example.com` for the credentials:
+First we have to create credentials again, this time to access the Git repository over HTTP.
 
-* In a terminal log in to `control.example.com` as root. Then become user git and `cat` the SSH private key:
-----
-[root@control ~]# su - git
-[git@control ~]$ cat .ssh/id_rsa
-----
+In the Tower web UI go to *Resources->Credentials*. Now: 
 
-* Copy the complete private key (including "BEGIN" and "END" lines) into the clipboard
-
-In one of the Tower web UI's click the gear-icon for *Settings*. From the settings choose the *CREDENTIALS* box. 
-
-* Click the *+ADD* button to add new credentials
-* *NAME*: Control Git
-* *CREDENTIAL TYPE*: *Source Control*
+* Click the image:green_plus.png[20,20] button to add new 
+credentials
+* *NAME*: Gitea Control
+* *CREDENTIAL TYPE*: Choose *Source Control*
 
 TIP: You will have to change the page in the *SELECT CREDENTIAL TYPE* window.
 
 * *USERNAME*: git
-* Paste the SSH private key for the git user from `control.example.com` into the *SCM PRIVATE KEY* field
+* *PASSWORD*: r3dh4t1!
 * Click *SAVE*
 
 === Create the Project
 
-A Playbook to install the Apache webserver has already been commited to the repository.
+* Go to *Projects* in the side menu view click 
+the image:green_plus.png[20,20] button. Fill in the form:
 
-* In the *PROJECTS* view click *+ADD*
-* *NAME:* Control Git Repo
+* *NAME:* Apache
 * *ORGANIZATION:* Default
 * *SCM TYPE:* Git
-* Point to the Git repo on the control host: 
-** *SCM URL:* control.example.com:/home/git/git-repo
-* *SCM CREDENTIAL:* Control Git
+
+Now you need the HTTP URL to access the repo. Go to the Gitea web UI, choose the *Apache* repository and copy the HTTP URL. Enter the URL into the Project configuration:
+
+** *SCM URL:* \http://control.example.com/gitea/git/Apache.git
+* *SCM CREDENTIAL:* Gitea Control
 * *SCM UPDATE OPTIONS:* Tick all three boxes to always get a fresh copy of the repository and to update the repository when launching a job.
 * Click *SAVE*
 
-=== Create a Job Template
+TIP: The new Project will be synced after creation automatically.
 
-A job template is a definition and set of parameters for running an Ansible job. Job templates are useful to execute the same job many times. So before running an Ansible *Job* from Tower you must create a *Job Template* that pulls together:
+TIP: You can use `control.example.com` as hostname in *SCM URL* because it resolves inside the environment. For accessing the Gitea web UI in your browser you need to use `\http://control-<GUID>.rhpds.opentlc.com/gitea`.
 
-* *Inventory*: On what hosts should the job run?
-* *Credentials* for the hosts
-* *Project*: Where is the Playbook?
-* *What* Playbook to use?
+== Create a Job Template and Run a Job
 
-Okay, let's just do that:
+Before running an Ansible *Job* from your Tower cluster you must create a *Job Template*, again business as usual for Tower users.
 
-* Go to the *TEMPLATES* view and click *+ADD* -> *JOB TEMPLATE*
-** *NAME:* Apache
+* Go to *Templates* in the *RESOURCES* section of the menu, click the image:green_plus.png[20,20] button and choose *Job Template*.
+
+** *NAME:* Install Apache
 ** *JOB TYPE:* Run
 ** *INVENTORY:* Example Inventory
-** *PROJECT:* Control Git Repo
+** *PROJECT:* Apache
 ** *PLAYBOOK:* apache.yml
 ** *CREDENTIAL:* Example Credentials
 ** We need to run the tasks as root so check *Enable privilege escalation*
@@ -236,36 +228,40 @@ Okay, let's just do that:
 
 === Run a Job
 
-Now you are ready to start a job in your Tower cluster. In the *TEMPLATES* view select the new Job Template and run it by clicking the rocket icon. Again this is at first not different from a standard Tower. But as this is a cluster of active nodes every node could have run the job. And the Job output in Tower's web UI doesn't tell you where it run.
+Now you are ready to start a job in your Tower cluster. In the *TEMPLATES* view select the new Job Template and run it by clicking the rocket icon. Again this is at first not different from a standard Tower. But as this is a cluster of active nodes every node could have run the job. And the Job output in Tower's web UI doesn't tell you where it run, just the instance group.
 
 ==== So what Instance run the Job?
 
-But there is help. In one of the Tower instances web UI go to the *Settings* page and then choose *INSTANCE GROUPS*. Click the `tower` instance group, this will get you to an overview of the instances in this group together with currently running jobs and the used capacity. Selecting the *JOBS* view here will show you the jobs that run in this instance group.
+But there is help. In one of the Tower instances web UI go to the *Instance Groups* menu item. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs. 
 
-To see on what instance a job actually run go back to the *INSTANCES* view. If you click one of the instances, you will get a list of jobs that this Tower executed.
+To see on what instance a job actually run go back to the *Instance Groups* view. If you click *INSTANCES* under the Tower group, you will get an overview of the *TOTAL JOBS* each Tower instance executed which leads to the job list again.
 
 But it would still be nice to see where a job run (not the other way round) and to get an idea how jobs are distributed to the available instances. For this we have to use the API.
 
-To run a number of jobs (so the cluster has something to distribute) we could just fire of a couple of the Apache job templates, but doing this using the web UI is tiresome. So let's install and use the `tower-cli` commandline utility on one of the Tower instances:
+To run a number of jobs (so the cluster has something to distribute) we could just fire of a couple of the Apache job templates, but doing this using the web UI is tiresome. So let's install and use the `tower-cli` commandline utility:
 
-First login to a Tower instance:
-----
-[root@control ~]# ssh tower2.example.com
-----
+TIP: The tower-cli software is an open source project currently under development and, until a complete implementation occurs, only implements a subset of Tower’s features. Right now you can install `tower-cli` from Python Pip or from the EPEL repository. 
 
-Then install the tool in the correct Python venv and do the inital configuration:
-----
-[root@tower2 ~]# . /var/lib/awx/venv/ansible/bin/activate
-[root@tower2 ~]# pip install ansible-tower-cli
-[root@tower2 ~]# tower-cli config host tower2.example.com
-[root@tower2 ~]# tower-cli config username admin
-[root@tower2 ~]# tower-cli config password r3dh4t1!
-----
-
-Now that we have `tower-cli`, use it to run some jobs, e.g.:
+To install it on your control host using locally cached RPM packages:
 
 ----
-[root@tower2 ~]# for i in `seq 1 5`; do tower-cli job launch -J Apache ; sleep 5 ; done
+[root@control ~]# yum install python2-ansible-tower-cli -y
+----
+
+After installing the tool, you have to do some basic configuration:
+
+----
+[root@control ~]# tower-cli config host tower2.example.com
+[root@control ~]# tower-cli config username admin
+[root@control ~]# tower-cli config password r3dh4t1!
+----
+
+TIP: Again it doesn't really matter what node you have it talking to.
+
+Now that we have `tower-cli`, use it to run some jobs, what about just running the *Install Apache* Template five times?
+
+----
+[root@control ~]# for i in `seq 1 5`; do tower-cli job launch -J "Install Apache" ; sleep 5 ; done
 ----
 
 And now query the API for the instance/node the jobs where executed on:
