@@ -1,18 +1,18 @@
 = Ansible Tower Advanced
 :scrollbar:
 :data-uri:
-:toc: 
+:toc:
 :numbered:
 :icons: font
 :imagesdir: ./images
 
 == Introduction to Ansible Tower Clustering
 
-With version 3.1 Ansible Tower introduced clustering, replacing the redundancy solution configured with the active-passive nodes. Clustering is sharing load between Tower nodes/instances. Each Tower instance is able to act as an entry point for UI and API access. 
+With version 3.1 Ansible Tower introduced clustering, replacing the redundancy solution configured with the active-passive nodes. Clustering is sharing load between Tower nodes/instances. Each Tower instance is able to act as an entry point for UI and API access.
 
 TIP: Using a load balancer in front of the Tower nodes is possible, but optional because an Ansible Tower cluster can be accessed via all Tower instances.
 
-Each instance in a Tower cluster expands the cluster's capacity to execute jobs. Jobs can and will run anywhere rather than be directed on where to run. 
+Each instance in a Tower cluster expands the cluster's capacity to execute jobs. Jobs can and will run anywhere rather than be directed on where to run.
 
 === Setup Considerations
 
@@ -28,7 +28,7 @@ Here are a number of things to consider when planning a clustered Tower deployme
 
 For initial configuration of a Tower cluster and for adding new instances the default Ansible installer is used, but the inventory file needs to be extended. Some important basic concepts:
 
-* There has to be at least an inventory group named `tower`. We'll cover instance groups later, but keep in mind the nodes in this group are responsible for housekeeping tasks like where to launch jobs or to process playbook events. 
+* There has to be at least an inventory group named `tower`. We'll cover instance groups later, but keep in mind the nodes in this group are responsible for housekeeping tasks like where to launch jobs or to process playbook events.
 * If all Tower instances in this group fail, jobs might not run and playbook events might not get written. So make sure there are enough instances in this group.
 * The database can be installed and configured by the installer by adding the host to the `database` group. If the database host is provisioned separately, leave the group empty.
 
@@ -103,13 +103,13 @@ And run the following command:
 ----
 [root@tower1 ~]# awx-manage list_instances
 [tower capacity=177]
-	tower1.example.com capacity=59 version=3.4.1 heartbeat="2019-02-26 15:00:25"
-	tower3.example.com capacity=59 version=3.4.1 heartbeat="2019-02-26 15:00:15"
-	tower2.example.com capacity=59 version=3.4.1 heartbeat="2019-02-26 15:00:07"
+  tower1.example.com capacity=59 version=3.4.1 heartbeat="2019-02-26 15:00:25"
+  tower3.example.com capacity=59 version=3.4.1 heartbeat="2019-02-26 15:00:15"
+  tower2.example.com capacity=59 version=3.4.1 heartbeat="2019-02-26 15:00:07"
 
 ----
 
-TIP: The *awx-manage* (formerly tower-manage) utility can be used to administer a lot of the more internal aspects of Tower. You can e.g. use it to clean up old data, for token and session management and for cluster management.  
+TIP: The *awx-manage* (formerly tower-manage) utility can be used to administer a lot of the more internal aspects of Tower. You can e.g. use it to clean up old data, for token and session management and for cluster management.
 
 == There is more to Tower then the Web UI
 
@@ -117,7 +117,7 @@ This is an advanced Tower lab so we don't really want you to use the web UI for 
 
 We've incorporated different ways to work with Tower in this lab guide and hope you'll find it helpful. The first step we do is install the *tower-cli* utility.
 
-TIP: *tower-cli* is an open source project currently under development and, until a complete implementation occurs, only implements a subset of Tower’s features. Right now you can install `tower-cli` from Python Pip or from the EPEL repository. 
+TIP: *tower-cli* is an open source project currently under development and, until a complete implementation occurs, only implements a subset of Tower’s features. Right now you can install `tower-cli` from Python Pip or from the EPEL repository.
 
 We'll install it on your control host using locally cached RPM packages. Exit the SSH session to *tower1.example.com* or open a new one to the control host:
 
@@ -170,7 +170,7 @@ tower-cli inventory create
 
 Bingo! Take note of the *REQUIRED* mark.
 
-TIP: When you start using *tower-cli* this file is very helpful as it provides a lot of examples: https://raw.githubusercontent.com/ansible/tower-cli/master/docs/source/cli_ref/examples/fake_data_creator.sh 
+TIP: When you start using *tower-cli* this file is very helpful as it provides a lot of examples: https://raw.githubusercontent.com/ansible/tower-cli/master/docs/source/cli_ref/examples/fake_data_creator.sh
 
 == Creating Inventory and Credentials
 
@@ -192,7 +192,7 @@ WARNING: *Solution Below*!
 
 ==== Add Hosts to the Inventory using *tower-cli*
 
-Now that we have the empty inventory created, add your two managed hosts *host1.example.com* and *host2.example.com*, again using *tower-cli*. 
+Now that we have the empty inventory created, add your two managed hosts *host1.example.com* and *host2.example.com*, again using *tower-cli*.
 
 TIP: Use *tower-cli* to get the resources you can use it on, then (in this case) *tower-cli host --help* and finally get the proper invocation help with *tower-cli host create --help*.
 
@@ -240,11 +240,11 @@ Use *awx-manage* on the Tower node to add the hosts to your *Imported Inventory*
 
 Now go to the web UI of all three Tower nodes and check your *Example Inventory* and *Imported Inventory* exist and both contains the two hosts.
 
-TIP: Take note everything we did so far on one Tower cluster node is automatically replicated to the other cluster nodes. 
+TIP: Take note everything we did so far on one Tower cluster node is automatically replicated to the other cluster nodes.
 
 === Create Machine Credentials
 
-TIP: SSH keys have already been created and distributed in your lab environment and `sudo` has been setup on the managed hosts to allow password-less login for user *ansible* on *control.example.com*. 
+TIP: SSH keys have already been created and distributed in your lab environment and `sudo` has been setup on the managed hosts to allow password-less login for user *ansible* on *control.example.com*.
 
 Now configure the credentials to access our managed hosts from Tower. As configuring credentials with SSH keys from *tower-cli* on the command line is a bit cumbersome, just this time use the web UI. In one of the Tower web UI under *RESOURCES -> Credentials*:
 
@@ -271,17 +271,17 @@ You have now setup credentials to use later for your inventory hosts.
 
 === It's a Cluster After All
 
-So far nothing special. But we are working in a clustered environment. Login to the other Tower instances Web UIs (the ones you didn't configured the inventory and credentials on). Have a good look around, everything we configured on one Tower instance was synced automatically to the other nodes. Inventory, credentials, all there. 
+So far nothing special. But we are working in a clustered environment. Login to the other Tower instances Web UIs (the ones you didn't configured the inventory and credentials on). Have a good look around, everything we configured on one Tower instance was synced automatically to the other nodes. Inventory, credentials, all there.
 
 == Run a Job in the Cluster
 
 Before we can start jobs we need to configure some more things. This is again the same as in single-instance Tower deployments, so the guide will just walk you through the required steps. Take note how everything you configure is syncronized to the other nodes again.
 
-Your lab environment includes Gitea, a Git-service that comes with a web ui and much more. Gitea runs on `control.example.com` and can be accessed via HTTP. Go and have a look around by accessing: 
+Your lab environment includes Gitea, a Git-service that comes with a web ui and much more. Gitea runs on `control.example.com` and can be accessed via HTTP. Go and have a look around by accessing:
 
 *\http://control-<GUID>.rhpds.opentlc.com/gitea*.
 
-All repos on Gitea are configured as private e.g. you need to login to access the content. Log in as: 
+All repos on Gitea are configured as private e.g. you need to login to access the content. Log in as:
 
 * *User*: git
 * *Password*: r3dh4t1!
@@ -295,10 +295,9 @@ To configure and use this repository as a *Source Control Management (SCM)* syst
 
 First we have to create credentials again, this time to access the Git repository over HTTP. This credential is user/password based, so feel free to use the web UI again or find out how to use *tower-cli* to create it.
 
-In the Tower web UI go to *Resources->Credentials*. Now: 
+In the Tower web UI go to *Resources->Credentials*. Now:
 
-* Click the image:green_plus.png[20,20] button to add new 
-credentials
+* Click the image:green_plus.png[20,20] button to add new credentials
 * *NAME*: Gitea Control
 * *CREDENTIAL TYPE*: Choose *Source Control*
 
@@ -327,8 +326,7 @@ Now with the SCM credentials configured, either in the web UI or using *tower-cl
 
 ==== In the web UI
 
-* Go to *Projects* in the side menu view click 
-the image:green_plus.png[20,20] button. Fill in the form:
+* Go to *Projects* in the side menu view click the image:green_plus.png[20,20] button. Fill in the form:
 
 * *NAME:* Apache
 * *ORGANIZATION:* Default
@@ -348,7 +346,7 @@ Now you need the HTTP URL to access the repo. Go to the Gitea web UI, choose the
                     --scm-type=git \
                     --scm-url="http://control.example.com/gitea/git/Apache.git" \
                     --scm-credential="Gitea" \
-                    --organization "Default" \ 
+                    --organization "Default" \
                     --scm-clean --scm-delete-on-update --scm-update-on-launch\
                     --wait
 ----
@@ -388,7 +386,7 @@ Before running an Ansible *Job* from your Tower cluster you must create a *Job T
 
 === Run a Job
 
-Now you are ready to start a job in your Tower cluster. In the web UI's *Templates* view select the new Job Template and run it by clicking the rocket icon. Again this is at first not different from a standard Tower. 
+Now you are ready to start a job in your Tower cluster. In the web UI's *Templates* view select the new Job Template and run it by clicking the rocket icon. Again this is at first not different from a standard Tower.
 
 TIP: But as this is a cluster of active nodes every node could have run the job. And the Job output in Tower's web UI doesn't tell you where it run, just the instance group.
 
@@ -396,7 +394,7 @@ TIP: But as this is a cluster of active nodes every node could have run the job.
 
 ==== Via command line and curl
 
-But there is help. In one of the Tower instances web UI go to the *Instance Groups* menu item. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs. 
+But there is help. In one of the Tower instances web UI go to the *Instance Groups* menu item. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs.
 
 To see on what instance a job actually run go back to the *Instance Groups* view. If you click *INSTANCES* under the Tower group, you will get an overview of the *TOTAL JOBS* each Tower instance executed which leads to the job list again.
 
@@ -445,7 +443,7 @@ This allows for some pretty cool setups, e.g. you could have some nodes shared o
 
 WARNING: Remember the base `tower` group does house keeping like processing events from jobs for all groups so the node count of this group has to scale with your overall cluster load, even if these nodes are not used to run Jobs.
 
-Talking about the `tower` group: As you have learned this group is crucial for the operations of a Tower cluster. Apart from the house keeping tasks, if a resource is not associated with an Instance Group, one of the nodes from the `tower` group will run the Job. So if there are no operational nodes in the base group, the cluster will not be able to run Jobs. 
+Talking about the `tower` group: As you have learned this group is crucial for the operations of a Tower cluster. Apart from the house keeping tasks, if a resource is not associated with an Instance Group, one of the nodes from the `tower` group will run the Job. So if there are no operational nodes in the base group, the cluster will not be able to run Jobs.
 
 WARNING: It is important to have enough nodes in the `tower` group
 
@@ -470,7 +468,7 @@ towerdb.example.com
 
 In this basic cluster setup we just have the `tower` base group. Let's configure two new Instance groups and add Tower instances. As an example scenario we'll take one node out of the `tower` group and share another node between groups.
 
-WARNING: This is not best practice, it's just for the sake of this lab! Any jobs that are launched targeting a group without active nodes will be stuck in a waiting state until instances become available. So one-instance groups are never a good idea. 
+WARNING: This is not best practice, it's just for the sake of this lab! Any jobs that are launched targeting a group without active nodes will be stuck in a waiting state until instances become available. So one-instance groups are never a good idea.
 
 The global tower group can still be associated with a resource, just like any of the custom instance groups defined in the playbook. This can be used to specify a preferred instance group on the job template or inventory, but still allow the job to be submitted to any instance if those are out of capacity.
 
