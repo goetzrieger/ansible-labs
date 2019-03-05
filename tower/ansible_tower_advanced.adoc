@@ -498,7 +498,68 @@ After editing the inventory, start the installer to make the desired changes:
 [root@control ansible-tower-setup-bundle-3.2.5-1.el7]# ./setup.sh
 ----
 
+=== Verify Instance Groups
 
+==== Via cli
+
+----
+[root@control ~]# tower-cli instance_group list
+== ===== ======== =================
+id name  capacity consumed_capacity
+== ===== ======== =================
+ 1 tower      171                 0
+== ===== ======== =================
+----
+
+==== Via API
+
+Open the URL `https://tower1.example.com/api/v2/instance_groups/` in your browser. You can also use curl to access the API from the command line:
+
+----
+[root@control ~]# curl -s -k -u admin:r3dh4t1! https://tower2.example.com/api/v2/instance_groups/| python -m json.tool
+{
+    "count": 1,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "capacity": 171,
+            "committed_capacity": 0,
+            "consumed_capacity": 0,
+            "controller": null,
+            "created": "2019-03-01T16:39:08.293548Z",
+            "id": 1,
+            "instances": 3,
+            "jobs_running": 0,
+            "jobs_total": 150,
+            "modified": "2019-03-01T16:39:08.343125Z",
+            "name": "tower",
+            "percent_capacity_remaining": 100.0,
+            "policy_instance_list": [
+                "tower3.example.com",
+                "tower1.example.com",
+                "tower2.example.com"
+            ],
+            "policy_instance_minimum": 0,
+            "policy_instance_percentage": 0,
+            "related": {
+                "instances": "/api/v2/instance_groups/1/instances/",
+                "jobs": "/api/v2/instance_groups/1/jobs/"
+            },
+            "type": "instance_group",
+            "url": "/api/v2/instance_groups/1/"
+        }
+    ]
+}
+----
+
+==== In the GUI
+
+Open the URL `https://tower3.example.com/#/instance_groups` in your browser.
+
+=== Working with Instances
+
+In the instance group overview details of the group itself and number of jobs are listed. Also the current capacity of the instance group is shown in a live view, thus providing a quick insight if there are capacity problems.
 
 
 
