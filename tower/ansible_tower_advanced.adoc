@@ -607,19 +607,19 @@ Open an SSH session from the control host to one of your Tower-Nodes and query y
 {
     "dyngroup":{
         "hosts":[
-            "cloud1",
-            "cloud2"
+            "cloud1.cloud.example.com",
+            "cloud2.cloud.example.com"
         ],
         "vars":{
-            "var1":true
+            "var1": true
         }
     },
     "_meta":{
         "hostvars":{
-            "cloud1":{
+            "cloud1.cloud.example.com":{
                 "type":"web"
             },
-            "cloud2":{
+            "cloud2.cloud.example.com":{
                 "type":"database"
             }
         }
