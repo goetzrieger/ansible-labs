@@ -1,4 +1,9 @@
 #/bin/bash
+# Script can be used to remove the tediousness of setting up the same stuff over and over again 
+# in Tower while testing/developing the lab
+
+# Just add the admin password, the SSH key for user ansible as prepared by the awk (thanks to some Github issue comment)
+# command below and some water. Let come to the boil.
 
 PASSWORD='redhat'
 
