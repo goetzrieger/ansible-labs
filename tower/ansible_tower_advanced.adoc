@@ -172,6 +172,31 @@ Bingo! Take note of the *REQUIRED* mark.
 
 TIP: When you start using *tower-cli* this file is very helpful as it provides a lot of examples: https://raw.githubusercontent.com/ansible/tower-cli/master/docs/source/cli_ref/examples/fake_data_creator.sh
 
+=== Challenge Lab: tower-cli
+
+To practice your *tower-cli* skills, here is a challenge:
+
+* Try to change the *idle time out* of the Tower web UI, it's 1800 seconds by default. Set it to, say, 7200. Using *tower-cli*, of course.
+
+* Start by looking for a resource type *tower-cli* provides using *--help* that sounds like it has something to do with changing config settings.
+
+* Look at the available *tower-cli* commands for this resource type.
+
+* Use the commands to have a look at the parameters settings and change it.
+
+TIP: The configuration parameter is called *SESSION_COOKIE_AGE*
+
+WARNING: *SOLUTION BELOW!*
+
+----
+tower-cli settings
+tower-cli setting get SESSION_COOKIE_AGE
+tower-cli setting modify SESSION_COOKIE_AGE 7200
+tower-cli setting get SESSION_COOKIE_AGE
+----
+
+If you want to, go to the web UI and check the setting under *ADMINISTRATION->Settings->System*.
+
 == Creating Inventory and Credentials
 
 The next steps don't really differ from what you would do with a single-instance Tower. To run Ansible jobs from Tower you need an inventory and machine credentials.
@@ -316,7 +341,7 @@ WARNING: *SOLUTION BELOW!*
 
 ----
 [root@control ~]# tower-cli credential create --credential-type="Source Control" \
-                    --name="Gitea Credentails" \
+                    --name="Gitea Credentials" \
                     --inputs='{"username": "git", "password": "r3dh4t1!"}' \
                     --organization="Default"
 ----
