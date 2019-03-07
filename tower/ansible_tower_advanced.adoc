@@ -415,7 +415,7 @@ Now you are ready to start a job in your Tower cluster. In the web UI's *Templat
 
 TIP: But as this is a cluster of active nodes every node could have run the job. And the Job output in Tower's web UI doesn't tell you where it run, just the instance group.
 
-=== So what instance run the job? Check the results!
+=== So what Instance run the Job? Check the Results!
 
 ==== Via command line and curl
 
@@ -578,13 +578,101 @@ Open the URL `https://tower1.example.com/api/v2/instance_groups/` in your browse
 }
 ----
 
-==== In the GUI
+==== In the GUI, see Details
 
 Open the URL `https://tower3.example.com/#/instance_groups` in your browser.
 
-=== Working with Instances
-
 In the instance group overview details of the group itself and number of jobs are listed. Also the current capacity of the instance group is shown in a live view, thus providing a quick insight if there are capacity problems.
+
+Next to each instance is a "ON" button shown, image:on_off.png[20,20]. This deactivates the corresponding instance and prevents that further jobs are assigned to it. Running jobs on an instance which is set to "OFF" are finished in a normal way. Further to the right a slider can change the amount of RAM and thus the amount of forks scheduled on an instance. This way it is possible to influence in which ratio roughly the jobs are assigned.
+
+== Start Parallel Jobs across Instances
+
+The real power of the instance groups is revealed when multiple jobs are started, and they are assigned to different Tower nodes. To launch multiple jobs we will set up a workflow with multiple concurrent jobs. In our case we focus on security compliance like STIG, CIS and so on. Often these compliance rules are enforced by executing an Ansible task per each requirement. This makes documentation and audit easier. These compliance requirements are often grouped into certain independend categories. The tasks of those can often be executed in parallel because they do not conflict with each other. In a production system this needs to be verified on a task by task base of course.
+
+In our demo case we provided three playbooks which:
+
+* ensure the absence of a few packages (STIG)
+* ensure configuration of PAM and login cryptography (STIG)
+* ensure absence of services and kernel modules (CIS).
+
+The playbooks can be found in the "omcpliance" repository on gitea: `http://control.example.com/gitea/git/compliance`.
+
+=== Add Repository to Tower
+
+The compliance repository needs to be added as project. Since this was done already in an earlier chapter via GUI, we will now focus on using the `tower-cli` tool for this. It has a resource type `project` and can thus create, change and delete projects. In our case we are going to create a new project (`create`), set the name (`-n`) and the organization (`--organization`) and provide the repository details type (`scm-type`) und (`scm-url`). Also we can set typical configuration options so that the project is updated upon the launch of related templtaes (`--scm-update-on-launch`) and that it is imported clean (`--scm-clean`). Since our Gitea instance requires authentication, we also include the correct credentials (`--scm-credentials`).
+
+----
+# tower-cli project create -n "Compliance Repository" --organization Default --scm-type git --scm-url http://control.example.com/gitea/git/compliance.git --scm-clean 1 --scm-update-on-launch 1 --scm-credential "Gitea credentials"
+Resource changed.
+== ===================== ======== =================================================== ==========================
+id         name          scm_type                       scm_url                               local_path
+== ===================== ======== =================================================== ==========================
+11 Compliance Repository git      http://control.example.com/gitea/git/compliance.git _11__compliance_repository
+== ===================== ======== =================================================== ==========================
+----
+
+As it can be seen calling tower-cli is much faster then to click through multiple steps in a web interface.
+
+=== Create three Templates
+
+As mentioned the repository contains three playbooks to enforce different compliance measurements. To avoid clicking too much we again create these three templates via `tower-cli`. Note that the commands will look very similar since project (`--project`), inventory (`--inventory`), machine credentials (`--credential`), become setting (`--become-enabled`) and job type (`--job-type`) will all be the same. Only the name (`--name`) and the actual playbook (`--playbook`) will be different.
+
+----
+# tower-cli job_template create -n "Compliance STIG packages" --job-type run -i "Example Inventory" --project "Compliance Repository" --playbook stig-packages.yml --credential "Example Credentials" --become-enabled 1
+Resource changed.
+== ======================== ========= ======= ================= 
+id           name           inventory project     playbook      
+== ======================== ========= ======= ================= 
+12 Compliance STIG packages         2      11 stig-packages.yml
+== ======================== ========= ======= ================= 
+----
+
+----
+# tower-cli job_template create -n "Compliance STIG config" --job-type run -i "Example Inventory" --project "Compliance Repository" --playbook stig-config.yml --credential "Example Credentials" --become-enabled 1
+Resource changed.
+== ====================== ========= ======= ===============
+id          name          inventory project    playbook
+== ====================== ========= ======= ===============
+13 Compliance STIG config         2      11 stig-config.yml
+== ====================== ========= ======= ===============
+----
+
+----
+# tower-cli job_template create -n "Compliance CIS" --job-type run -i "Example Inventory" --project "Compliance Repository" --playbook cis.yml --credential "Example Credentials" --become-enabled 1
+Resource changed.
+== ============== ========= ======= ========
+id      name      inventory project playbook
+== ============== ========= ======= ========
+14 Compliance CIS         2      11 cis.yml
+== ============== ========= ======= ========
+----
+
+=== Create Parallel Workflow
+
+To enable a parallel execution of all these job templates, we will create a workflow out of them. Workflows are configured in the *Templates* view, you might have noticed you can choose between *Job Template* and *Workflow Template* when adding a template so this is finally making sense.
+
+* Go to the *Templates* view and click the image:green_plus.png[20,20] button. This time choose *Workflow Template*
+** *NAME:* Compliance Workflow
+** *ORGANIZATION:* Default
+* Click *SAVE*
+* Now the *WORKFLOW VISUALIZER* button becomes active, click it to start the graphical editor.
+* Click on the *START* button, a new node opens. To the right you can assign an action to the node, you can choose between *JOBS*, *PROJECT SYNC* and *INVENTORY SYNC*. 
+* In this lab we'll link multiple jobs to the *START*, so select the *Compliance STIG package* job and click *SELECT*. The node gets annotated with the name of the job.
+* Click on the *START* button, another new node opens.
+* Select the *Compliance STIG config* job and click *SELECT*. The node gets annotated with the name of the job.
+* Click on the *START* button, another new node opens.
+* Select the *Compliance CIS* job and click *SELECT*. The node gets annotated with the name of the job.
+* Click *SAVE* 
+
+=== Execute and Watch
+
+Your workflow is ready to go, launch it.
+
+* In the *Templates* view launch the *Compliance Workflow* by clicking the rocket icon.
+* Wait until the job has finished. 
+
+Go back to the instance view and watch that each instance is running at least one job.
 
 == Advanced Inventories
 
