@@ -674,6 +674,10 @@ Your workflow is ready to go, launch it.
 
 Go back to the instance view and watch that each instance is running at least one job.
 
+After the workflow was finished, deactivate tower1 with the image:on_off.png[20,20] button and wait until it is shown as deactivated. Go back to the list of templates, launch the workflow "Compliance Workflow" again, get back to the instance overview and see that the playbooks are launched on the missing instances.
+
+Activate tower1 again by pressing image:on_off.png[20,20] a second time.
+
 == Advanced Inventories
 
 === Dynamic Inventories
