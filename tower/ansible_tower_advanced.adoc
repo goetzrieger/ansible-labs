@@ -619,7 +619,7 @@ As it can be seen calling tower-cli is much faster then to click through multipl
 As mentioned the repository contains three playbooks to enforce different compliance measurements. To avoid clicking too much we again create these three templates via `tower-cli`. Note that the commands will look very similar since project (`--project`), inventory (`--inventory`), machine credentials (`--credential`), become setting (`--become-enabled`) and job type (`--job-type`) will all be the same. Only the name (`--name`) and the actual playbook (`--playbook`) will be different.
 
 ----
-# tower-cli job_template create -n "Compliance STIG packages" --job-type run -i "Example Inventory" --project "Compliance Repository" --playbook stig-packages.yml --credential "Example Credentials" --become-enabled 1
+# tower-cli job_template create -n "Compliance STIG packages" --job-type run -i "Example Inventory" --project "Compliance Repository" --playbook "tower/demo-playbooks/stig-packages.yml" --credential "Example Credentials" --become-enabled 1
 Resource changed.
 == ======================== ========= ======= ================= 
 id           name           inventory project     playbook      
@@ -629,7 +629,7 @@ id           name           inventory project     playbook
 ----
 
 ----
-# tower-cli job_template create -n "Compliance STIG config" --job-type run -i "Example Inventory" --project "Compliance Repository" --playbook stig-config.yml --credential "Example Credentials" --become-enabled 1
+# tower-cli job_template create -n "Compliance STIG config" --job-type run -i "Example Inventory" --project "Compliance Repository" --playbook "tower/demo-playbooks/stig-config.yml" --credential "Example Credentials" --become-enabled 1
 Resource changed.
 == ====================== ========= ======= ===============
 id          name          inventory project    playbook
@@ -639,7 +639,7 @@ id          name          inventory project    playbook
 ----
 
 ----
-# tower-cli job_template create -n "Compliance CIS" --job-type run -i "Example Inventory" --project "Compliance Repository" --playbook cis.yml --credential "Example Credentials" --become-enabled 1
+# tower-cli job_template create -n "Compliance CIS" --job-type run -i "Example Inventory" --project "Compliance Repository" --playbook "tower/demo-playbooks/cis.yml" --credential "Example Credentials" --become-enabled 1
 Resource changed.
 == ============== ========= ======= ========
 id      name      inventory project playbook
