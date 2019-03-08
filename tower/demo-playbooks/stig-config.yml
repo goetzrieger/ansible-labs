@@ -1,0 +1,19 @@
+---
+- name: compliance check for STIG rules, packages, simplified
+  hosts: all
+
+  tasks:
+    - name: "HIGH | RHEL-07-010290 | PATCH | The Red Hat Enterprise Linux operating system must not have accounts configured with blank or null passwords."
+      replace:
+        dest: "{{ item }}"
+        follow: true
+        regexp: 'nullok ?'
+      with_items:
+        - /etc/pam.d/system-auth
+        - /etc/pam.d/password-auth
+
+    - name: "MEDIUM | RHEL-07-010210 | PATCH | The Red Hat Enterprise Linux operating system must be configured to use the shadow file to store only encrypted representations of passwords."
+      lineinfile:
+        dest: /etc/login.defs
+        regexp: ^#?ENCRYPT_METHOD
+        line: "ENCRYPT_METHOD SHA512"

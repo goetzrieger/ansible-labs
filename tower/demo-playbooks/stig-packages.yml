@@ -1,0 +1,19 @@
+---
+- name: compliance check for STIG rules, packages, simplified
+  hosts: all
+
+  tasks:
+    - name: "HIGH | RHEL-07-020000 | PATCH | The Red Hat Enterprise Linux operating system must not have the rsh-server package installed."
+      yum:
+        name: rsh-server
+        state: absent
+
+    - name: "HIGH | RHEL-07-020010 | PATCH | The Red Hat Enterprise Linux operating system must not have the ypserv package installed."
+      yum:
+        name: ypserv
+        state: absent
+
+    - name: "HIGH | RHEL-07-021710 | PATCH | The Red Hat Enterprise Linux operating system must not have the telnet-server package installed."
+      yum:
+        name: telnet-server
+        state: absent
