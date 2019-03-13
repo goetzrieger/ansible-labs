@@ -603,7 +603,13 @@ The playbooks can be found in the "omcpliance" repository on gitea: `http://cont
 The compliance repository needs to be added as project. Since this was done already in an earlier chapter via GUI, we will now focus on using the `tower-cli` tool for this. It has a resource type `project` and can thus create, change and delete projects. In our case we are going to create a new project (`create`), set the name (`-n`) and the organization (`--organization`) and provide the repository details type (`scm-type`) und (`scm-url`). Also we can set typical configuration options so that the project is updated upon the launch of related templtaes (`--scm-update-on-launch`) and that it is imported clean (`--scm-clean`). Since our Gitea instance requires authentication, we also include the correct credentials (`--scm-credentials`).
 
 ----
-# tower-cli project create -n "Compliance Repository" --organization Default --scm-type git --scm-url http://control.example.com/gitea/git/compliance.git --scm-clean 1 --scm-update-on-launch 1 --scm-credential "Gitea credentials"
+[root@control ~]# tower-cli project create -n "Compliance Repository" \
+                    --organization Default \
+                    --scm-type git \
+                    --scm-url http://control.example.com/gitea/git/compliance.git \
+                    --scm-clean 1 \
+                    --scm-update-on-launch 1 \
+                    --scm-credential "Gitea credentials"
 Resource changed.
 == ===================== ======== =================================================== ==========================
 id         name          scm_type                       scm_url                               local_path
@@ -619,7 +625,12 @@ As it can be seen calling tower-cli is much faster then to click through multipl
 As mentioned the repository contains three playbooks to enforce different compliance measurements. To avoid clicking too much we again create these three templates via `tower-cli`. Note that the commands will look very similar since project (`--project`), inventory (`--inventory`), machine credentials (`--credential`), become setting (`--become-enabled`) and job type (`--job-type`) will all be the same. Only the name (`--name`) and the actual playbook (`--playbook`) will be different.
 
 ----
-# tower-cli job_template create -n "Compliance STIG packages" --job-type run -i "Example Inventory" --project "Compliance Repository" --playbook "stig-packages.yml" --credential "Example Credentials" --become-enabled 1
+[root@control ~]# tower-cli job_template create -n "Compliance STIG packages" \
+                    --job-type run -i "Example Inventory" \
+                    --project "Compliance Repository" \
+                    --playbook "stig-packages.yml" \
+                    --credential "Example Credentials" \
+                    --become-enabled 1
 Resource changed.
 == ======================== ========= ======= ================= 
 id           name           inventory project     playbook      
@@ -629,7 +640,12 @@ id           name           inventory project     playbook
 ----
 
 ----
-# tower-cli job_template create -n "Compliance STIG config" --job-type run -i "Example Inventory" --project "Compliance Repository" --playbook "stig-config.yml" --credential "Example Credentials" --become-enabled 1
+[root@control ~]# tower-cli job_template create -n "Compliance STIG config" \
+                    --job-type run -i "Example Inventory" \
+                    --project "Compliance Repository" \
+                    --playbook "stig-config.yml" \
+                    --credential "Example Credentials" \
+                    --become-enabled 1
 Resource changed.
 == ====================== ========= ======= ===============
 id          name          inventory project    playbook
@@ -639,7 +655,12 @@ id          name          inventory project    playbook
 ----
 
 ----
-# tower-cli job_template create -n "Compliance CIS" --job-type run -i "Example Inventory" --project "Compliance Repository" --playbook "cis.yml" --credential "Example Credentials" --become-enabled 1
+[root@control ~]# tower-cli job_template create -n "Compliance CIS" \
+                    --job-type run -i "Example Inventory" \
+                    --project "Compliance Repository" \
+                    --playbook "cis.yml" \
+                    --credential "Example Credentials" \
+                    --become-enabled 1
 Resource changed.
 == ============== ========= ======= ========
 id      name      inventory project playbook
