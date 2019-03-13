@@ -609,7 +609,7 @@ The compliance repository needs to be added as project. Since this was done alre
                     --scm-url http://control.example.com/gitea/git/compliance.git \
                     --scm-clean 1 \
                     --scm-update-on-launch 1 \
-                    --scm-credential "Gitea credentials"
+                    --scm-credential "Gitea Credentials"
 Resource changed.
 == ===================== ======== =================================================== ==========================
 id         name          scm_type                       scm_url                               local_path
