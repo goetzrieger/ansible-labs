@@ -632,11 +632,11 @@ As mentioned the repository contains three playbooks to enforce different compli
                     --credential "Example Credentials" \
                     --become-enabled 1
 Resource changed.
-== ======================== ========= ======= ================= 
-id           name           inventory project     playbook      
-== ======================== ========= ======= ================= 
+== ======================== ========= ======= =================
+id           name           inventory project     playbook
+== ======================== ========= ======= =================
 12 Compliance STIG packages         2      11 stig-packages.yml
-== ======================== ========= ======= ================= 
+== ======================== ========= ======= =================
 ----
 
 ----
@@ -678,20 +678,20 @@ To enable a parallel execution of all these job templates, we will create a work
 ** *ORGANIZATION:* Default
 * Click *SAVE*
 * Now the *WORKFLOW VISUALIZER* button becomes active, click it to start the graphical editor.
-* Click on the *START* button, a new node opens. To the right you can assign an action to the node, you can choose between *JOBS*, *PROJECT SYNC* and *INVENTORY SYNC*. 
+* Click on the *START* button, a new node opens. To the right you can assign an action to the node, you can choose between *JOBS*, *PROJECT SYNC* and *INVENTORY SYNC*.
 * In this lab we'll link multiple jobs to the *START*, so select the *Compliance STIG package* job and click *SELECT*. The node gets annotated with the name of the job.
 * Click on the *START* button, another new node opens.
 * Select the *Compliance STIG config* job and click *SELECT*. The node gets annotated with the name of the job.
 * Click on the *START* button, another new node opens.
 * Select the *Compliance CIS* job and click *SELECT*. The node gets annotated with the name of the job.
-* Click *SAVE* 
+* Click *SAVE*
 
 === Execute and Watch
 
 Your workflow is ready to go, launch it.
 
 * In the *Templates* view launch the *Compliance Workflow* by clicking the rocket icon.
-* Wait until the job has finished. 
+* Wait until the job has finished.
 
 Go back to the instance view and watch that each instance is running at least one job.
 
@@ -699,15 +699,19 @@ After the workflow was finished, deactivate tower1 with the image:on_off.png[20,
 
 Activate tower1 again by pressing image:on_off.png[20,20] a second time.
 
+== Isolated Nodes
+
+
+
 == Advanced Inventories
 
 === Dynamic Inventories
 
-Quite often just using static inventories will not be enough. You might be dealing with ever-changing cloud environments or you have to get your managed systems from a CMDB or other sources of truth. 
+Quite often just using static inventories will not be enough. You might be dealing with ever-changing cloud environments or you have to get your managed systems from a CMDB or other sources of truth.
 
 Tower includes built-in support for syncing dynamic inventory from cloud sources such as Amazon AWS, Google Compute Engine, among others. Tower also offers the ability to use custom scripts to pull from your own inventory source.
 
-In this chapter you'll get started with dynamic inventories in Tower. Aside from the build-in sources you can write inventory scripts in any programming/scripting language that you have installed on the Tower machine. To keep it easy we'll use a simple custom inventory script using... the Bash shell. 
+In this chapter you'll get started with dynamic inventories in Tower. Aside from the build-in sources you can write inventory scripts in any programming/scripting language that you have installed on the Tower machine. To keep it easy we'll use a simple custom inventory script using... the Bash shell.
 
 ==== The Inventory Source
 
@@ -752,7 +756,7 @@ As looping over all hosts and calling the script with *--host* can be pretty slo
 #!/bin/bash
 
 if [ "$1" == "--list" ] ; then
-  curl control.example.com:/pub/inventory_list  
+  curl control.example.com:/pub/inventory_list
 elif [ "$1" == "--host" ]; then
   echo '{"_meta": {"hostvars": {}}}'
 else
@@ -770,8 +774,8 @@ So now you have a source of (slightly faked) inventory data and a script to fetc
 
 The first step is to add the inventory script to Tower:
 
-* In the web UI, open *RESOURCES->Inventory Scripts*. 
-* To create a new custom inventory script, click the image:green_plus.png[20,20] button. 
+* In the web UI, open *RESOURCES->Inventory Scripts*.
+* To create a new custom inventory script, click the image:green_plus.png[20,20] button.
 * Fill in the needed data:
 ** *NAME:* Cloud Inventory
 ** Copy the Bash script from above and paste it into the *CUSTOM SCRIPT* field
@@ -780,7 +784,7 @@ The first step is to add the inventory script to Tower:
 Finally the new inventory script can be used in an actual *Inventory*.
 
 * Go to *RESOURCES->Inventories*
-* Click the image:green_plus.png[20,20] button and choose *Inventory*. 
+* Click the image:green_plus.png[20,20] button and choose *Inventory*.
 * *NAME:* Cloud Inventory
 * Click *SAVE*
 * Click the *SOURCES* button on top, the image:green_plus.png[20,20] to add a new source
@@ -788,9 +792,9 @@ Finally the new inventory script can be used in an actual *Inventory*.
 * From the *SOURCE* drop-down choose *Custom Script*
 * Now the dialog for the source opens, your custom script should already be selected in the *CUSTOM INVENTORY SCRIPT*.
 * Under *UPDATE OPTIONS* check *Overwrite* and *Overwrite Variables*
-* Click *SAVE* 
+* Click *SAVE*
 
-To sync your new source into the inventory: 
+To sync your new source into the inventory:
 
 * Open the *Cloud Inventory* again
 * Click the *SOURCES* button
@@ -834,7 +838,7 @@ To mimic the dynamic nature of the inventory, adapt the file we are using as sou
 }
 ----
 
-After saving the file: 
+After saving the file:
 
 * Go back to web UI, open the *Cloud Inventory* inventory
 * Click the *SOURCES* button and re-sync the *Cloud Custom Script* source.
