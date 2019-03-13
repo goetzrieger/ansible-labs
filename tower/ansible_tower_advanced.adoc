@@ -370,7 +370,7 @@ Now you need the HTTP URL to access the repo. Go to the Gitea web UI, choose the
 [root@control ~]# tower-cli project create --name="Apache" \
                     --scm-type=git \
                     --scm-url="http://control.example.com/gitea/git/Apache.git" \
-                    --scm-credential="Gitea" \
+                    --scm-credential="Gitea Credentials" \
                     --organization "Default" \
                     --scm-clean --scm-delete-on-update --scm-update-on-launch\
                     --wait
