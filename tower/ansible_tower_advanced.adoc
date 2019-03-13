@@ -702,7 +702,93 @@ Activate tower1 again by pressing image:on_off.png[20,20] a second time.
 
 == Isolated Nodes
 
+Many people use Ansible to manage far-flung, complex infrastructures. They can have machines and networks in multiple datacenters, servers behind firewalls or in VPCs, or remote devices where unstable links may not survive the length of the job. In all these cases, it can be simpler to run automation local to the nodes.
 
+To solve this, Tower provides Isolated Nodes.
+
+An Isolated Node is an Ansible Tower node that contains a small piece of software for running playbooks locally to manage a set of infrastructure. It can be deployed behind a firewall/VPC or in a remote datacenter, with only SSH access available. When a job is run that targets things managed by the isolated node, the job and its environment will be pushed to the isolated node over SSH, where it will run as normal. Periodically, the master Ansible Tower cluster will poll the isolated node for status on the job, updating in as close to real-time as possible. When it finishes, the remote execution on the isolated node will be cleaned up, and the job status will be updated in Ansible Tower.
+
+=== Creating Isolated Nodes
+
+Isolated nodes are also set up in the inventory file used by the Ansible Tower setup program. Isolated nodes make up their own instance group. Let's set one up.
+
+First have a look at our setup as described in the installers inventory file. In your SSH session change into the Ansible installer directory and do the following:
+
+----
+[root@control ansible-tower-setup-bundle-3.2.5-1.el7]# cat inventory
+[tower]
+tower1.example.com
+tower2.example.com
+
+[instance_group_prod]
+tower3.example.com
+
+[instance_group_dev]
+tower2.example.com
+
+[database]
+towerdb.example.com
+
+[...]
+----
+
+We have the `tower` base group and two instace groups. For the isolated node we will add an entirely new node, called `isonode.remote.example.com` which again is connected to further hosts to control. Let's add the node to the inventory:
+
+----
+[root@control ansible-tower-setup-bundle-3.2.5-1.el7]# cat inventory
+[tower]
+tower1.example.com
+tower2.example.com
+
+[instance_group_prod]
+tower3.example.com
+
+[instance_group_dev]
+tower2.example.com
+
+[isolated_group_fortress]
+isonode.remote.example.com
+
+[isolated_group_fortress:vars]
+controller=tower
+
+[database]
+towerdb.example.com
+
+[...]
+----
+
+Note the `[isolated_group_fortress:vars]` section - each isolated group must have a controller variable set. This variable describes the instance group that manages tasks that are sent to the isolated node. That instance group will be responsible for starting and monitoring jobs on the isolated node. In this case, we're using the main Ansible Tower cluster to manage this isolated group.
+
+After editing the inventory, start the installer to make the desired changes:
+
+----
+[root@control ansible-tower-setup-bundle-3.2.5-1.el7]# ./setup.sh
+----
+
+=== Verify Isolated Nodes
+
+Isolated groups can be listed in the same way like instance groups and Ansible Tower cluster configuration. So the methods listed above discussing instance groups also show the isolated node. For example, using `tower-cli`:
+
+----
+[root@control ~]# tower-cli instance_group list
+== ======== ======== =================
+id   name   capacity consumed_capacity
+== ======== ======== =================
+ 1 tower         171                 0
+ 2 prod           57                 0
+ 3 dev            57                 0
+ 4 fortress        0                 0
+== ======== ======== =================
+----
+
+Like other instance groups, isolated node groups can be assigned at the level of an organization, an inventory, or an individual job template.
+
+=== Create Isolated Node specific Inventory
+
+Let's assume we have a DMZ setup with two hosts siloed off from the rest of the infrastructure. The isolated node we configured above is set in the same DMZ and is able to connect to the siloed hosts.
+
+Let's create a new inventory: go to the 
 
 == Advanced Inventories
 
