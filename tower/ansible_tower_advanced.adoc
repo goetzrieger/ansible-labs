@@ -796,7 +796,7 @@ Let's create a new inventory: you can do this with `tower-cli` liek we did above
 * *INSTACE GROUPS:* Pick the instance group you created in the last step, `dmz`
 * Click *SAVE*
 
-After you've clicked *SAVE*, you can add hosts: the button for the hosts management image:tower_hosts.png[20,20] is active now. Click on it to access the hosts overview. There are no hosts right now, so let's add some:
+After you've clicked *SAVE*, you can add hosts: the button for the hosts management image:tower_hosts.png[40,40] is active now. Click on it to access the hosts overview. There are no hosts right now, so let's add some:
 
 * Click the image:green_plus.png[20,20] button to add a new host
 * *NAME:* `isohost1.remote.example.com`
