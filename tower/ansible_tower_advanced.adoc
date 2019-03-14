@@ -746,10 +746,10 @@ tower3.example.com
 [instance_group_dev]
 tower2.example.com
 
-[isolated_group_fortress]
+[isolated_group_dmz]
 isonode.remote.example.com
 
-[isolated_group_fortress:vars]
+[isolated_group_dmz:vars]
 controller=tower
 
 [database]
@@ -758,7 +758,7 @@ towerdb.example.com
 [...]
 ----
 
-Note the `[isolated_group_fortress:vars]` section - each isolated group must have a controller variable set. This variable describes the instance group that manages tasks that are sent to the isolated node. That instance group will be responsible for starting and monitoring jobs on the isolated node. In this case, we're using the main Ansible Tower cluster to manage this isolated group.
+Note the `[isolated_group_dmz:vars]` section - each isolated group must have a controller variable set. This variable describes the instance group that manages tasks that are sent to the isolated node. That instance group will be responsible for starting and monitoring jobs on the isolated node. In this case, we're using the main Ansible Tower cluster to manage this isolated group.
 
 After editing the inventory, start the installer to make the desired changes:
 
@@ -778,7 +778,7 @@ id   name   capacity consumed_capacity
  1 tower         171                 0
  2 prod           57                 0
  3 dev            57                 0
- 4 fortress        0                 0
+ 4 dmz             0                 0
 == ======== ======== =================
 ----
 
@@ -788,7 +788,42 @@ Like other instance groups, isolated node groups can be assigned at the level of
 
 Let's assume we have a DMZ setup with two hosts siloed off from the rest of the infrastructure. The isolated node we configured above is set in the same DMZ and is able to connect to the siloed hosts.
 
-Let's create a new inventory: go to the 
+Let's create a new inventory: you can do this with `tower-cli` liek we did above, or you use the web UI. Let's take the web UI this time: under *RESOURCES*, click on *Inventories*:
+
+* Click the image:green_plus.png[20,20] button to add a new inventory
+* *NAME:* Remote Inventory
+* *ORGANIZATION:* Default
+* *INSTACE GROUPS:* Pick the instance group you created in the last step, `dmz`
+* Click *SAVE*
+
+After you've clicked *SAVE*, you can add hosts: the button for the hosts management image:tower_hosts.png[20,20] is active now. Click on it to access the hosts overview. There are no hosts right now, so let's add some:
+
+* Click the image:green_plus.png[20,20] button to add a new host
+* *NAME:* `isohost1.remote.example.com`
+* Click *SAVE*
+
+Repeat the steps for a second host called `isohost2remote.example.com`.
+
+=== Create Template for Isolated Node
+
+Next we need to assign a template to the nodes. Since those nodes are in a dmz, we certainly have to ensure their compliance. Thus we are going to make sure that they are following our CIS guidelines - and will set up a template executing the CIS playbook on them.
+
+Go to *Templates* in the *RESOURCES* section of the menu, click the image:green_plus.png[20,20] button and choose *Job Template*.
+
+* *NAME:* Remote CIS Compliance
+* *JOB TYPE:* Run
+* *INVENTORY:* Remote Inventory
+* *PROJECT:* Compliance Repository
+* *PLAYBOOK:* `cis.yml`
+* *CREDENTIAL:* Example Credentials
+* *INSTANCE GROUPS:* `dmz`
+* We need to run the tasks as root so check *Enable privilege escalation*
+* Click *SAVE*
+
+Next, launch the template:
+
+* In the *Templates* view launch the *Remote CIS Compliance* job by clicking the rocket icon.
+* Wait until the job is finished.
 
 == Advanced Inventories
 
