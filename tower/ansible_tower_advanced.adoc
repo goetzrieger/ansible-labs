@@ -825,6 +825,10 @@ Next, launch the template:
 * In the *Templates* view launch the *Remote CIS Compliance* job by clicking the rocket icon.
 * Wait until the job is finished.
 
+=== Verify Results
+
+Last but not least, let's check that the job was indeed executed by the isolated node `dmz`: go to *Instance Groups* in the *ADMINISTRATION* section of the menu, click on *dmz*. There, clikc on the jobs button on top, and see the executed job.
+
 == Advanced Inventories
 
 === Dynamic Inventories
