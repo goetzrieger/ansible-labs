@@ -1101,7 +1101,7 @@ Here are a number of things to consider when planning a clustered Tower deployme
 * Typical cluster considerations apply: All nodes need to be able to reliably connect to each other, stable address/hostname resolution, geographically co-located with reliable low-latency connections between instances.
 * Remember there is no concept of primary/secondary instance, all systems are primary.
 
-== Installing an Ansible Tower Cluster
+==== Installing an Ansible Tower Cluster
 
 For initial configuration of a Tower cluster and for adding new instances the default Ansible installer is used, but the inventory file needs to be extended. Some important basic concepts:
 
@@ -1109,7 +1109,7 @@ For initial configuration of a Tower cluster and for adding new instances the de
 * If all Tower instances in this group fail, jobs might not run and playbook events might not get written. So make sure there are enough instances in this group.
 * The database can be installed and configured by the installer by adding the host to the `database` group. If the database host is provisioned separately, leave the group empty.
 
-=== The Installer Inventory File
+==== The Installer Inventory File
 
 In this lab a three node Ansible Tower cluster is provided ready to go as installing it would eat too much of your lab time. It's pretty straight forward anyway. The inventory file here is just for giving you an idea what you are using here and for reference.
 
