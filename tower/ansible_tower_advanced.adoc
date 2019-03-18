@@ -943,7 +943,11 @@ Next, launch the template:
 
 === Verify Results
 
-Last but not least, let's check that the job was indeed executed by the isolated node `isonode.remote.example.com`: go to *Instance Groups* in the *ADMINISTRATION* section of the menu, click on *dmz*. There, click on the jobs button on top, and see the executed job.
+Last but not least, let's check that the job was indeed executed by the isolated node `isonode.remote.example.com`: 
+
+* Go to *Instance Groups* in the *ADMINISTRATION* section of the web UI
+* Click on the *dmz* group. 
+* Click on the jobs button at the top to see the executed job.
 
 == Advanced Inventories
 
@@ -953,11 +957,11 @@ Quite often just using static inventories will not be enough. You might be deali
 
 Tower includes built-in support for syncing dynamic inventory from cloud sources such as Amazon AWS, Google Compute Engine, among others. Tower also offers the ability to use custom scripts to pull from your own inventory source.
 
-In this chapter you'll get started with dynamic inventories in Tower. Aside from the build-in sources you can write inventory scripts in any programming/scripting language that you have installed on the Tower machine. To keep it easy we'll use a simple custom inventory script using... the Bash shell.
+In this chapter you'll get started with dynamic inventories in Tower. Aside from the build-in sources you can write inventory scripts in any programming/scripting language that you have installed on the Tower machine. To keep it easy we'll use a most simple custom inventory script using... Bash! Yes!
 
 ==== The Inventory Source
 
-First you need a source. In real life this would be your cloud provider, your CMDB or what not. For the sake of this lab we have the web server on control.example.com configured to be our source.
+First you need a source. In *real life* this would be your *cloud provider, your CMDB or what not*. For the sake of this lab we have the web server on control.example.com configured to hand out a static file to be our source.
 
 Open an SSH session from the control host to one of your Tower-Nodes and query your external inventory source:
 
@@ -986,11 +990,13 @@ Open an SSH session from the control host to one of your Tower-Nodes and query y
 }
 ----
 
-Well, this is handy, the output is already configured as JSON like Ansible would expect... ;-) Okay, seriously, in real life your script would likely get some information from your source system, format it as JSON and return the data to Tower.
+Well, this is handy, the output is already configured as JSON like Ansible would expect... ;-) 
+
+Okay, seriously, in real life your script would likely get some information from your source system, format it as JSON and return the data to Tower.
 
 ==== The Custom Inventory Script
 
-An inventory scripts has to follow some conventions. It must accept the *--list* and *--host <hostname>* arguments. When it is called with *--list*, the script must output a JSON-encoded data containing all groups to be managed. When called with *--host <hostname>* it must return an JSON-formatted hash or dictionary of host variables (can be empty).
+An inventory script has to follow some conventions. It must accept the *--list* and *--host <hostname>* arguments. When it is called with *--list*, the script must output a JSON-encoded data containing all groups and hosts to be managed. When called with *--host <hostname>* it must return an JSON-formatted hash or dictionary of host variables (can be empty).
 
 As looping over all hosts and calling the script with *--host* can be pretty slow, it is possible to return a top level element called "_meta" with all of the host variables in one script run. And this is what we'll do. So this is our custom inventory script:
 
@@ -1010,7 +1016,7 @@ What it basically does is to return the data collected by curl when called with 
 
 As simple as it gets, right? More information can be found https://docs.ansible.com/ansible/latest/dev_guide/developing_inventory.html[here]
 
-So now you have a source of (slightly faked) inventory data and a script to fetch and pass it to Tower. Now you need to get this into Tower.
+So now you have a source of (slightly static) dynamic inventory data (talk about oxymorons...) and a script to fetch and pass it to Tower. Now you need to get this into Tower.
 
 ==== Integrate into Tower
 
@@ -1029,8 +1035,9 @@ Finally the new inventory script can be used in an actual *Inventory*.
 * Click the image:green_plus.png[20,20] button and choose *Inventory*.
 * *NAME:* Cloud Inventory
 * Click *SAVE*
-* Click the *SOURCES* button on top, the image:green_plus.png[20,20] to add a new source
-* *NAME:* Cloud Custom Script*
+* The *SOURCES* button on top becomes active now, click it
+* Click the image:green_plus.png[20,20] to add a new source
+* *NAME:* Cloud Custom Script
 * From the *SOURCE* drop-down choose *Custom Script*
 * Now the dialog for the source opens, your custom script should already be selected in the *CUSTOM INVENTORY SCRIPT*.
 * Under *UPDATE OPTIONS* check *Overwrite* and *Overwrite Variables*
@@ -1051,6 +1058,8 @@ To mimic the dynamic nature of the inventory, adapt the file we are using as sou
 
 * Open an SSH session to your control host (if it's not open anyway).
 * Edit the file `/var/www/html/pub/inventory_list` to look like this (i.e. add another host):
+
+WARNING: Either copy & paste the content or make sure to take care of structure (especially the commas...) to get proper JSON!
 
 ----
 {
@@ -1086,6 +1095,16 @@ After saving the file:
 * Click the *SOURCES* button and re-sync the *Cloud Custom Script* source.
 * Open the *HOSTS* view again and make sure you have three hosts listed.
 
+*What is the take away?*
+
+Using this simple example you have:
+
+* Created a script to query an inventory source
+* Integrated the script into Tower
+* Populated an inventory using the custom script
+* Changed the source to test the dynamic nature of the inventory
+
+=== Smart Inventories
 
 
 
