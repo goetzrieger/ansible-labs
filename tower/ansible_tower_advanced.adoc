@@ -420,7 +420,7 @@ But as this is a cluster of active nodes every node could have run the job. And 
 
 ==== So what Instance run the Job?
 
-In one of the Tower instances web UI under *RESOURCES* go to the *Instance Groups* view. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs.
+In one of the Tower instances web UI under *ADMINISTRATION* go to the *Instance Groups* view. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs.
 
 To see on what instance a job actually run go back to the *Instance Groups* view. If you click *INSTANCES* under the *tower* group, you will get an overview of the *TOTAL JOBS* each Tower instance executed which leads to the job list again.
 
@@ -729,7 +729,7 @@ Your workflow is ready to go, launch it.
 * In the *Templates* view launch the *Compliance Workflow* by clicking the rocket icon.
 * Wait until the job has finished.
 
-Go to the *INSTANCE GROUPS* view and find out how the jobs where distributed over the instances:
+Go to the *Instance Groups* view and find out how the jobs where distributed over the instances:
 
 * Open the *INSTANCES* view of the tower instance group.
 * Look at the *TOTAL JOBS* view of the three instances
@@ -757,7 +757,7 @@ One way to assign a job to an instance group is in the job template. As our comp
 
 * In the web UI, go to *RESOURCES->Templates*
 * Open one of the three templates
-* In the *INSTANCE GROUPS* field, choose the *dev* instance group and click *SAVE*.
+* In the *Instance Groups* field, choose the *dev* instance group and click *SAVE*.
 * Click *SAVE* for the template and do this for the other compliance templates, too.
 
 Now the jobs that make up our *Compliance Workflow* are all configured to run on the instances of the *dev* instance group.
