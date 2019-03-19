@@ -12,13 +12,13 @@
 
 You have already used Ansible Automation quite a bit and have started to look into Tower? Or you are already using Tower? Cool. We prepared this lab to give a hands-on introduction to some of the more advanced features of Tower. Be prepared to learn about:
 
+* Using commandline tools to manage Ansible Tower
 * Ansible Tower clustering
-* The isolated node feature
+* Working with Instance Groups
+* Using isolated nodes to manage remote locations
 * Ways to provide inventories (importing inventory, dynamic inventory)
 * The Smart Inventory feature
 * Some guide lines for structuring Ansible content
-
-And over all of this we sprinkle a generous use of the Tower commandline client to save you from clicking in the web UI too much.
 
 == Your Ansible Tower Lab Environment
 
