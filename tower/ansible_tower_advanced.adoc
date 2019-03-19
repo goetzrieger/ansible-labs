@@ -202,15 +202,15 @@ WARNING: *SOLUTION BELOW!*
 
 If you want to, go to the web UI and check the setting under *ADMINISTRATION->Settings->System*.
 
-== Creating Inventory and Credentials
+== Creating Tower Objects (Mostly) Using `tower-cli`
 
-The next steps don't differ from what you would do with a single-instance Tower. To run Ansible jobs from Tower you need an inventory and machine credentials.
+The next steps don't differ from what you would do with a single-instance Tower. To run Ansible jobs from Tower you need Inventories, Projects, Credentials and Job Templates.
+
+But we don't want you to go to the web UI to configure your Ansible automation objects more then necessary. I mean, if you really want to, go ahead. But here we'll use *tower-cli* to create content. 
 
 === Create an Inventory
 
-As said we don't want you to go to the web UI to configure your static inventory. I mean, if you really want to, go ahead. But here we'll use *tower-cli* to create a static inventory, we'll get to dynamic inventories later on.
-
-First create the inventory in Tower using *tower-cli*. Try to get the proper invocation of *tower-cli* yourself and create an inventory name *Example Inventory* (yup, very creative, we know).
+First create a static inventory, we'll get to dynamic inventories later on. Try to figure out the proper invocation of *tower-cli* yourself and create an inventory name *Example Inventory* (yup, very creative, we know).
 
 TIP: *tower-cli* behaves pretty UNIXy, just use *--help* to get down to the needed command.
 
@@ -295,15 +295,9 @@ As we are using SSH key authentication, you have to provide an SSH private key t
 * Copy the complete private key (including "BEGIN" and "END" lines) and paste it into the *SSH PRIVATE KEY* field in the web UI.
 * Click *SAVE*
 
-You have now setup credentials to use later for your inventory hosts.
+You have now set up credentials to use later for your inventory hosts.
 
-=== It's a Cluster After All
-
-So far nothing special. But we are working in a clustered environment. Login to the other Tower instances Web UIs (the ones you didn't configured the inventory and credentials on). Have a good look around, everything we configured on one Tower instance was synced automatically to the other nodes. Inventory, credentials, all there.
-
-== Run a Job in the Cluster
-
-Before we can start jobs we need to configure some more things. This is again the same as in single-instance Tower deployments, so the guide will just walk you through the required steps. Take note how everything you configure is syncronized to the other nodes again.
+=== Using Git for Software Configuration Management (SCM)
 
 Your lab environment includes Gitea, a Git-service that comes with a web ui and much more. Gitea runs on `control.example.com` and can be accessed via HTTP. Go and have a look around by accessing:
 
@@ -316,12 +310,12 @@ All repos on Gitea are configured as private e.g. you need to login to access th
 
 To configure and use this repository as a *Source Control Management (SCM)* system in Tower you have to:
 
-* Create *Credentials* to access the Git repo
+* Create *SCM Credentials* to access the Git repo
 * Create a *Project* that uses the repository
 
 === Create SCM Credentials
 
-First we have to create credentials again, this time to access the Git repository over HTTP. This credential is user/password based, so feel free to use the web UI again or find out how to use *tower-cli* to create it.
+Create credentials again, this time to access the Git repository over HTTP. This credential is user/password based, so feel free to use the web UI again or find out how to use *tower-cli* to create it.
 
 In the Tower web UI go to *Resources->Credentials*. Now:
 
@@ -412,46 +406,40 @@ Before running an Ansible *Job* from your Tower cluster you must create a *Job T
                     --become-enabled="yes"
 ----
 
+=== It's a Cluster After All
+
+So far nothing special regarding the objects you need to use Tower to run Ansible automation. But we are working in a clustered environment. Login to the other Tower instances Web UIs (the ones you didn't configured the inventory and credentials on). 
+
+Have a good look around, everything we configured on one Tower instance was *synced automatically* to the other nodes. Inventory, credentials, projects, templates, all there.
+
 === Run a Job
 
 Now you are ready to start a job in your Tower cluster. In the web UI's *Templates* view select the new Job Template and run it by clicking the rocket icon. Again this is at first not different from a standard Tower.
 
-TIP: But as this is a cluster of active nodes every node could have run the job. And the Job output in Tower's web UI doesn't tell you where it run, just the instance group.
+But as this is a cluster of active nodes every node could have run the job. And the Job output in Tower's web UI doesn't tell you where it run, just the instance group.
 
-=== So what Instance run the Job? Check the Results!
+==== So what Instance run the Job?
 
-==== Via command line and curl
+In one of the Tower instances web UI under *RESOURCES* go to the *Instance Groups* view. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs.
 
-But there is help. In one of the Tower instances web UI go to the *Instance Groups* menu item. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs.
+To see on what instance a job actually run go back to the *Instance Groups* view. If you click *INSTANCES* under the *tower* group, you will get an overview of the *TOTAL JOBS* each Tower instance executed which leads to the job list again.
 
-To see on what instance a job actually run go back to the *Instance Groups* view. If you click *INSTANCES* under the Tower group, you will get an overview of the *TOTAL JOBS* each Tower instance executed which leads to the job list again.
+But it would still be nice to see where a job run (not the other way round) and to get an idea how jobs are distributed to the available instances. For this we can utilize the API.
 
-But it would still be nice to see where a job run (not the other way round) and to get an idea how jobs are distributed to the available instances. For this we have to use the API.
-
-To run a number of jobs (so the cluster has something to distribute) we could just fire of a couple of the Apache job templates, but doing this using the web UI is tiresome. So let's use *tower-cli* to run some jobs, what about just running the *Install Apache* Template five times?
+First find the job ID, in the web UI it prefixes the job name as shown in the job list. With the ID you can query the API for the instance/node the job was executed on:
 
 ----
-[root@control ~]# for i in `seq 1 5`; do tower-cli job launch -J "Install Apache" ; sleep 5 ; done
+[root@control ~]# curl -s -k -u admin:r3dh4t1! https://tower2.example.com/api/v2/jobs/71/ | python -m json.tool | grep execution_node
+    "execution_node": "tower1.example.com",
 ----
 
-And now query the API for the instance/node the jobs where executed on:
-
-----
-[root@tower2 ~]# curl -s -k -u admin:r3dh4t1! https://tower2.example.com/api/v2/jobs/ | python -m json.tool | grep execution_node
-            "execution_node": "tower3.example.com",
-            "execution_node": "tower1.example.com",
-            "execution_node": "tower3.example.com",
-            "execution_node": "tower2.example.com",
-            "execution_node": "tower2.example.com",
-----
-
-Now you can see how the Tower cluster distributed the jobs between the instances! And for the fun of it you can of course change the Tower instance to query in the `curl` command and see that you get the same information.
+TIP: You can use any method you want to access the API and to display the result, of course. The usage of curl and python-tool was just for example.
 
 ==== Via API in the browser
 
-The Tower API can also be queried in the browser. For example to have a look at the job details (basically what you did above using curl and friends):
+Another way to query the Tower API is using a browser. For example to have a look at the job details (basically what you did above using curl and friends):
 
-* Find the job you just executed in *\https://tower1-<GUID>.rhpds.opentlc.com/#/jobs* and remember the job number. 
+* Find the job you just executed in *\https://tower1-<GUID>.rhpds.opentlc.com/#/jobs* and remember the job number/ID. 
 * Now get the job details via the API interface: open the URL *\https://tower1-<GUID>.rhpds.opentlc.com/api/v2/jobs/<NUMBER>/* where `<NUMBER>` is the number of the job you just looked up in the UI. 
 * Search the page for the string you are interested in, e.g. `execution_node`, the tower instance on which the job was executed is listed there.
 
@@ -644,7 +632,7 @@ While in the *INSTANCES GROUPS* overview click the *INSTANCES* link for, say, th
 
 == Start Parallel Jobs across Instances
 
-The real power of the instance groups is revealed when multiple jobs are started, and they are assigned to different Tower nodes. To launch multiple jobs we will set up a workflow with multiple concurrent jobs. 
+The real power of instance groups is revealed when multiple jobs are started, and they are assigned to different Tower nodes. To launch parallel jobs we will set up a workflow with multiple concurrent jobs. 
 
 === Lab Scenario
 
@@ -749,7 +737,7 @@ Go to the *INSTANCE GROUPS* view and find out how the jobs where distributed ove
 
 Now deactivate instance *tower1.example.com* with the image:on_off.png[20,20] button and wait until it is shown as deactivated. Go back to the list of templates and launch the workflow *Compliance Workflow* again.
 
-Go back to *INSTANCE GROUPS*, get back to the instance overview of instance group *tower* and verify that the three Playbooks are launched on the missing instances.
+Go back to the *Instance Groups* view, get back to the instance overview of instance group *tower* and verify that the three Playbooks are launched on the remaining instances.
 
 Activate *tower1.example.com* again by pressing image:on_off.png[20,20] a second time.
 
@@ -774,7 +762,7 @@ One way to assign a job to an instance group is in the job template. As our comp
 
 Now the jobs that make up our *Compliance Workflow* are all configured to run on the instances of the *dev* instance group.
 
-==== Run
+==== Run the Workflow
 
 You have done this a couple of times now, you should get along without detailed instructions.
 
