@@ -356,7 +356,7 @@ Now with the SCM credentials configured, either in the web UI or using *tower-cl
 
 Now you need the HTTP URL to access the repo. Go to the Gitea web UI, choose the *Apache* repository and copy the HTTP URL. Enter the URL into the Project configuration:
 
-** *SCM URL:* \http://control.example.com/gitea/git/Apache.git
+** *SCM URL:* \http://control.example.com/gitea/git/apache.git
 * *SCM CREDENTIAL:* Gitea Control
 * *SCM UPDATE OPTIONS:* Tick all three boxes to always get a fresh copy of the repository and to update the repository when launching a job.
 * Click *SAVE*
@@ -366,7 +366,7 @@ Now you need the HTTP URL to access the repo. Go to the Gitea web UI, choose the
 ----
 [root@control ~]# tower-cli project create --name="Apache" \
                     --scm-type=git \
-                    --scm-url="http://control.example.com/gitea/git/Apache.git" \
+                    --scm-url="http://control.example.com/gitea/git/apache.git" \
                     --scm-credential="Gitea Credentials" \
                     --organization "Default" \
                     --scm-clean=true --scm-delete-on-update=true --scm-update-on-launch=true \
