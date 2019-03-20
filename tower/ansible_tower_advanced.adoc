@@ -939,6 +939,10 @@ Last but not least, let's check that the job was indeed executed by the isolated
 
 == Advanced Inventories
 
+In Ansible and Ansible Tower, as you know, everything starts with an inventory. There are a several methods how inventories can be created, starting from simple static definitions over importing inventory files to dynamic and smart inventories.
+
+As in real life it's very common to deal with external inventory sources, in this chapter we'll introduce you to building dynamic inventories using custom scripts. Another great feature of Tower to deal with inventories is the Smart Inventory feature which we'll show as well.  
+
 === Dynamic Inventories
 
 Quite often just using static inventories will not be enough. You might be dealing with ever-changing cloud environments or you have to get your managed systems from a CMDB or other sources of truth.
@@ -980,7 +984,7 @@ Open an SSH session from the control host to one of your Tower-Nodes and query y
 
 Well, this is handy, the output is already configured as JSON like Ansible would expect... ;-) 
 
-Okay, seriously, in real life your script would likely get some information from your source system, format it as JSON and return the data to Tower.
+WARNING: Okay, seriously, in real life your script would likely get some information from your source system, format it as JSON and return the data to Tower.
 
 ==== The Custom Inventory Script
 
@@ -1042,7 +1046,7 @@ You should now see a list of hosts according to what you got from the curl comma
 
 ==== Now to the Dynamic Part...
 
-To mimic the dynamic nature of the inventory, adapt the file we are using as source.
+To mimic the dynamic nature of the inventory, adapt the file we are using as inventory source.
 
 * Open an SSH session to your control host (if it's not open anyway).
 * Edit the file `/var/www/html/pub/inventory_list` to look like this (i.e. add another host):
@@ -1094,7 +1098,104 @@ Using this simple example you have:
 
 === Smart Inventories
 
+You will most likely have inventories from different sources in your Tower installation. Maybe you have a local CMDB, your virtualization management and your public cloud provider to query for managed systems. Imagine you now want to run automation jobs across these inventories on hosts matching certain search criteria.
 
+This is where Smart Inventory comes in. A Smart Inventory is a collection of hosts defined by a stored search. Search criteria can be host attributes (like groups) or facts (such as installed software, services, hardware or whatever information Ansible pulls). A Smart Inventory can be viewed like a standard inventory and used with job runs.  
+
+The base rules of a search are:
+
+* A search typically consists of a field (left-hand side) and a value (right-hand side)
+* A colon separates the field that you want to search from the value
+* A search string without a colon is treated as a simple string
+
+==== A Simple Smart Inventory
+
+Let's start with a simple string example. In your Tower web UI, open the *RESOURCES->Inventory* view. Then click the image:green_plus.png[20,20] button and choose to create a new *Smart Inventory*. In the next view:
+
+* *NAME:* Smart Inventory Simple
+* Click the magnifiying glas icon next to *SMART HOST FILTER* 
+* A window *DYNAMIC HOSTS* opens, here you define the search query
+
+To start with you can just use simple search terms. Try *cloud* or *remote.example.com* as search terms and see what you get after hitting *ENTER*.
+
+TIP: Search terms are automatically saved so make sure to hit *CLEAR ALL* to clear the saved search when testing expressions.
+
+Or what about searching by inventory groups? In the *SEARCH* field enter *groups.name:dyngroup*. After hitting *ENTER* the hosts from the dynamic inventory exercise should show up.
+
+When you are satisfied with your search, hit *SAVE* for the *DYNAMIC HOSTS* window and again for the Smart Inventory. Now your Smart Inventory is usable for executing job templates!
+
+==== Build Smart Inventories with Facts
+
+As you know Ansible can collect facts from managed hosts to be used in Playbooks. But before Ansible Tower 3.2 facts where only kept during a Playbook run. Ansible Tower 3.2 introduced an integrated fact cache to keep host facts for later usage and better performance. This is how we can use facts for Smart Inventories.
+
+===== Enable Fact Caching
+
+Fact caching can be enabled for *Templates* and is not enabled by default. So first we have to enable it. Check *host1.example.com* and *host2.example.com* have no facts stored:
+
+* In *RESOURCES->Inventories* open the *Example Inventory* and click the *HOSTS* button.
+* Now inspect both hosts by opening the host details and clicking the *FACTS* button at the top.  
+* For both hosts the *FACTS* field should be empty
+
+Now enable fact caching for the *Install Apache* template:
+
+* In *RESOURCES->Templates* open the *Install Apache* template.
+* Check the *Use Fact Cache* tick box and click *SAVE*
+
+To gather and save the facts you have to run the job template.
+
+* In the *Templates* list start *Install Apache* by clicking the rocket icon
+
+Now enable fact caching for the *Remote CIS Compliance* template and run it, too. This way we'll get cached facts for the isolated hosts. 
+
+After the template runs return to the host details like you did above and check the *FACTS* fields for *host1.example.com*, *host2.example.com*, *isohost1.remote.example.com* and *isohost2.remote.example.com*. It should now be populated with a lot of facts.
+
+===== Use Facts in Smart Inventory Searches
+
+Now that we got the facts for the hosts in the facts cache, we can use facts in our searches. 
+
+* Create a new Smart Inventory named *Smart Inventory Facts*
+* Open the *DYNAMIC HOSTS* window to enter the search
+
+To search for facts the search field (left side of a search query) has to start with *ansible_facts.* followed by the fact. The value is separated by a colon on the right side.
+
+WARNING: No blank between field and value is allowed!
+
+So what could we search for... start to look at the facts of a host. As all hosts are Red Hat, searching for the fact *ansible_distribution:RedHat* won't be too exciting. Ah, what the heck, just try it:
+
+* Put *ansible_facts.ansible_distribution:RedHat* in the search field
+* Run the search by hitting *ENTER*
+
+There should be no surprises: All hosts you have run a fact-caching enabled template against should show up. But there is a fact that should differ: the remote hosts have a different kernel version. Why not use this in the search? Again in the *DYNAMIC HOSTS* window of a Smart Inventory:
+
+* Use this query: *ansible_facts.ansible_kernel:3.10.0-957.1.3.el7.x86_64*
+* This should only return *host1.example.com* and *host2.example.com*
+
+Look up the kernel version for the *isohost1.remote.example.com* and *isohost2.remote.example.com* and use it in a query. The query should now return only the remote hosts.
+
+===== Nested Facts
+
+If a fact is deeper in the structure like this:
+
+----
+ansible_eth0:
+  active: true
+----
+
+The search string would look like this: *ansible_facts.ansible_eth0.active:true*
+
+==== Challenge Lab: Facts
+
+So a small challenge: Find out if all hosts have the SElinux mode set to "enforcing".
+
+* Find the fact to use
+* Create a Smart Inventory
+* Create the proper search string
+
+WARNING: *SOLUTION BELOW!*
+
+The search string to use is: *ansible_facts.ansible_selinux.mode:enforcing*
+
+It should return the remote hosts only.
 
 == Appendix
 
