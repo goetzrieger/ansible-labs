@@ -38,7 +38,7 @@ $ asciidoctor-pdf ansible-engine.adoc
 
 The lab description is done in AsciiDoc. If you want to contribute, check out the http://asciidoctor.org/docs/asciidoc-syntax-quick-reference/[AsciiDoc quick reference]. We welcome pull requests.
 
-We also have a link:styleguide.adoc[stlyguide] for contributors.
+We also have a link:styleguide.adoc[styleguide] for contributors.
 
 == Work in Progress ( in /misc/)
 * Manage Windows with Ansible
