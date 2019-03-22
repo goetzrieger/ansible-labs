@@ -1193,11 +1193,13 @@ So a small challenge: Find out if all hosts have the SElinux mode set to "enforc
 * Create a Smart Inventory
 * Create the proper search string
 
-WARNING: *SOLUTION BELOW!*
-
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
 The search string to use is: *ansible_facts.ansible_selinux.mode:enforcing*
 
 It should return the remote hosts only.
++++ </div></details> +++
 
 == Appendix
 
@@ -1254,32 +1256,4 @@ rabbitmq_cookie=rabbitmqcookie
 ----
 
 WARNING: In this lab this has been taken care of, but remember all instances have to able to resolve all hostnames and to reach each other!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
