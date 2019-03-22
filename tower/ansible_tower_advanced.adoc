@@ -1124,6 +1124,8 @@ Or what about searching by inventory groups? In the *SEARCH* field enter *groups
 
 When you are satisfied with your search, hit *SAVE* for the *DYNAMIC HOSTS* window and again for the Smart Inventory. Now your Smart Inventory is usable for executing job templates!
 
+TIP: you may press the *KEY* button to get a feeling along which fields you can search. Browsing through the API becomes necessary to understand which related fields have which attributes (e.g. name for groups).
+
 ==== Build Smart Inventories with Facts
 
 As you know Ansible can collect facts from managed hosts to be used in Playbooks. But before Ansible Tower 3.2 facts where only kept during a Playbook run. Ansible Tower 3.2 introduced an integrated fact cache to keep host facts for later usage and better performance. This is how we can use facts for Smart Inventories.
