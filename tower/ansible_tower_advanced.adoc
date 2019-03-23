@@ -1297,6 +1297,150 @@ When you automate Tower, writing the surveys is not exactly the fanciest of the 
 
 +++ </div></details> +++
 
+=== Using the tower-cli
+
+The Web UI is nice but we love the command line, don't we? Here comes tower-cli to help.
+
+Let's start simple and try to get the version of Tower installed:
+
+----
+$ tower-cli version --verbose
+
+Tower CLI 3.3.0
+API v2
+GET https://127.0.0.1/api/v2/config/
+Params: {}
+
+Ansible Tower 3.4.2
+Ansible 2.7.8
+----
+
+You see that with the `--verbose` option, tower-cli tells us which calls it's making, so that we can very simply apply the same approach e.g. using cURL:
+
+----
+curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
+	--data '{}' \
+	-X GET https://127.0.0.1/api/v2/config/ | jq
+----
+
+TIP: jq is optional but useful for us, humans, to be able to read the output... without jq which comes from the EPEL, `| python -m json.tool` is also good.
+
+So, how would you create our friend John Smith again? Consider that the parameters shown are in Python format (single quotes and *u*nicode) but we need to send data in JSON format (double quotes).
+
++++ <details><summary> +++
+*>> _Click here for the tower-cli solution_ <<*
++++ </summary><div> +++
+
+First create the user with the tower-cli, then delete it:
+
+----
+$ tower-cli user create --username jsmith --email jsmith@example.com --password redhat --verbose
+
+*** DETAILS: Checking for an existing record. *********************************
+GET https://127.0.0.1/api/v2/users/
+Params: {'username': u'jsmith'}
+
+*** DETAILS: Writing the record. **********************************************
+POST https://127.0.0.1/api/v2/users/
+Data: {'username': u'jsmith', 'password': u'redhat', 'email': u'jsmith@example.com'}
+
+$ tower-cli user delete --username jsmith --verbose
+
+*** DETAILS: Getting the record. **********************************************
+GET https://127.0.0.1/api/v2/users/
+Params: {'username': u'jsmith'}
+
+DELETE /users/8/
+DELETE https://127.0.0.1/api/v2/users/8/
+----
++++ </div></details> +++
+
++++ <details><summary> +++
+*>> _Click here for the API solution_ <<*
++++ </summary><div> +++
+
+The "Getting the record" is sadly a bit misleading and you need to add `?username=jsmith` to filter on the username:
+
+----
+curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
+	-X GET https://127.0.0.1/api/v2/users/?username=jsmith
+----
+
+Once you've found out that the user doesn't exist, you can create it:
+
+----
+curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
+	--data '{"username": "jsmith", "password": "redhat", "email": "jsmith@example.com"}' \
+	-X POST https://127.0.0.1/api/v2/users/?username=jsmith
+----
+
+Note the ID of the user and then delete it:
+
+----
+curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
+	-X DELETE https://127.0.0.1/api/v2/users/<ID>/ # <1>
+----
+<1> don't forget the slash at the end of the URL, favorite error!
+
++++ </div></details> +++
+
+==== Challenge Lab: Create a Survey
+
+How do you modify a job template to attach a survey (remember the Survey-JSON we saved before?) using the tower-cli (as a preparation for using the API)?
+
++++ <details><summary> +++
+*>> _Click here for the tower-cli solution_ <<*
++++ </summary><div> +++
+Your session should roughly look as follows:
+
+----
+$ tower-cli job_template modify -n job-FIXME-somename --survey-spec=@survey.json \
+	--survey-enabled=true --verbose
+
+*** DETAILS: Checking for an existing record. *********************************
+GET https://127.0.0.1/api/v2/job_templates/
+Params: {'name': u'job-FIXME-somename'}
+
+*** DETAILS: Writing the record. **********************************************
+PATCH https://127.0.0.1/api/v2/job_templates/23/
+Data: {'survey_enabled': True, 'name': u'job-FIXME-somename'}
+
+*** DETAILS: Saving the survey_spec. ******************************************
+POST https://127.0.0.1/api/v2/job_templates/23/survey_spec/
+Data: {u'spec': [{u'required': True, u'min': 0, u'default': u'value_number_1', u'max': 1024, u'question_description': u'Description Number 1', u'choices': u'', u'variable': u'var_number_1', u'question_name': u'Prompt Number 1', u'type': u'text'}, {u'required': True, u'min': None, u'default': u'', u'max': None, u'question_description': u'Description Number 2', u'choices': u'choice1\nchoice2\nchoice3', u'new_question': True, u'variable': u'var_number_2', u'question_name': u'Prompt Number 2', u'type': u'multiplechoice'}], u'description': u'', u'name': u''}
+----
+
+NOTE: you need to enable the survey _and_ to attach a survey specification to the job.
+
++++ </div></details> +++
+
+How do you modify a job template to attach a survey using the API (delete in the UI the survey from the job template to reuse the same)?
+
+TIP: if you're lazy, the snippet `echo "{u'spec': [...] }" | sed "s/u'\([^']*\)'/\"\1\"/g"` can do wonders. Also remember that True in Python is true in JSON. But actually you don't need all this if you know well enough your curl...
+
++++ <details><summary> +++
+*>> _Click here for the API solution_ <<*
++++ </summary><div> +++
+We first enable the survey for the job template:
+
+----
+curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
+	--data '{"survey_enabled": true, "name": "job-FIXME-somename"}' \
+	-X PATCH https://127.0.0.1/api/v2/job_templates/23/
+----
+
+And then we attach the survey to the template, but not by using the Python structure given by tower-cli but just by using our saved file:
+
+----
+curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
+	--data @survey.json \
+	-X POST https://127.0.0.1/api/v2/job_templates/23/survey_spec/
+----
+
+OK, that was a bit unfair but we had told you that you don't need sed or boolean knowledge...
+
++++ </div></details> +++
+
 == Appendix
 
 === Setup Considerations
