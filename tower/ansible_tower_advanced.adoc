@@ -1199,7 +1199,7 @@ It should return the remote hosts only.
 
 == Discovering the Tower API
 
-In this chapter we'll describe two ways to discover yourself the Tower API. It is necessary because even if the https://docs.ansible.com/ansible-tower/latest/html/towerapi/index.html[principles of the Tower API] are described, each and every object of the REST API aren't and need to be discovered.
+In this chapter we'll describe two ways to discover yourself the Tower API. It is necessary because even if the https://docs.ansible.com/ansible-tower/latest/html/towerapi/index.html[principles of the Tower API] are described and there is even an https://docs.ansible.com/ansible-tower/latest/html/towerapi/api_ref.html#/[API reference guide], it's sometimes faster to browse and discover the API.
 
 === Browsing the Tower API interactively
 
@@ -1279,7 +1279,7 @@ fails if you click *PUT*. In this case you need to enter all mandatory fields, e
 +++ </div></details> +++
 . Feel free now to press the *DELETE* button and remove Johnny Smithy.
 
-==== Challenge Lab: Survey
+==== Challenge Lab: Browse a Survey
 
 When you automate Tower, writing the surveys is not exactly the fanciest of the activities, so how do you do? You create the Survey in the UI and you pull it from the browsable API. So how do you do this?
 
@@ -1352,32 +1352,4 @@ rabbitmq_cookie=rabbitmqcookie
 ----
 
 WARNING: In this lab this has been taken care of, but remember all instances have to able to resolve all hostnames and to reach each other!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
