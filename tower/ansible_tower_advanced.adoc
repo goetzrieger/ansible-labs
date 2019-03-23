@@ -1197,6 +1197,106 @@ The search string to use is: *ansible_facts.ansible_selinux.mode:enforcing*
 
 It should return the remote hosts only.
 
+== Discovering the Tower API
+
+In this chapter we'll describe two ways to discover yourself the Tower API. It is necessary because even if the https://docs.ansible.com/ansible-tower/latest/html/towerapi/index.html[principles of the Tower API] are described, each and every object of the REST API aren't and need to be discovered.
+
+=== Browsing the Tower API interactively
+
+The Tower API is browsable, which means you can just click your way through it:
+
+. Go to the Tower UI in your browser and make sure you're logged in as admin.
+. Replace the end of the URL with `/api` e.g. `https://tower2-<REPL>.rhpds.opentlc.com/api`
+. You're now in the API, notice that there are two versions. v1 is soon obsolete so go to v2.
+. It's now starting to become interesting (you can come directly here by using `/api/v2` instead of `/api`):
+** you see a list of clickable object types
+** on the right upper side, there is a button *OPTIONS* which tells you what you can do with the current object in terms of API.
+** next to it there is a *GET* button which allows you to choose between getting the (raw or not) JSON output or the API format, which you're currently admiring by default.
+. Click on the `users` link and discover some more features:
+** There is a list of all objects of the given type
+** Each individual object can be reached using the `url` field
+** Most objects have a `related` field, which allows you to jump from object to object
+** At the bottom of the page, there is a new field which allows you to _post_ a new object, so let's do this and create a new user name John Smith (user name doesn't matter)
++
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+The JSON should roughly look like this:
++
+----
+{
+    "username": "jsmith",
+    "first_name": "John",
+    "last_name": "Smith",
+    "email": "jsmith@example.com",
+    "is_superuser": false,
+    "is_system_auditor": false,
+    "password": "redhat"
+}
+----
++
+and the result should be a 201 telling you about your success. You can log-in with the password and see that you see... nothing, because you have no rights. But you've got the point and can log in again as admin and come back to the list of users (do you remember the direct link?).
++++ </div></details> +++
+. Click now on our new friend John Smith and notice a few more things:
+** there is a red *DELETE* button at the top right level. Guess for what?
+** at the bottom of the page, the dialog shows *PUT* and *PATCH* buttons.
+... patch the user to be named "Johnny" instead of "John"
++
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+The field should look like this:
++
+----
+{
+    "first_name": "Johnny"
+}
+----
++
+And you should press the *PATCH* button.
++++ </div></details> +++
+... what happens if you try to _put_ the last name "Smithy" using the same approach?
++
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+Entering:
++
+----
+{
+    "last_name": "Smithy"
+}
+----
++
+fails if you click *PUT*. In this case you need to enter all mandatory fields, even if you don't want to modify them:
++
+----
+{
+    "username": "jsmith",
+    "last_name": "Smithy"
+}
+----
++++ </div></details> +++
+. Feel free now to press the *DELETE* button and remove Johnny Smithy.
+
+==== Challenge Lab: Survey
+
+When you automate Tower, writing the surveys is not exactly the fanciest of the activities, so how do you do? You create the Survey in the UI and you pull it from the browsable API. So how do you do this?
+
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
+. Go back to the Web UI of Tower
+. Take a job template and add a Survey to it with two to three fields of different type
+. Note down the ID of the job template.
+. Go back to the API and because we're lazy, we go directly to https://tower2-<REPL>.rhpds.opentlc.com/api/v2/job_templates/<ID>
+. There we click on the `survey_spec` in the `related` section.
+. We click the *GET* button to get the result in JSON format, then "Raw" (ugh!) then "Pretty Print"
+. and finally "Save" or "Copy" the result into a file `job_survey.json` (we'll need it for the next challenge).
+
++++ </div></details> +++
+
 == Appendix
 
 === Setup Considerations
