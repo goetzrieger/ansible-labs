@@ -1203,10 +1203,14 @@ It should return the remote hosts only.
 
 == Well structured Git repositories
 
-One very common question relates to how to structure their Git repositories. The first recommendation is to separate _specific code_ from _reusable code_ from _data_:
+It's a common part of the learning curve for Ansible and Ansible Tower: At some point you have to really start structuring your content... Playbooks, Templates, Files and so on. Because you should have your content in version control anyway (most likely this will be Git these days) this will be about how to structure your Git repositories. What structure works best for you is of course highly dependend on your specific requirements, but some common ground rules apply.
 
-specific code:: playbooks and their direct dependencies you're not sharing or not planning to share outside the realm of your project or team. We'll see how to structure those after.
-generic code:: those are basically Ansible roles to use across multiple projects. Given the current possibilities of `ansible-galaxy` to pull those roles, you will need one Git repository for each role (this might change with https://galaxy.ansible.com/docs/mazer/index.html[Mazer]). How roles are structured is https://galaxy.ansible.com/docs/contributing/creating_role.html[sufficiently described] and should be known. We'll discuss here how to use such role repositories within Tower.
+The first recommendation is to separate _specific code_ from _reusable code_ from _data_:
+
+specific code:: Playbooks and their direct dependencies you're not sharing or not planning to share outside the realm of your project or team. 
+
+generic code:: Basically Ansible roles that will be used across multiple projects. How roles are structured is https://galaxy.ansible.com/docs/contributing/creating_role.html[sufficiently described] and should become second nature to you. When talking about Ansible Roles `ansible-galaxy` should come to your mind immediately. Currently to pull roles from `ansible-galaxy`, you will need one Git repository for each role (this might change with https://galaxy.ansible.com/docs/mazer/index.html[Mazer]).  We'll discuss here how to use such role repositories within Tower.
+
 data:: this is mostly your inventory or inventories. You probably want one inventory for each life-cycle environment, you can have them all in the same Git repository, each in its own directory (e.g. dev, test, qa, prod) or have one Git repository for each environment, mainly in a balance between simplicity and access control. How inventories are structured is https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html[sufficiently described] and should be known (and the recommendation is to https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#splitting-out-host-and-group-specific-data[split out host and group data] but for the most simple cases).
 
 CAUTION: what you definitely do _not_ want is one disjunst code repository for each environment, as it would go against the purpose of testing the _same_ code as you push it through your life-cycle, only varying the data / inventory. If you have difficulties to keep the same code throughout all your environments, you probably need to re-think how you structure it vs. what you put in your inventories.
@@ -1312,16 +1316,16 @@ TODO:: put some concrete examples behind those words and show that it works. @Ro
 
 == Discovering the Tower API
 
-In this chapter we'll describe two ways to discover yourself the Tower API. It is necessary because even if the https://docs.ansible.com/ansible-tower/latest/html/towerapi/index.html[principles of the Tower API] are described and there is even an https://docs.ansible.com/ansible-tower/latest/html/towerapi/api_ref.html#/[API reference guide], it's sometimes faster to browse and discover the API.
+You have used the Tower API a couple of times in this lab already. In this chapter we'll describe two ways to discover the Tower API if you need to dive in deeper. While the https://docs.ansible.com/ansible-tower/latest/html/towerapi/index.html[principles of the Tower API] are documented and there is an https://docs.ansible.com/ansible-tower/latest/html/towerapi/api_ref.html#/[API reference guide], it's often more efficient to just browse and discover the API.
 
-=== Browsing the Tower API interactively
+=== Browsing and Using the Tower API interactively
 
 The Tower API is browsable, which means you can just click your way through it:
 
 . Go to the Tower UI in your browser and make sure you're logged in as admin.
 . Replace the end of the URL with `/api` e.g. `https://tower2-<REPL>.rhpds.opentlc.com/api`
-. You're now in the API, notice that there are two versions. v1 is soon obsolete so go to v2.
-. It's now starting to become interesting (you can come directly here by using `/api/v2` instead of `/api`):
+. You're now in the API, notice that there are two versions. v1 will be retired soon so go to v2.
+. While in `/api/v2`:
 ** you see a list of clickable object types
 ** on the right upper side, there is a button *OPTIONS* which tells you what you can do with the current object in terms of API.
 ** next to it there is a *GET* button which allows you to choose between getting the (raw or not) JSON output or the API format, which you're currently admiring by default.
@@ -1390,29 +1394,11 @@ fails if you click *PUT*. In this case you need to enter all mandatory fields, e
 }
 ----
 +++ </div></details> +++
-. Feel free now to press the *DELETE* button and remove Johnny Smithy.
+. Press the *DELETE* button and remove Johnny Smithy.
 
-==== Challenge Lab: Browse a Survey
+=== Using tower-cli to Learn the API
 
-When you automate Tower, writing the surveys is not exactly the fanciest of the activities, so how do you do? You create the Survey in the UI and you pull it from the browsable API. So how do you do this?
-
-+++ <details><summary> +++
-*>> _Click here for the solution_ <<*
-+++ </summary><div> +++
-
-. Go back to the Web UI of Tower
-. Take a job template and add a Survey to it with two to three fields of different type
-. Note down the ID of the job template.
-. Go back to the API and because we're lazy, we go directly to https://tower2-<REPL>.rhpds.opentlc.com/api/v2/job_templates/<ID>
-. There we click on the `survey_spec` in the `related` section.
-. We click the *GET* button to get the result in JSON format, then "Raw" (ugh!) then "Pretty Print"
-. and finally "Save" or "Copy" the result into a file `job_survey.json` (we'll need it for the next challenge).
-
-+++ </div></details> +++
-
-=== Using the tower-cli
-
-The Web UI is nice but we love the command line, don't we? Here comes tower-cli to help.
+The Web UI is nice but we love the command line, right? To learn about API calls `tower-cli` comes to the rescue. For the next steps bring up an SSH session and make sure you are user root on *control.example.com*. 
 
 Let's start simple and try to get the version of Tower installed:
 
@@ -1428,7 +1414,9 @@ Ansible Tower 3.4.2
 Ansible 2.7.8
 ----
 
-You see that with the `--verbose` option, tower-cli tells us which calls it's making, so that we can very simply apply the same approach e.g. using cURL:
+You see that with the `--verbose` option, tower-cli tells us which API calls it's making, what parameters it's sending with *GET* requests and what data is needed for *POST* actions. 
+
+In this simple case you can simply take the call and run it with e.g. *cURL*:
 
 ----
 curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
@@ -1436,15 +1424,15 @@ curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
 	-X GET https://127.0.0.1/api/v2/config/ | jq
 ----
 
-TIP: jq is optional but useful for us, humans, to be able to read the output... without jq which comes from the EPEL, `| python -m json.tool` is also good.
+TIP: jq is optional but useful for us humans to understand the output without getting dizzy... without jq (which comes from the EPEL), appending `| python -m json.tool` to the command is better then nothing.
 
-So, how would you create our friend John Smith again? Consider that the parameters shown are in Python format (single quotes and *u*nicode) but we need to send data in JSON format (double quotes).
+==== Practice, Practice...
 
-+++ <details><summary> +++
-*>> _Click here for the tower-cli solution_ <<*
-+++ </summary><div> +++
+Using `tower-cli` to learn about the API call and executing it via cURL e.g. in scripts is really useful so let's practice a bit. What about creating our friend John Smith again?
 
-First create the user with the tower-cli, then delete it:
+TIP: Consider that the parameters shown are in Python format (single quotes and *u*nicode) but we need to send data in JSON format (double quotes).
+
+First create the user with tower-cli, the delete it again. Use `--verbose` to get the API invocation. 
 
 ----
 $ tower-cli user create --username jsmith --email jsmith@example.com --password redhat --verbose
@@ -1456,7 +1444,8 @@ Params: {'username': u'jsmith'}
 *** DETAILS: Writing the record. **********************************************
 POST https://127.0.0.1/api/v2/users/
 Data: {'username': u'jsmith', 'password': u'redhat', 'email': u'jsmith@example.com'}
-
+----
+----
 $ tower-cli user delete --username jsmith --verbose
 
 *** DETAILS: Getting the record. **********************************************
@@ -1466,13 +1455,10 @@ Params: {'username': u'jsmith'}
 DELETE /users/8/
 DELETE https://127.0.0.1/api/v2/users/8/
 ----
-+++ </div></details> +++
 
-+++ <details><summary> +++
-*>> _Click here for the API solution_ <<*
-+++ </summary><div> +++
+Now we'll do the same using *cURL* with the API endpoints, parameters and data we have learned from `tower-cli`:
 
-The "Getting the record" is sadly a bit misleading and you need to add `?username=jsmith` to filter on the username:
+WARNING: The "Getting the record" is sadly a bit misleading and you need to add `?username=jsmith` to filter on the username:
 
 ----
 curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
@@ -1499,11 +1485,32 @@ curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
 
 ==== Challenge Lab: Create a Survey
 
-How do you modify a job template to attach a survey (remember the Survey-JSON we saved before?) using the tower-cli (as a preparation for using the API)?
+Now here is a real world challenge: Creating Surveys in the web UI is not exactly the favorite activity for most Tower users. But to create Surveys using the API you need the data as JSON and you have to find out how to use the API. 
+
+To get the JSON data, create a survey in the web UI and save the resulting data to a file. 
+
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
+. Go back to the Web UI of Tower
+. Take a job template and add a Survey to it with two to three fields of different type
+. Note down the ID of the job template.
+. Go back to the API and because we're lazy, we go directly to https://tower2-<REPL>.rhpds.opentlc.com/api/v2/job_templates/<ID>
+. There we click on the `survey_spec` in the `related` section.
+. We click the *GET* button to get the result in JSON format, then "Raw" (ugh!) then "Pretty Print"
+. and finally "Save" or "Copy" the result into a file `job_survey.json` (we'll need it for the next challenge).
+
++++ </div></details> +++
+
+Now we have to find out how to call the API to create a survey using the JSON data from the file. Use tower-cli to get the proper invocation of the API:
+
+NOTE: You need to enable the survey _and_ to attach a survey specification to the job. Use *@* to specify the data coming from a file. 
 
 +++ <details><summary> +++
 *>> _Click here for the tower-cli solution_ <<*
 +++ </summary><div> +++
+
 Your session should roughly look as follows:
 
 ----
@@ -1523,17 +1530,16 @@ POST https://127.0.0.1/api/v2/job_templates/23/survey_spec/
 Data: {u'spec': [{u'required': True, u'min': 0, u'default': u'value_number_1', u'max': 1024, u'question_description': u'Description Number 1', u'choices': u'', u'variable': u'var_number_1', u'question_name': u'Prompt Number 1', u'type': u'text'}, {u'required': True, u'min': None, u'default': u'', u'max': None, u'question_description': u'Description Number 2', u'choices': u'choice1\nchoice2\nchoice3', u'new_question': True, u'variable': u'var_number_2', u'question_name': u'Prompt Number 2', u'type': u'multiplechoice'}], u'description': u'', u'name': u''}
 ----
 
-NOTE: you need to enable the survey _and_ to attach a survey specification to the job.
-
 +++ </div></details> +++
 
-How do you modify a job template to attach a survey using the API (delete in the UI the survey from the job template to reuse the same)?
+Now you have all the information you need to attach a survey to a job template using the API. But first delete the survey you created above in the web UI so we can reuse it.
 
 TIP: if you're lazy, the snippet `echo "{u'spec': [...] }" | sed "s/u'\([^']*\)'/\"\1\"/g"` can do wonders. Also remember that True in Python is true in JSON. But actually you don't need all this if you know well enough your curl...
 
 +++ <details><summary> +++
 *>> _Click here for the API solution_ <<*
 +++ </summary><div> +++
+
 We first enable the survey for the job template:
 
 ----
