@@ -1124,6 +1124,8 @@ Or what about searching by inventory groups? In the *SEARCH* field enter *groups
 
 When you are satisfied with your search, hit *SAVE* for the *DYNAMIC HOSTS* window and again for the Smart Inventory. Now your Smart Inventory is usable for executing job templates!
 
+TIP: you may press the *KEY* button to get a feeling along which fields you can search. Browsing through the API becomes necessary to understand which related fields have which attributes (e.g. name for groups).
+
 ==== Build Smart Inventories with Facts
 
 As you know Ansible can collect facts from managed hosts to be used in Playbooks. But before Ansible Tower 3.2 facts where only kept during a Playbook run. Ansible Tower 3.2 introduced an integrated fact cache to keep host facts for later usage and better performance. This is how we can use facts for Smart Inventories.
@@ -1191,11 +1193,122 @@ So a small challenge: Find out if all hosts have the SElinux mode set to "enforc
 * Create a Smart Inventory
 * Create the proper search string
 
-WARNING: *SOLUTION BELOW!*
-
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
 The search string to use is: *ansible_facts.ansible_selinux.mode:enforcing*
 
 It should return the remote hosts only.
++++ </div></details> +++
+
+== Well structured Git repositories
+
+One very common question relates to how to structure their Git repositories. The first recommendation is to separate _specific code_ from _reusable code_ from _data_:
+
+specific code:: playbooks and their direct dependencies you're not sharing or not planning to share outside the realm of your project or team. We'll see how to structure those after.
+generic code:: those are basically Ansible roles to use across multiple projects. Given the current possibilities of `ansible-galaxy` to pull those roles, you will need one Git repository for each role (this might change with https://galaxy.ansible.com/docs/mazer/index.html[Mazer]). How roles are structured is https://galaxy.ansible.com/docs/contributing/creating_role.html[sufficiently described] and should be known. We'll discuss here how to use such role repositories within Tower.
+data:: this is mostly your inventory or inventories. You probably want one inventory for each life-cycle environment, you can have them all in the same Git repository, each in its own directory (e.g. dev, test, qa, prod) or have one Git repository for each environment, mainly in a balance between simplicity and access control. How inventories are structured is https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html[sufficiently described] and should be known (and the recommendation is to https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#splitting-out-host-and-group-specific-data[split out host and group data] but for the most simple cases).
+
+CAUTION: what you definitely do _not_ want is one disjunst code repository for each environment, as it would go against the purpose of testing the _same_ code as you push it through your life-cycle, only varying the data / inventory. If you have difficulties to keep the same code throughout all your environments, you probably need to re-think how you structure it vs. what you put in your inventories.
+
+=== Main repository
+
+So, let's focus on the repository where you have the playbooks you'll finally call from within your job templates. The simple recommendation is to have a structure similar to the one of a role, the structure has been thought out for a reason and this makes it easier to modularize your code once you decide to use roles.
+
+FIXME:: how to create a Git repo in Gitea???
+
+----
+git clone http://control.example.com/gitea/git/structured-playbooks.git # FIXME: correct URL?
+cd structured-playbooks
+ansible-galaxy init --offline dummy
+mv dummy/{README.md,files,tasks,templates,tests,vars} . # <1>
+----
+<1> do NOT forget the dot (*.*) at the end!!!
+
+You can then check what remained in the dummy directory, and convince yourself that there is nothing relevant for playbooks.
+
+----
+rm -fr dummy
+mkdir {plays,roles}
+echo 'autocmd FileType yaml setlocal ai ts=2 sw=2 et' > files/vimrc
+echo 'Ansible has your machine under control, {{ ansible_user | default(\'someone\') }} wishes you welcome!' > templates/motd.j2
+for file in plays tasks tests vars; do touch ${file}/some${file}.yml; done
+touch top-level_playbook.yml
+touch roles/requirements.yml # <1>
+ansible-galaxy init --offline --init-path=roles somerole
+----
+<1> we explain in the next chapter what this is for.
+
+The directory `plays` is for playbooks you're not primarily planning to call directly but only via `import_playbook` in your top-level playbooks. Those top-level playbooks live in the root directory of your repository so that they are easy to find. A naming convention can help to understand the structure of your playbooks (e.g. something like `<nr>_<verb>_<object>.yml` as in `05_setup_webserver.yml`).
+
+IMPORTANT: even if a good playbook is generally self-explanatory, the context and which one to use in which occasion generally isn't, so that it makes sense to have a top-level README-file (in whichever format) to explain this, as well as where to find the fitting inventory repositories.
+
+Call now `find .` (FIXME: or is tree installed?) to get a feel how a complete structure can look like.
+
++++ <details><summary> +++
+*>> _Click here to see how it should look like_ <<*
++++ </summary><div> +++
+----
+├── files
+│   └── vimrc
+├── plays
+│   └── someplays.yml
+├── README.md
+├── roles
+│   ├── requirements.yml
+│   └── somerole
+│       ├── defaults
+│       │   └── main.yml
+│       ├── files
+│       ├── handlers
+│       │   └── main.yml
+│       ├── meta
+│       │   └── main.yml
+│       ├── README.md
+│       ├── tasks
+│       │   └── main.yml
+│       ├── templates
+│       ├── tests
+│       │   ├── inventory
+│       │   └── test.yml
+│       └── vars
+│           └── main.yml
+├── tasks
+│   ├── main.yml
+│   └── sometasks.yml
+├── templates
+│   └── motd.j2
+├── tests
+│   ├── inventory
+│   ├── sometests.yml
+│   └── test.yml
+├── top-level_playbook.yml
+└── vars
+    ├── main.yml
+    └── somevars.yml
+----
++++ </div></details> +++
+
+NOTE: you can also have `group_vars` and `host_vars` next to your playbook(s) so that the variables defined in those directories are implicitly read by Ansible. This is acceptable but not recommended as it generally amounts to break the separation of code from data.
+
+=== External roles
+
+Let's now assume that we also have external roles needed by our playbooks, those can either come from https://galaxy.ansible.com/[Ansible Galaxy] or, more commonly in an enterprise environment, directly from a (private) Git repository.
+
+This is where we put content in our `roles/requirements.yml` file like this:
+
+----
+# Directly from Galaxy # FIXME: do we want this, or just as example?
+- src: geerlingguy.nginx
+# From a Git repo # FIXME: do we already have a role to re-use?
+- src: http://control.example.com/gitea/git/external-role.git
+  version: master
+  name: external-role_locally
+----
+
+As Tower checks out the Project, it will also pull the roles listed in `roles/requirements.yml` and put them in the `roles` directory so that they can be used in your playbooks.
+
+TODO:: put some concrete examples behind those words and show that it works. @Roland: can you take care of this?
 
 == Discovering the Tower API
 
