@@ -18,7 +18,7 @@ Mc is controlled mainly through the function keys. This can pose all kinds of is
 
 To work around this:
 
-* Try the "Windows" key: *Win + F10* to get *F10*
+* Try the combination *ESC* *0* to get *F10*. Don't hold *ESC*!
 * Use the mouse, all *mc* keys should be clickable, even if they don't look it.
 
 To create a new file:
@@ -33,7 +33,7 @@ To save a file:
 
 To exit edit mode with or without saving:
 
-* Hit *Win-Key + F10* or click *F10*
+* Hit *ESC* *0* or click *F10*
 * If you did any changes you will be asked "Save before Close?". 
 * Choose one of the options "Yes, No, Cancel" by moving with the *arrow* or *Tab* keys (or click) 
 
