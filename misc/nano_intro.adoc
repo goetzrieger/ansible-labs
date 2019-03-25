@@ -66,33 +66,29 @@ To create a new file or open an existing file:
 TIP: When Nano asks for confirmation, it expects a *y* for yes or *n* for no.  
 
 To save the current file in Nano:
-----
-Ctrl-o
-----
+
+* Type *Ctrl-o*
 
 TIP: Depending if the file was changed or not Nano will ask for confirmation and the file name.
 
 To leave Nano without saving the file (if something went wrong while editing and you just want out without changing anything):
-----
-Ctrl-x n Enter
-----
+
+* Type *Ctrl-x* *n* *Enter*
+
 
 Copy and paste: 
 
 To mark the begin of the text to copy
-----
-Alt-a
-----
 
-The use the cursor arrow keys to mark the text. Copy the text with:
-----
-Alt-6
-----
+* Type *Alt-a*
+
+Then use the cursor arrow keys to mark the text. Copy the text with:
+
+* Type *Alt-6*
 
 Move the cursor to the position where you want it and paste:
-----
-Ctrl-u
-----
+
+* Type *Ctrl-u*
 
 *!!!!Stuff below this line is meant for documenting only, don't put in a lab guide w/o testing!!!!!* 
 
