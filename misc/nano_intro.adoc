@@ -94,7 +94,7 @@ Move the cursor to the position where you want it and paste:
 Ctrl-u
 ----
 
-* !!!!Stuff below this line is meant for documenting only, don't put in a lab guide w/o testing!!!!!* 
+*!!!!Stuff below this line is meant for documenting only, don't put in a lab guide w/o testing!!!!!* 
 
 ==== Show Whitespaces
 
