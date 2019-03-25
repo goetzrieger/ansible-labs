@@ -1,6 +1,6 @@
 == Editor Alternatives
 
-If you don't like *VIM* as an editor feel free to use *Nano* or *Midnight Commander* (*mc*) in the SSH terminal. Here is a quick introduction to both.
+If you don't like *Vim* as an editor feel free to use *Nano* or *Midnight Commander* (*mc*) in the SSH terminal. Here is a quick introduction to both. And no, I'll refuse to talk about Emacs... ;-)
 
 === Midnight Commander (mc)
 
@@ -60,7 +60,7 @@ TIP: *Ctrl-<n>* or *Alt-<n>* means press and hold the Control or Alt key and the
 
 To create a new file or open an existing file:
 ----
-$ nano playbook.yml
+# nano playbook.yml
 ----
 
 TIP: When Nano asks for confirmation, it expects a *y* for yes or *n* for no.  
@@ -93,6 +93,8 @@ Move the cursor to the position where you want it and paste:
 ----
 Ctrl-u
 ----
+
+####### Stuff below this line is meant for documenting only, don't put in a lab gude w/o testing!!!!! 
 
 ==== Show Whitespaces
 
