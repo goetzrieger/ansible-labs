@@ -1197,6 +1197,250 @@ The search string to use is: *ansible_facts.ansible_selinux.mode:enforcing*
 
 It should return the remote hosts only.
 
+== Discovering the Tower API
+
+In this chapter we'll describe two ways to discover yourself the Tower API. It is necessary because even if the https://docs.ansible.com/ansible-tower/latest/html/towerapi/index.html[principles of the Tower API] are described and there is even an https://docs.ansible.com/ansible-tower/latest/html/towerapi/api_ref.html#/[API reference guide], it's sometimes faster to browse and discover the API.
+
+=== Browsing the Tower API interactively
+
+The Tower API is browsable, which means you can just click your way through it:
+
+. Go to the Tower UI in your browser and make sure you're logged in as admin.
+. Replace the end of the URL with `/api` e.g. `https://tower2-<REPL>.rhpds.opentlc.com/api`
+. You're now in the API, notice that there are two versions. v1 is soon obsolete so go to v2.
+. It's now starting to become interesting (you can come directly here by using `/api/v2` instead of `/api`):
+** you see a list of clickable object types
+** on the right upper side, there is a button *OPTIONS* which tells you what you can do with the current object in terms of API.
+** next to it there is a *GET* button which allows you to choose between getting the (raw or not) JSON output or the API format, which you're currently admiring by default.
+. Click on the `users` link and discover some more features:
+** There is a list of all objects of the given type
+** Each individual object can be reached using the `url` field
+** Most objects have a `related` field, which allows you to jump from object to object
+** At the bottom of the page, there is a new field which allows you to _post_ a new object, so let's do this and create a new user name John Smith (user name doesn't matter)
++
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+The JSON should roughly look like this:
++
+----
+{
+    "username": "jsmith",
+    "first_name": "John",
+    "last_name": "Smith",
+    "email": "jsmith@example.com",
+    "is_superuser": false,
+    "is_system_auditor": false,
+    "password": "redhat"
+}
+----
++
+and the result should be a 201 telling you about your success. You can log-in with the password and see that you see... nothing, because you have no rights. But you've got the point and can log in again as admin and come back to the list of users (do you remember the direct link?).
++++ </div></details> +++
+. Click now on our new friend John Smith and notice a few more things:
+** there is a red *DELETE* button at the top right level. Guess for what?
+** at the bottom of the page, the dialog shows *PUT* and *PATCH* buttons.
+... patch the user to be named "Johnny" instead of "John"
++
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+The field should look like this:
++
+----
+{
+    "first_name": "Johnny"
+}
+----
++
+And you should press the *PATCH* button.
++++ </div></details> +++
+... what happens if you try to _put_ the last name "Smithy" using the same approach?
++
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+Entering:
++
+----
+{
+    "last_name": "Smithy"
+}
+----
++
+fails if you click *PUT*. In this case you need to enter all mandatory fields, even if you don't want to modify them:
++
+----
+{
+    "username": "jsmith",
+    "last_name": "Smithy"
+}
+----
++++ </div></details> +++
+. Feel free now to press the *DELETE* button and remove Johnny Smithy.
+
+==== Challenge Lab: Browse a Survey
+
+When you automate Tower, writing the surveys is not exactly the fanciest of the activities, so how do you do? You create the Survey in the UI and you pull it from the browsable API. So how do you do this?
+
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
+. Go back to the Web UI of Tower
+. Take a job template and add a Survey to it with two to three fields of different type
+. Note down the ID of the job template.
+. Go back to the API and because we're lazy, we go directly to https://tower2-<REPL>.rhpds.opentlc.com/api/v2/job_templates/<ID>
+. There we click on the `survey_spec` in the `related` section.
+. We click the *GET* button to get the result in JSON format, then "Raw" (ugh!) then "Pretty Print"
+. and finally "Save" or "Copy" the result into a file `job_survey.json` (we'll need it for the next challenge).
+
++++ </div></details> +++
+
+=== Using the tower-cli
+
+The Web UI is nice but we love the command line, don't we? Here comes tower-cli to help.
+
+Let's start simple and try to get the version of Tower installed:
+
+----
+$ tower-cli version --verbose
+
+Tower CLI 3.3.0
+API v2
+GET https://127.0.0.1/api/v2/config/
+Params: {}
+
+Ansible Tower 3.4.2
+Ansible 2.7.8
+----
+
+You see that with the `--verbose` option, tower-cli tells us which calls it's making, so that we can very simply apply the same approach e.g. using cURL:
+
+----
+curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
+	--data '{}' \
+	-X GET https://127.0.0.1/api/v2/config/ | jq
+----
+
+TIP: jq is optional but useful for us, humans, to be able to read the output... without jq which comes from the EPEL, `| python -m json.tool` is also good.
+
+So, how would you create our friend John Smith again? Consider that the parameters shown are in Python format (single quotes and *u*nicode) but we need to send data in JSON format (double quotes).
+
++++ <details><summary> +++
+*>> _Click here for the tower-cli solution_ <<*
++++ </summary><div> +++
+
+First create the user with the tower-cli, then delete it:
+
+----
+$ tower-cli user create --username jsmith --email jsmith@example.com --password redhat --verbose
+
+*** DETAILS: Checking for an existing record. *********************************
+GET https://127.0.0.1/api/v2/users/
+Params: {'username': u'jsmith'}
+
+*** DETAILS: Writing the record. **********************************************
+POST https://127.0.0.1/api/v2/users/
+Data: {'username': u'jsmith', 'password': u'redhat', 'email': u'jsmith@example.com'}
+
+$ tower-cli user delete --username jsmith --verbose
+
+*** DETAILS: Getting the record. **********************************************
+GET https://127.0.0.1/api/v2/users/
+Params: {'username': u'jsmith'}
+
+DELETE /users/8/
+DELETE https://127.0.0.1/api/v2/users/8/
+----
++++ </div></details> +++
+
++++ <details><summary> +++
+*>> _Click here for the API solution_ <<*
++++ </summary><div> +++
+
+The "Getting the record" is sadly a bit misleading and you need to add `?username=jsmith` to filter on the username:
+
+----
+curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
+	-X GET https://127.0.0.1/api/v2/users/?username=jsmith
+----
+
+Once you've found out that the user doesn't exist, you can create it:
+
+----
+curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
+	--data '{"username": "jsmith", "password": "redhat", "email": "jsmith@example.com"}' \
+	-X POST https://127.0.0.1/api/v2/users/?username=jsmith
+----
+
+Note the ID of the user and then delete it:
+
+----
+curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
+	-X DELETE https://127.0.0.1/api/v2/users/<ID>/ # <1>
+----
+<1> don't forget the slash at the end of the URL, favorite error!
+
++++ </div></details> +++
+
+==== Challenge Lab: Create a Survey
+
+How do you modify a job template to attach a survey (remember the Survey-JSON we saved before?) using the tower-cli (as a preparation for using the API)?
+
++++ <details><summary> +++
+*>> _Click here for the tower-cli solution_ <<*
++++ </summary><div> +++
+Your session should roughly look as follows:
+
+----
+$ tower-cli job_template modify -n job-FIXME-somename --survey-spec=@survey.json \
+	--survey-enabled=true --verbose
+
+*** DETAILS: Checking for an existing record. *********************************
+GET https://127.0.0.1/api/v2/job_templates/
+Params: {'name': u'job-FIXME-somename'}
+
+*** DETAILS: Writing the record. **********************************************
+PATCH https://127.0.0.1/api/v2/job_templates/23/
+Data: {'survey_enabled': True, 'name': u'job-FIXME-somename'}
+
+*** DETAILS: Saving the survey_spec. ******************************************
+POST https://127.0.0.1/api/v2/job_templates/23/survey_spec/
+Data: {u'spec': [{u'required': True, u'min': 0, u'default': u'value_number_1', u'max': 1024, u'question_description': u'Description Number 1', u'choices': u'', u'variable': u'var_number_1', u'question_name': u'Prompt Number 1', u'type': u'text'}, {u'required': True, u'min': None, u'default': u'', u'max': None, u'question_description': u'Description Number 2', u'choices': u'choice1\nchoice2\nchoice3', u'new_question': True, u'variable': u'var_number_2', u'question_name': u'Prompt Number 2', u'type': u'multiplechoice'}], u'description': u'', u'name': u''}
+----
+
+NOTE: you need to enable the survey _and_ to attach a survey specification to the job.
+
++++ </div></details> +++
+
+How do you modify a job template to attach a survey using the API (delete in the UI the survey from the job template to reuse the same)?
+
+TIP: if you're lazy, the snippet `echo "{u'spec': [...] }" | sed "s/u'\([^']*\)'/\"\1\"/g"` can do wonders. Also remember that True in Python is true in JSON. But actually you don't need all this if you know well enough your curl...
+
++++ <details><summary> +++
+*>> _Click here for the API solution_ <<*
++++ </summary><div> +++
+We first enable the survey for the job template:
+
+----
+curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
+	--data '{"survey_enabled": true, "name": "job-FIXME-somename"}' \
+	-X PATCH https://127.0.0.1/api/v2/job_templates/23/
+----
+
+And then we attach the survey to the template, but not by using the Python structure given by tower-cli but just by using our saved file:
+
+----
+curl -k -H 'Content-Type: application/json' --user admin:<PASSWD> \
+	--data @survey.json \
+	-X POST https://127.0.0.1/api/v2/job_templates/23/survey_spec/
+----
+
+OK, that was a bit unfair but we had told you that you don't need sed or boolean knowledge...
+
++++ </div></details> +++
+
 == Appendix
 
 === Setup Considerations
@@ -1252,32 +1496,4 @@ rabbitmq_cookie=rabbitmqcookie
 ----
 
 WARNING: In this lab this has been taken care of, but remember all instances have to able to resolve all hostnames and to reach each other!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
