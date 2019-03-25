@@ -38,12 +38,14 @@ To exit edit mode with or without saving:
 * Choose one of the options "Yes, No, Cancel" by moving with the *arrow* or *Tab* keys (or click) 
 
 Copy text:
+
 * Position the cursor where you want to start to copy
 * Hit (or click) *F3* to start selecting
 * Move the cursor to highlight/select the text you want to copy
 * Hit (or click) *F3* again to stop selecting
 
 Paste text:
+
 * Position the cursor where you want to paste the text
 * Hit (or click) *F5* to paste a copy of the text
 * Hit (or select) *F6* to cut the text and paste it here
