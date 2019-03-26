@@ -21,13 +21,13 @@ In most cases the lab instructions will use a string as a placeholder for your *
 * Open a terminal session to log in to your host:
 
 ----
-ssh name-<GUID>.rhpds.opentlc.com
+ssh hostname-<GUID>.rhpds.opentlc.com
 ----
 
 * Or open a browser to access a web UI:
 
 ----
-https://name-<GUID>.rhods.opentlc.com
+https://hostname-<GUID>.rhods.opentlc.com
 ----
 
 WARNING: *Replace <GUID> with the GUID assigned to your seat!*
@@ -36,12 +36,12 @@ WARNING: *Replace <GUID> with the GUID assigned to your seat!*
 
 If your GUID is *83d4*, do this:
 ----
-ssh name-83d4.rhpds.opentlc.com
+ssh hostname-83d4.rhpds.opentlc.com
 ----
 
 TIP: The user will default to `lab-user` and SSH key authentication will be used automatically.
 
 Then become root:
 ----
-[lab-user@control-<GUID> ~]$ sudo -i
+[lab-user@hostname-<GUID> ~]$ sudo -i
 ----
