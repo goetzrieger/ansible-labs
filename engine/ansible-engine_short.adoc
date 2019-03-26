@@ -300,12 +300,17 @@ TIP: Use the copy ad hoc command from above as a template and change the module 
 
 WARNING: *Solution below!*
 
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
 ----
 [ansible@control ansible-files]$ ansible-doc -l | grep -i yum
 [ansible@control ansible-files]$ ansible-doc yum
 [ansible@control ansible-files]$ ansible host1.example.com -m yum -a 'name=screen state=latest' -b
 ----
 
++++ </div></details> +++
 
 == Ansible Playbooks: Introduction
 
@@ -508,6 +513,10 @@ TIP: There are multiple ways to do this, try to edit the "webserver" group in yo
 
 WARNING: *Solution below!*
 
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
 The changed inventory file:
 ----
 [webserver]
@@ -555,6 +564,8 @@ And the commands to check if Apache is now running on both servers:
 ----
 [ansible@control ansible-files]$ ansible localhost -m uri -a "url=http://host2.example.com/"
 ----
+
++++ </div></details> +++
 
 == Ansible Variables
 
@@ -699,12 +710,18 @@ TIP: Use grep to find the fact, then apply a filter to only print this fact.
 
 WARNING: *Solution below!*
 
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
 ----
 [ansible@control ansible-files]$ ansible host1.example.com -m setup | grep distribution
 ----
 ----
 [ansible@control ansible-files]$ ansible all -m setup -a 'filter=ansible_distribution' -o
 ----
+
++++ </div></details> +++
 
 === Using Facts in Playbooks
 
@@ -823,6 +840,10 @@ WARNING: In a `when` statement facts and variables are *not* to be inclosed in d
 
 WARNING: *Solution below!*
 
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
 ----
 ---
 - name: MariaDB server installation
@@ -836,6 +857,7 @@ WARNING: *Solution below!*
     when: ansible_memtotal_mb > 3000
 ----
 
++++ </div></details> +++
 
 == Ansible Handlers
 
@@ -962,12 +984,18 @@ TIP: Do a `grep -i` for fqdn
 
 WARNING: *Solution below!*
 
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
 * Find the fact:
 ----
 [ansible@control ansible-files]$ ansible host1.example.com -m setup | grep -i fqdn
 ----
 
 * Use the `ansible_fqdn` fact in the template `motd-facts.j2`.
+
++++ </div></details> +++
 
 == The End
 
@@ -992,6 +1020,10 @@ TIP: Remember privilege escalation...
 
 WARNING: *Solution below!*
 
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
 Your commands could look like these:
 ----
 [ansible@control ansible-files]$ ansible-doc -l | grep -i user
@@ -1001,6 +1033,8 @@ Your commands could look like these:
 [ansible@control ansible-files]$ ansible all -m user -a "name=testuser state=absent remove=yes" -b
 [ansible@control ansible-files]$ ansible all -m command -a " id testuser" -b
 ----
+
++++ </div></details> +++
 
 === Bonus Lab: Templates and Variables
 
@@ -1018,6 +1052,10 @@ WARNING: *Solution below!*
 
 ==== Define the variables:
 
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
 * Add this line to `group_vars/webserver`:
 ----
 listen_port: 8080
@@ -1028,7 +1066,13 @@ listen_port: 8080
 listen_port: 80
 ----
 
++++ </div></details> +++
+
 ==== Prepare the template:
+
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
 
 * Copy `httpd.conf` to `httpd.conf.j2`
 * Edit the "Listen" directive in `httpd.conf.j2` to make it look like this:
@@ -1038,7 +1082,13 @@ Listen {{ listen_port }}
 [...]
 ----
 
++++ </div></details> +++
+
 ==== Create the Playbook `apache_config_tpl.yml`:
+
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
 
 ----
 ---
@@ -1059,7 +1109,14 @@ Listen {{ listen_port }}
         state: restarted
 ----
 
++++ </div></details> +++
+
 ==== Run and test:
+
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
 ----
 [ansible@control ansible-files]$ ansible-playbook apache_config_tpl.yml 
 ----
@@ -1076,6 +1133,8 @@ Listen {{ listen_port }}
 </body>
 ----
 
++++ </div></details> +++
+
 === Change a Configuration File
 
 This lab is about how to automate a pretty common sys admin task: Make sure a configuration file setting is configured in a certain way. As an example let's make sure the SSH daemon is not accepting direct root logins.
@@ -1091,6 +1150,10 @@ You'll need to learn about a new module; `lineinfile`. Here is your job:
 * Test the SSH login as root, the password is the same as for everything else.
 
 WARNING: *Solution below!*
+
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
 
 * Create the Playbook `no_sshd_root.yml`
 
@@ -1123,4 +1186,6 @@ WARNING: *Solution below!*
 root@host1.example.com's password: 
 Permission denied, please try again.
 ----
+
++++ </div></details> +++
 
