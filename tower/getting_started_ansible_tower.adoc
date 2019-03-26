@@ -240,19 +240,23 @@ TIP: For tasks that have to run as root you need to escalate the privileges. Thi
 
 === Challenge Lab: Ad Hoc Commands
 
-Okay, a small challenge: Run an ad hoc to
-
-* Make sure the package "screen" is installed on all hosts
+Okay, a small challenge: Run an ad hoc to make sure the package "screen" is installed on all hosts
 
 TIP: If unsure, consult the documentation either via the web UI as shown above or by running `[ansible@tower ~]$ ansible-doc yum` on Tower.
 
 WARNING: *Solution below!*
+
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
 
 * *MODULE:* yum
 * *ARGUMENTS:* name=screen
 * Tick *ENABLE PRIVILEGE ESCALATION*
 
 TIP: The yellow output of the command indicates Ansible has actually done something (here it needed to install the package). If you run the ad hoc command a second time, the output will be green and inform you that the package was already installed. So yellow in Ansible doesn't mean "be careful"... ;-).
+
++++ </div></details> +++
 
 == Add a new Project
 
@@ -401,12 +405,18 @@ TIP: What about `systemctl status httpd`?
 
 WARNING: *Solution Below*
 
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
 * Go to *Inventories* -> *Example Inventory*
 * In the *HOSTS* view select both hosts and click *RUN COMMANDS*
 * *MODULE:* command
 * *ARGUMENTS:* systemctl status httpd
 * *MACHINE CREDENTIALS:* Example Credentials
 * Click *LAUNCH*
+
++++ </div></details> +++
 
 === Challenge Lab
 
@@ -490,6 +500,10 @@ Try for yourself, the solution is below.
 
 WARNING: *Solution Below!*
 
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
 * *NAME:* create index.html
 * *JOB TYPE:* Run
 * *INVENTORY:* Webserver
@@ -498,6 +512,8 @@ WARNING: *Solution Below!*
 * *CREDENTIAL:* Example Credentials
 * *OPTIONS:* Enable Privilege Escalation 
 * Click *SAVE*
+
++++ </div></details> +++
 
 ==== Add the Survey
 
@@ -676,6 +692,10 @@ First you have to set up the Git repos as Projects like you normally would. You 
 
 WARNING: *Solution Below*
 
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
 * Create the project for web operations. In the *Projects* view click 
 image:green_plus.png[20,20] and fill in:
 ** *NAME:* Webops Git Repo
@@ -695,6 +715,8 @@ click image:green_plus.png[20,20] and fill in:
 ** *SCM CREDENTIAL:* Gitea Control
 ** *SCM UPDATE OPTIONS:* Tick all three boxes.
 * Click *SAVE*
+
++++ </div></details> +++
 
 === Set up Job Templates
 
