@@ -43,5 +43,5 @@ TIP: The user will default to `lab-user` and SSH key authentication will be used
 
 Then become root:
 ----
-[lab-user@hostname-<GUID> ~]$ sudo -i
+[lab-user@hostname-83d4 ~]$ sudo -i
 ----
