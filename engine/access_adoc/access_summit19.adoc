@@ -39,7 +39,7 @@ If your GUID is *83d4*, do this:
 ssh hostname-83d4.rhpds.opentlc.com
 ----
 
-TIP: The user will default to `lab-user` and SSH key authentication will be used automatically.
+TIP: The user will default to `lab-user` and SSH key authentication will be used automatically. If for any reason key authentication is not working and the SSH client is asking for a password, use *r3dh4t1!*
 
 Then become root:
 ----
