@@ -320,7 +320,7 @@ Create credentials again, this time to access the Git repository over HTTP. This
 In the Tower web UI go to *Resources->Credentials*. Now:
 
 * Click the image:green_plus.png[20,20] button to add new credentials
-* *NAME*: Gitea Control
+* *NAME*: Gitea Credentials
 * *CREDENTIAL TYPE*: Choose *Source Control*
 
 TIP: You will have to change the page in the *SELECT CREDENTIAL TYPE* window.
