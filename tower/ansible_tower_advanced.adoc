@@ -1202,19 +1202,21 @@ The search string to use is: *ansible_facts.ansible_selinux.mode:enforcing*
 It should return the remote hosts only.
 +++ </div></details> +++
 
-== Well structured Git repositories
+== Well structured content repositories
 
-It's a common part of the learning curve for Ansible and Ansible Tower: At some point you have to really start structuring your content... Playbooks, Templates, Files and so on. Because you should have your content in version control anyway (most likely this will be Git these days) this will be about how to structure your Git repositories. What structure works best for you is of course highly dependend on your specific requirements, but some common ground rules apply.
+It's a common part of the learning curve for Ansible and Ansible Tower: At some point you will have written so many playbooks that a need for structure comes up. Where to put the Playbooks, what about the Templates, Files and so on.
+
+The main reommendation is to put content in a version control system like Git or SVN. This comes naturally since Ansible code is usually in text form anyway, and thus can be managed easily. What structure works best of course highly depends on the individual requirements, but some common ground rules apply.
 
 The first recommendation is to separate _specific code_ from _reusable code_ from _data_:
 
-specific code:: Playbooks and their direct dependencies you're not sharing or not planning to share outside the realm of your project or team. 
+specific code:: Playbooks and their direct dependencies which are not shared outside the realm of the project or team. 
 
-generic code:: Basically Ansible roles that will be used across multiple projects. How roles are structured is https://galaxy.ansible.com/docs/contributing/creating_role.html[sufficiently described] and should become second nature to you. When talking about Ansible Roles `ansible-galaxy` should come to your mind immediately. Currently to pull roles from `ansible-galaxy`, you will need one Git repository for each role (this might change with https://galaxy.ansible.com/docs/mazer/index.html[Mazer]).  We'll discuss here how to use such role repositories within Tower.
+generic code:: All content that will be used across multiple projects. In most cases this consists of (https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html)[Ansible roles]. How a role itself is structured is (https://galaxy.ansible.com/docs/contributing/creating_role.html)[sufficiently described] and will not be part of this workshop. Instead we will focus on how to structure when multiple roles are used in parallel. 
 
-data:: this is mostly your inventory or inventories. You probably want one inventory for each life-cycle environment, you can have them all in the same Git repository, each in its own directory (e.g. dev, test, qa, prod) or have one Git repository for each environment, mainly in a balance between simplicity and access control. How inventories are structured is https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html[sufficiently described] and should be known (and the recommendation is to https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#splitting-out-host-and-group-specific-data[split out host and group data] but for the most simple cases).
+data:: This is mostly the inventory or the inventory scripts and the corresponding variables for hosts and groups. In many use cases it is advisable to have a dedicated inventory for each life-cycle environment. They can all be in the same Git repository, each in its own directory (e.g. dev, test, qa, prod). Alternatively, for example in larger environments or with dedicated teams per environment there can be one Git repository for each environment. How inventories are structured is (https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html)[sufficiently described] and is not part of this workshop. We recommend to put special focus on https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#splitting-out-host-and-group-specific-data[splitting out host and group data].
 
-CAUTION: what you definitely do _not_ want is one disjunst code repository for each environment, as it would go against the purpose of testing the _same_ code as you push it through your life-cycle, only varying the data / inventory. If you have difficulties to keep the same code throughout all your environments, you probably need to re-think how you structure it vs. what you put in your inventories.
+CAUTION: Be careful to _not_ one disjunct code repository for each environment. It would go against the purpose of testing the _same_ code as you push it through your life-cycle, only varying the data / inventory. If you have difficulties to keep the same code throughout all your environments we recommend to re-think the structure of cour code and what you put into your inventory.
 
 === Main repository
 
