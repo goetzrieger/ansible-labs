@@ -719,6 +719,7 @@ To enable parallel execution of the tasks in these job templates, we will create
 * Click on the *START* button again, another new node opens.
 * Select the *Compliance CIS* job and click *SELECT*. The node gets annotated with the name of the job.
 * Click *SAVE*
+* In the workflow overview window, again click *SAVE*
 
 You have configured a Workflow that is not going through templates one after the other but rather executes three templates in parallel.
 
