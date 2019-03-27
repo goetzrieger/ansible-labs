@@ -1220,23 +1220,34 @@ CAUTION: Be careful to _not_ one disjunct code repository for each environment. 
 
 === Main repository
 
-So, let's focus on the repository where you have the playbooks you'll finally call from within your job templates. The simple recommendation is to have a structure similar to the one of a role, the structure has been thought out for a reason and this makes it easier to modularize your code once you decide to use roles.
+So, let's focus on the repository where you have the playbooks you'll call from within your Tower job templates. We recommend to have a structure somewhat similar to the one of a role, the structure has been thought out for a reason and this makes it easier to modularize your code once you decide to use roles. All of our recommendations are aligned to the (https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html#content-organization)[Ansible best practices] and are explained in more detail there.
 
-FIXME:: how to create a Git repo in Gitea???
+Since we want to store all content in a repository, we will first create and empty Git repository on our existing Gitea server. Access Gitea via
+
+*\http://control-<GUID>.rhpds.opentlc.com/gitea*.
+
+Login via the already well known credentials:
+
+* *User*: git
+* *Password*: r3dh4t1!
+
+* In the upper right corner, click on the plus sign, and in the opening hover menu click on *New Repository*.
+* Set the *Repository Name*: structured-content
+* Click the button *Create Repository* at the end of the page.
+
+Next we will clone the repository on the control host.
 
 ----
-git clone http://control.example.com/gitea/git/structured-playbooks.git # FIXME: correct URL?
-cd structured-playbooks
-ansible-galaxy init --offline dummy
-mv dummy/{README.md,files,tasks,templates,tests,vars} . # <1>
+[root@control ~]# su - ansible
+Letzte Anmeldung: Mittwoch, den 27. März 2019, 17:01:07 CET auf pts/1
+[ansible@control ~]$ git clone git@control.example.com:gitea-repositories/git/structured-content.git
+Cloning into 'structured-content'...
+git@control.example.com's password:
+warning: You appear to have cloned an empty repository.
+[ansible@control structured-content]$ mkdir -p {group_vars,host_vars,library,roles}
 ----
-<1> do NOT forget the dot (*.*) at the end!!!
-
-You can then check what remained in the dummy directory, and convince yourself that there is nothing relevant for playbooks.
 
 ----
-rm -fr dummy
-mkdir {plays,roles}
 echo 'autocmd FileType yaml setlocal ai ts=2 sw=2 et' > files/vimrc
 echo 'Ansible has your machine under control, {{ ansible_user | default(\'someone\') }} wishes you welcome!' > templates/motd.j2
 for file in plays tasks tests vars; do touch ${file}/some${file}.yml; done
