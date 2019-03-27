@@ -506,11 +506,11 @@ Using your favorite editor adapt the `inventory` file to add the inventory group
 tower1.example.com
 tower2.example.com
 
-[instance_group_prod]
+*[instance_group_prod]
 tower3.example.com
 
 [instance_group_dev]
-tower2.example.com
+tower2.example.com*
 
 [database]
 towerdb.example.com
