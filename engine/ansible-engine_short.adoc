@@ -72,8 +72,8 @@ NOTE: *In all subsequent exercises you should work as the ansible user on the co
 You might have guessed by now this lab is pretty commandline-centric... :-)
 
 * Don't type everything manually, use copy & paste from the browser when appropriate. But don't stop to think and understand... ;-)
-* All labs where prepared using Vi, but feel free to install mc (`yum install 
-mc`, function keys can be reached via Esc-<n>) or nano.
+
+* All labs where prepared using *Vim*, but we understand not everybody loves it. Feel free to use alternative editor, in the lab environment we provide *Midnight Commander* (just run *mc*, function keys can be reached via Esc-<n>) or *Nano* (run *nano*).
 
 TIP: In the lab guide commands you are supposed to run are shown with or without the expected output, whatever makes more sense in the context. 
 
@@ -140,7 +140,7 @@ TIP: The inventory can contain more data. E.g. if you have hosts that run on non
 
 === The Ansible Configuration Files
 
-The behavior of Ansible can be customized by modifying settings in Ansible's ini-style configuration file. Ansible will select its configuration file from one of several possible locations on the control node, please refer to the documentation.
+The behavior of Ansible can be customized by modifying settings in Ansible's ini-style configuration file. Ansible will select its configuration file from one of several possible locations on the control node, please refer to the https://docs.ansible.com/ansible/latest/reference_appendices/config.html#ansible-configuration-settings[documentation].
 
 TIP: The recommended practice is to create an `ansible.cfg` file in a directory from which you run Ansible commands. This directory would also contain any files used by your Ansible project, such as the inventory and Playbooks. 
 
@@ -245,7 +245,7 @@ host1.example.com | FAILED! => {
 
 ----
 
-Should be all red for you, the ad hoc command failed. Why? Because user ansible is not allowed to write the motd file. 
+The output of the ad hoc command should be screaming *FAILED* in red at you. Why? Because user *ansible* is not allowed to write the motd file. 
 
 Now this is a case for privilege escalation and the reason `sudo` has to be setup properly. We need to instruct ansible to use `sudo` to run the command as root by using the parameter `-b` (think "become"). 
 
@@ -678,7 +678,7 @@ The Playbook should copy different files as index.html to the hosts, use `curl` 
 </body>
 ----
 
-TIP: If by now you think: There has to be a smarter way to change content in files... you are absolutely right. This lab was done to introduce variables, you are about to learn about templates in one of the next labs.
+TIP: If by now you think: There has to be a smarter way to change content in files... you are absolutely right. This lab was done to introduce variables, you are about to learn about templates in one of the next chapters.
 
 == Ansible Facts
 
@@ -782,7 +782,10 @@ For more on this, please refer to the documentation: http://jinja.pocoo.org/docs
 
 As an example you would like to install an FTP server, but only on hosts that are in the "ftpserver" inventory group. 
 
-As user ansible create this Playbook on control.example.com as `ftpserver.yml` in the `~/ansible-files/` directory, run it and examine the output:
+As user ansible create this Playbook on control.example.com as `ftpserver.yml` in the `~/ansible-files/` directory, run it and examine the output.
+
+TIP: By now you should know how to run Ansible Playbooks, we'll start to be less verbose in this guide. Go create and run it. :-)
+
 ----
 ---
 - name: Install vsftpd on ftpservers
@@ -818,11 +821,12 @@ You might have noticed host1 and host2 have different amounts of RAM. If not hav
 
 Write a Playbook `mariadb.yml` that installs MariaDB but only if the host has more then, say, 3000 MB of RAM.
 
-* Find the fact for memtotal in MB (look at the ad hoc command output and feel free to use "grep").
-* Use this Playbook as a template and create the when statement by *replacing the upper case placeholders*:
+* Find the fact for memtotal in MB (look at the ad hoc command output above and feel free to use "grep").
+* Use this Playbook as a template and create the when statement by *replacing the  placeholders* (bold in angle brackets):
 
 WARNING: In a `when` statement facts and variables are *not* to be inclosed in double curly braces like you would do for variables!
 
+[subs=+quotes]
 ----
 ---
 - name: MariaDB server installation
@@ -833,7 +837,7 @@ WARNING: In a `when` statement facts and variables are *not* to be inclosed in d
     yum:
       name: mariadb-server
       state: latest
-    when: FACT COMPARISON_OPERATOR NUMBER
+    when: *<FACT> <COMPARISON_OPERATOR> <NUMBER>*
 ----
 
 * Run the Playbook. As a result the installation task should be skipped on host2.
@@ -861,7 +865,7 @@ WARNING: *Solution below!*
 
 == Ansible Handlers
 
-Sometimes when a task does make a change to the system, a further task may need to be run. For example, a change to a service's configuration file may then require that the service be reloaded so that the changed configuration takes effect. 
+Sometimes when a task does make a change to the system, a further task may need to be run. For example, a change to a service's configuration file may then require that the service be restarted so that the changed configuration takes effect. 
 
 Here Ansible's handlers come into play. Handlers can be seen as inactive tasks that only get triggered when explicitly invoked using the "notify" statement.
 
