@@ -1235,46 +1235,93 @@ Login via the already well known credentials:
 * Set the *Repository Name*: structured-content
 * Click the button *Create Repository* at the end of the page.
 
-Next we will clone the repository on the control host.
+Next we will clone the repository on the control host. Since we are going to use command line git, we first need to add the ssh key of the user `ansible` to Gitea. In Gitea, click on your profile image in the right upper corner:
+
+* Pick *Settings*
+* Choose *SSH / GPG Keys*
+* Click on *Add Key*
+* *Key Name*: `ansible@control.example.com`
+
+In the *Content* field you need to add the SSH private key for the user `ansible`, similar to adding the key to a machine credential in Tower:
+
+* Bring up an SSH terminal on *control.example.com*, become user `ansible` and `cat` the SSH private key:
 
 ----
 [root@control ~]# su - ansible
-Letzte Anmeldung: Mittwoch, den 27. März 2019, 17:01:07 CET auf pts/1
-[ansible@control ~]$ git clone git@control.example.com:gitea-repositories/git/structured-content.git
+[ansible@control ~]$ cat .ssh/id_rsa
+----
+
+* Copy the complete private key (including "BEGIN" and "END" lines) and paste it into the *Content* field in the Gitea web UI.
+* Click *Add Key*
+
+Next, clone the repository on the control machine:
+
+----
+[root@control ~]# su - ansible
+Letzte Anmeldung: Montag, den 01. April 2019, 18:13:03 CEST auf pts/0
+[ansible@control ~]$ git clone git@control.example.com:/git/structured-content.git
 Cloning into 'structured-content'...
-git@control.example.com's password:
+LFS server support needs at least Git v2.1.2, disabled
 warning: You appear to have cloned an empty repository.
+[ansible@control ~]$ cd structured-content/
+[ansible@control structured-content]$ ls
+[ansible@control structured-content]$
+----
+
+The repository is currently empty. Next we are going to add some default directories and files:
+
+----
+[ansible@control structured-content]$ touch {staging,production,site.yml}
+----
+
+This command creates two inventory files: in this case we have different stages and keep them separate with dedicated files. We also created a playbook file called `site.yml` which keeps the main code for the setup of our environment. Note that all files are right now still empty and need to be filled with content to work properly.
+
+----
 [ansible@control structured-content]$ mkdir -p {group_vars,host_vars,library,roles}
 ----
 
+This command creates a set of directories usually needed: the `*_vars` directories will contain variables associated with the machines and groups of the inventories. The directory `library` contains actual Ansible code related to a project: custom modules, plugins, etc. Finally, `roles` will contain the main part of your automation logic. Most of the automation tasks should be organized in roles where it is possible and feasible.
+
+Top better highlight how such a structure would look like we are going to add two empty roles. THis can be easily achieved with the command `ansible-galaxy`, it can create empty role skelletons with all appropriate files, directories and so on.
+
 ----
-echo 'autocmd FileType yaml setlocal ai ts=2 sw=2 et' > files/vimrc
-echo 'Ansible has your machine under control, {{ ansible_user | default(\'someone\') }} wishes you welcome!' > templates/motd.j2
-for file in plays tasks tests vars; do touch ${file}/some${file}.yml; done
-touch top-level_playbook.yml
-touch roles/requirements.yml # <1>
-ansible-galaxy init --offline --init-path=roles somerole
+ansible-galaxy init --offline --init-path=roles stig
+ansible-galaxy init --offline --init-path=roles cis
 ----
-<1> we explain in the next chapter what this is for.
 
-The directory `plays` is for playbooks you're not primarily planning to call directly but only via `import_playbook` in your top-level playbooks. Those top-level playbooks live in the root directory of your repository so that they are easy to find. A naming convention can help to understand the structure of your playbooks (e.g. something like `<nr>_<verb>_<object>.yml` as in `05_setup_webserver.yml`).
+IMPORTANT: Even if a good playbook is generally self-explanatory, the context and which one to use in which occasion generally isn't! That it makes sense to have a proper documentation. In terms of roles, the right way to document what the role is about and what it is doing is the file ?meta/main.yml`.
 
-IMPORTANT: even if a good playbook is generally self-explanatory, the context and which one to use in which occasion generally isn't, so that it makes sense to have a top-level README-file (in whichever format) to explain this, as well as where to find the fitting inventory repositories.
-
-Call now `find .` (FIXME: or is tree installed?) to get a feel how a complete structure can look like.
+Call tree to look at the current structure:
 
 +++ <details><summary> +++
 *>> _Click here to see how it should look like_ <<*
 +++ </summary><div> +++
 ----
-├── files
-│   └── vimrc
-├── plays
-│   └── someplays.yml
-├── README.md
+[ansible@control structured-content]$ tree
+.
+├── group_vars
+├── host_vars
+├── library
+├── production
 ├── roles
-│   ├── requirements.yml
-│   └── somerole
+│   ├── cis
+│   │   ├── defaults
+│   │   │   └── main.yml
+│   │   ├── files
+│   │   ├── handlers
+│   │   │   └── main.yml
+│   │   ├── meta
+│   │   │   └── main.yml
+│   │   ├── README.md
+│   │   ├── tasks
+│   │   │   └── main.yml
+│   │   ├── templates
+│   │   ├── tests
+│   │   │   ├── inventory
+│   │   │   └── test.yml
+│   │   └── vars
+│   │       └── main.yml
+│   └── stig
 │       ├── defaults
 │       │   └── main.yml
 │       ├── files
@@ -1291,23 +1338,10 @@ Call now `find .` (FIXME: or is tree installed?) to get a feel how a complete st
 │       │   └── test.yml
 │       └── vars
 │           └── main.yml
-├── tasks
-│   ├── main.yml
-│   └── sometasks.yml
-├── templates
-│   └── motd.j2
-├── tests
-│   ├── inventory
-│   ├── sometests.yml
-│   └── test.yml
-├── top-level_playbook.yml
-└── vars
-    ├── main.yml
-    └── somevars.yml
+├── site.yml
+└── staging
 ----
 +++ </div></details> +++
-
-NOTE: you can also have `group_vars` and `host_vars` next to your playbook(s) so that the variables defined in those directories are implicitly read by Ansible. This is acceptable but not recommended as it generally amounts to break the separation of code from data.
 
 === External roles
 
