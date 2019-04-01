@@ -1206,7 +1206,7 @@ It should return the remote hosts only.
 
 It's a common part of the learning curve for Ansible and Ansible Tower: At some point you will have written so many playbooks that a need for structure comes up. Where to put the Playbooks, what about the Templates, Files and so on.
 
-The main reommendation is to put content in a version control system like Git or SVN. This comes naturally since Ansible code is usually in text form anyway, and thus can be managed easily. The other main recommendation is to divide your code into logical pieces, called "link:https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html[roles]" in Ansible: have all code, config templates and files for the apache web server in one role, and all code, configuration and sql statements for the database in another role. That way the code becomes much better to read and handle, and roles can be makde re-usable between projects.
+The main reommendation is to put content in a version control system like Git or SVN. This comes naturally since Ansible code is usually in text form anyway, and thus can be managed easily. The other main recommendation is to group your code by logical units, called "link:https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html[roles]" in Ansible: have all code, config templates and files for the apache web server in one role, and all code, configuration and sql statements for the database in another role. That way the code becomes much better to read and handle, and roles can be made re-usable and shared between projects, teams or with the global community.
 
 Of course, what structure works best in the end depends on the individual requirements, but we will highlight some common ground rules which apply to almost all use cases.
 
@@ -1291,7 +1291,7 @@ ansible-galaxy init --offline --init-path=roles stig
 ansible-galaxy init --offline --init-path=roles cis
 ----
 
-IMPORTANT: Even if a good playbook is generally self-explanatory, the context and which one to use in which occasion generally isn't! That it makes sense to have a proper documentation. In terms of roles, the right way to document what the role is about and what it is doing is the file ?meta/main.yml`.
+IMPORTANT: Even if a good role is generally self-explanatory, the context and which one to use in which occasion generally isn't! That it makes sense to have a proper documentation. In terms of roles, the right way to document what it is about and what it is doing is the file ?meta/main.yml`.
 
 Call tree to look at the current structure:
 
@@ -1347,22 +1347,20 @@ Call tree to look at the current structure:
 
 === External roles
 
-Let's now assume that we also have external roles needed by our playbooks, those can either come from link:https://galaxy.ansible.com/[Ansible Galaxy] or, more commonly in an enterprise environment, directly from a (private) Git repository.
+As mentioned, one of the big advantages of roles is that they can be shared with others. In enterprise environments it is common to share roles via git repositories, often one git repository per role. If a role might be interesting and re-used by the world wide Ansible community, they can be shared on our central platform link:https://galaxy.ansible.com/[Ansible Galaxy]. The advantage of Ansible Galaxy is that it features basic automatic testing and community ratings to give the interested users an idea of the quality and reusability of a role.
 
-This is where we put content in our `roles/requirements.yml` file like this:
+To use external roles in a project, they need to be referenced in a file called link:https://docs.ansible.com/ansible/latest/reference_appendices/galaxy.html#installing-multiple-roles-from-a-file[`roles/requirements.yml`]:
 
 ----
-# Directly from Galaxy # FIXME: do we want this, or just as example?
+# Import directly from Galaxy
 - src: geerlingguy.nginx
-# From a Git repo # FIXME: do we already have a role to re-use?
+# Import from a local Git repository
 - src: http://control.example.com/gitea/git/external-role.git
   version: master
   name: external-role_locally
 ----
 
-As Tower checks out the Project, it will also pull the roles listed in `roles/requirements.yml` and put them in the `roles` directory so that they can be used in your playbooks.
-
-TODO:: put some concrete examples behind those words and show that it works. @Roland: can you take care of this?
+The `requirements.yml` needs to be read - either on the command line by invocing `ansible-galaxy`, or automatically by Ansible Tower during projct check outs. In both cases the file is read, and the roles are checked out and stored locally. We will focus on the Tower use case here.
 
 == Discovering the Tower API
 
