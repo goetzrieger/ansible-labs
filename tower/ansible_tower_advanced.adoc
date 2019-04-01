@@ -1212,15 +1212,15 @@ The first recommendation is to separate _specific code_ from _reusable code_ fro
 
 specific code:: Playbooks and their direct dependencies which are not shared outside the realm of the project or team. 
 
-generic code:: All content that will be used across multiple projects. In most cases this consists of [Ansible roles](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html). How a role itself is structured is [sufficiently described](https://galaxy.ansible.com/docs/contributing/creating_role.html) and will not be part of this workshop. Instead we will focus on how to structure when multiple roles are used in parallel. 
+generic code:: All content that will be used across multiple projects. In most cases this consists of link:https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html[Ansible roles]. How a role itself is structured is link:https://galaxy.ansible.com/docs/contributing/creating_role.html[sufficiently described] and will not be part of this workshop. Instead we will focus on how to structure when multiple roles are used in parallel. 
 
-data:: This is mostly the inventory or the inventory scripts and the corresponding variables for hosts and groups. In many use cases it is advisable to have a dedicated inventory for each life-cycle environment. They can all be in the same Git repository, each in its own directory (e.g. dev, test, qa, prod). Alternatively, for example in larger environments or with dedicated teams per environment there can be one Git repository for each environment. How inventories are structured is [sufficiently described](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) and is not part of this workshop. We recommend to put special focus on [splitting out host and group data](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#splitting-out-host-and-group-specific-data).
+data:: This is mostly the inventory or the inventory scripts and the corresponding variables for hosts and groups. In many use cases it is advisable to have a dedicated inventory for each life-cycle environment. They can all be in the same Git repository, each in its own directory (e.g. dev, test, qa, prod). Alternatively, for example in larger environments or with dedicated teams per environment there can be one Git repository for each environment. How inventories are structured is link:https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html[sufficiently described] and is not part of this workshop. We recommend to put special focus on link:https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#splitting-out-host-and-group-specific-data[splitting out host and group data].
 
 CAUTION: Be careful to _not_ one disjunct code repository for each environment. It would go against the purpose of testing the _same_ code as you push it through your life-cycle, only varying the data / inventory. If you have difficulties to keep the same code throughout all your environments we recommend to re-think the structure of cour code and what you put into your inventory.
 
 === Main repository
 
-So, let's focus on the repository where you have the playbooks you'll call from within your Tower job templates. We recommend to have a structure somewhat similar to the one of a role, the structure has been thought out for a reason and this makes it easier to modularize your code once you decide to use roles. All of our recommendations are aligned to the [Ansible best practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html#content-organization) and are explained in more detail there.
+So, let's focus on the repository where you have the playbooks you'll call from within your Tower job templates. We recommend to have a structure somewhat similar to the one of a role, the structure has been thought out for a reason and this makes it easier to modularize your code once you decide to use roles. All of our recommendations are aligned to the link:https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html#content-organization[Ansible best practices] and are explained in more detail there.
 
 Since we want to store all content in a repository, we will first create and empty Git repository on our existing Gitea server. Access Gitea via
 
@@ -1345,7 +1345,7 @@ Call tree to look at the current structure:
 
 === External roles
 
-Let's now assume that we also have external roles needed by our playbooks, those can either come from [Ansible Galaxy](https://galaxy.ansible.com/) or, more commonly in an enterprise environment, directly from a (private) Git repository.
+Let's now assume that we also have external roles needed by our playbooks, those can either come from link:https://galaxy.ansible.com/[Ansible Galaxy] or, more commonly in an enterprise environment, directly from a (private) Git repository.
 
 This is where we put content in our `roles/requirements.yml` file like this:
 
