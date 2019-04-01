@@ -1206,13 +1206,15 @@ It should return the remote hosts only.
 
 It's a common part of the learning curve for Ansible and Ansible Tower: At some point you will have written so many playbooks that a need for structure comes up. Where to put the Playbooks, what about the Templates, Files and so on.
 
-The main reommendation is to put content in a version control system like Git or SVN. This comes naturally since Ansible code is usually in text form anyway, and thus can be managed easily. What structure works best of course highly depends on the individual requirements, but some common ground rules apply.
+The main reommendation is to put content in a version control system like Git or SVN. This comes naturally since Ansible code is usually in text form anyway, and thus can be managed easily. The other main recommendation is to divide your code into logical pieces, called "link:https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html[roles]" in Ansible: have all code, config templates and files for the apache web server in one role, and all code, configuration and sql statements for the database in another role. That way the code becomes much better to read and handle, and roles can be makde re-usable between projects.
+
+Of course, what structure works best in the end depends on the individual requirements, but we will highlight some common ground rules which apply to almost all use cases.
 
 The first recommendation is to separate _specific code_ from _reusable code_ from _data_:
 
 specific code:: Playbooks and their direct dependencies which are not shared outside the realm of the project or team. 
 
-generic code:: All content that will be used across multiple projects. In most cases this consists of link:https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html[Ansible roles]. How a role itself is structured is link:https://galaxy.ansible.com/docs/contributing/creating_role.html[sufficiently described] and will not be part of this workshop. Instead we will focus on how to structure when multiple roles are used in parallel. 
+generic code:: All content that will be used across multiple projects. In most cases this consists of Ansible roles. How a role itself is structured is link:https://galaxy.ansible.com/docs/contributing/creating_role.html[sufficiently described] and will not be part of this workshop. Instead we will focus on how to structure when multiple roles are used in parallel.
 
 data:: This is mostly the inventory or the inventory scripts and the corresponding variables for hosts and groups. In many use cases it is advisable to have a dedicated inventory for each life-cycle environment. They can all be in the same Git repository, each in its own directory (e.g. dev, test, qa, prod). Alternatively, for example in larger environments or with dedicated teams per environment there can be one Git repository for each environment. How inventories are structured is link:https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html[sufficiently described] and is not part of this workshop. We recommend to put special focus on link:https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#splitting-out-host-and-group-specific-data[splitting out host and group data].
 
