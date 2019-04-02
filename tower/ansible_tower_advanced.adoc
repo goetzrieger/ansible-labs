@@ -1553,11 +1553,11 @@ Launch the playbook from within Tower and watch the results.
 
 === Adding external roles
 
-So far we only streuctured content inside one repository. While this drastically reduces complexity already, the largest benefit is in sharing roles among multiple teams or departments and keep them in a central place. In this section we will show how to reference such shared roles in your code and execute them together on your behalf.
+So far we only structured content inside one repository. While this drastically reduces complexity already, the largest benefit is in sharing roles among multiple teams or departments and keep them in a central place. In this section we will show how to reference such shared roles in your code and execute them together on your behalf.
 
-In enterprise environments it is common to share roles via git repositories, often one git repository per role. If a role might be interesting and re-used by the world wide Ansible community, they can be shared on our central platform link:https://galaxy.ansible.com/[Ansible Galaxy]. The advantage of Ansible Galaxy is that it features basic automatic testing and community ratings to give the interested users an idea of the quality and reusability of a role.
+In enterprise environments it is common to share roles via internal git repositories, often one git repository per role. If a role might be interesting and re-used by the world wide Ansible community, they can be shared on our central platform link:https://galaxy.ansible.com/[Ansible Galaxy]. The advantage of Ansible Galaxy is that it features basic automatic testing and community ratings to give the interested users an idea of the quality and reusability of a role.
 
-To use external roles in a project, they need to be referenced in a file called link:https://docs.ansible.com/ansible/latest/reference_appendices/galaxy.html#installing-multiple-roles-from-a-file[`roles/requirements.yml`]:
+To use external roles in a project, they need to be referenced in a file called link:https://docs.ansible.com/ansible/latest/reference_appendices/galaxy.html#installing-multiple-roles-from-a-file[`roles/requirements.yml`], for example like this:
 
 ----
 # Import directly from Galaxy
@@ -1568,7 +1568,73 @@ To use external roles in a project, they need to be referenced in a file called 
   name: external-role_locally
 ----
 
-The `requirements.yml` needs to be read - either on the command line by invocing `ansible-galaxy`, or automatically by Ansible Tower during projct check outs. In both cases the file is read, and the roles are checked out and stored locally. We will focus on the Tower use case here.
+The `requirements.yml` needs to be read - either on the command line by invocing `ansible-galaxy`, or automatically by Ansible Tower during project check outs. In both cases the file is read, and the roles are checked out and stored locally, and the roles can be called in playbooks. The advantage of Tower here is that it takes care of all that - including authorization to the Git repo, finding a proper place to store the role, updating it when needed and so on. Due to that reasons we will focus only on the Tower execution here.
+
+In this example, we will include a role which ships a simple `index.html` file as template and reloads the apache web server. The role is shared in Gitea at link:http://control.example.com/gitea/git/shared-apache-role .
+
+To include it with the existing structured content, first we have to create a file called `roles/requirements.yml` and reference the role there:
+
+----
+[ansible@control structured-content]$ cat roles/requirements.yml 
+- src: http://control.example.com/gitea/git/shared-apache-role.git
+  scm: git
+  version: master
+----
+
+TIP: In a production environment you may want to change the version to a fixed version or tag, to make sure that only tested and verified code is checked out and used. But this strongly depends on how you develop your code and which branching model you use.
+
+Here we add the source for the role and identify the type of source control.
+
+Next, we reference the role itself in our playbook:
+
+----
+[ansible@control structured-content]$ cat site.yml 
+---
+- name: Execute apache and security roles
+  hosts: all
+
+  roles:
+    - { role: apache}
+    - { role: security } 
+    - { role: shared-apache-role }
+----
+
+Do not forget to add, commit and push the changes!
+
+----
+[ansible@control structured-content]$ git add site.yml roles/
+[ansible@control structured-content]$ git commit -m "Add roles/requirements.yml referencing shared role"
+[master 3b87fda] Add roles/requirements.yml referencing shared role
+ 2 files changed, 3 insertions(+)
+ create mode 100644 roles/requirements.yml
+[ansible@control structured-content]$ git push
+LFS server support needs at least Git v2.1.2, disabled
+Counting objects: 8, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (5/5), 621 bytes | 0 bytes/s, done.
+Total 5 (delta 1), reused 0 (delta 0)
+remote: LFS server support needs at least Git v2.1.2, disabled
+remote: LFS server support needs at least Git v2.1.2, disabled
+remote: LFS server support needs at least Git v2.1.2, disabled
+To git@control.example.com:/git/structured-content.git
+   596b014..3b87fda  master -> master
+[ansible@control structured-content]$ 
+----
+
+=== Launch in Tower
+
+Just in case, make sure to update the Project in Tower: in the menu at *RESOURCES*, pick *Projects*, and click on the sync button next to *Structured Content Repository*.
+
+Afterwards, go to *RESOURCES*->*Templates* and launch the *Structured Content Execution* job template. As you will see in the job output, the external role is called just the way the other roles are called:
+
+----
+TASK [shared-apache-role : deploy content] *************************************
+changed: [host2.example.com]
+changed: [host1.example.com]
+----
+
+And you are done. You successfully used a shared role provided from a central source and used it integrated into your automation code. This way, you can limit your automation code to things really relevant and individual to you and your environment, while everything shreable is consumed from a shared resource.
 
 == Discovering the Tower API
 
