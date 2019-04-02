@@ -1,0 +1,9 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Welcome to the web page!</title>
+  </head>
+  <body>
+    <p>This page is delivered by <strong>{{ ansible_host }}</strong>, running in <strong>{{ host_stage |default("some stage") }}</strong>.</p>
+  </body>
+</html>
