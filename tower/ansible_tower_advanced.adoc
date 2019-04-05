@@ -1206,21 +1206,23 @@ It should return the remote hosts only.
 
 It's a common part of the learning curve for Ansible and Ansible Tower: At some point you will have written so many playbooks that a need for structure comes up. Where to put the Playbooks, what about the Templates, Files and so on.
 
-The main reommendation is to put content in a version control system like Git or SVN. This comes naturally since Ansible code is usually in text form anyway, and thus can be managed easily. What structure works best of course highly depends on the individual requirements, but some common ground rules apply.
+The main reommendation is to put content in a version control system like Git or SVN. This comes naturally since Ansible code is usually in text form anyway, and thus can be managed easily. The other main recommendation is to group your code by logical units, called "link:https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html[roles]" in Ansible: have all code, config templates and files for the apache web server in one role, and all code, configuration and sql statements for the database in another role. That way the code becomes much better to read and handle, and roles can be made re-usable and shared between projects, teams or with the global community.
+
+Of course, what structure works best in the end depends on the individual requirements, but we will highlight some common ground rules which apply to almost all use cases.
 
 The first recommendation is to separate _specific code_ from _reusable code_ from _data_:
 
 specific code:: Playbooks and their direct dependencies which are not shared outside the realm of the project or team. 
 
-generic code:: All content that will be used across multiple projects. In most cases this consists of (https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html)[Ansible roles]. How a role itself is structured is (https://galaxy.ansible.com/docs/contributing/creating_role.html)[sufficiently described] and will not be part of this workshop. Instead we will focus on how to structure when multiple roles are used in parallel. 
+generic code:: All content that will be used across multiple projects. In most cases this consists of Ansible roles. How a role itself is structured is link:https://galaxy.ansible.com/docs/contributing/creating_role.html[sufficiently described] and will not be part of this workshop. Instead we will focus on how to structure when multiple roles are used in parallel.
 
-data:: This is mostly the inventory or the inventory scripts and the corresponding variables for hosts and groups. In many use cases it is advisable to have a dedicated inventory for each life-cycle environment. They can all be in the same Git repository, each in its own directory (e.g. dev, test, qa, prod). Alternatively, for example in larger environments or with dedicated teams per environment there can be one Git repository for each environment. How inventories are structured is (https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html)[sufficiently described] and is not part of this workshop. We recommend to put special focus on https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#splitting-out-host-and-group-specific-data[splitting out host and group data].
+data:: This is mostly the inventory or the inventory scripts and the corresponding variables for hosts and groups. In many use cases it is advisable to have a dedicated inventory for each life-cycle environment. They can all be in the same Git repository, each in its own directory (e.g. dev, test, qa, prod). Alternatively, for example in larger environments or with dedicated teams per environment there can be one Git repository for each environment. How inventories are structured is link:https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html[sufficiently described] and is not part of this workshop. We recommend to put special focus on link:https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#splitting-out-host-and-group-specific-data[splitting out host and group data].
 
 CAUTION: Be careful to _not_ one disjunct code repository for each environment. It would go against the purpose of testing the _same_ code as you push it through your life-cycle, only varying the data / inventory. If you have difficulties to keep the same code throughout all your environments we recommend to re-think the structure of cour code and what you put into your inventory.
 
-=== Main repository
+=== Example repository
 
-So, let's focus on the repository where you have the playbooks you'll call from within your Tower job templates. We recommend to have a structure somewhat similar to the one of a role, the structure has been thought out for a reason and this makes it easier to modularize your code once you decide to use roles. All of our recommendations are aligned to the (https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html#content-organization)[Ansible best practices] and are explained in more detail there.
+So, let's focus on the repository where you have the playbooks you'll call from within your Tower job templates. We recommend to have a structure somewhat similar to the one of a role, the structure has been thought out for a reason and this makes it easier to modularize your code once you decide to use roles. All of our recommendations are aligned to the link:https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html#content-organization[Ansible best practices] and are explained in more detail there.
 
 Since we want to store all content in a repository, we will first create and empty Git repository on our existing Gitea server. Access Gitea via
 
@@ -1235,46 +1237,185 @@ Login via the already well known credentials:
 * Set the *Repository Name*: structured-content
 * Click the button *Create Repository* at the end of the page.
 
-Next we will clone the repository on the control host.
+Next we will clone the repository on the control host. Since we are going to use command line git, we first need to add the ssh key of the user `ansible` to Gitea. In Gitea, click on your profile image in the right upper corner:
+
+* Pick *Settings*
+* Choose *SSH / GPG Keys*
+* Click on *Add Key*
+* *Key Name*: `ansible@control.example.com`
+
+In the *Content* field you need to add the SSH private key for the user `ansible`, similar to adding the key to a machine credential in Tower:
+
+* Bring up an SSH terminal on *control.example.com*, become user `ansible` and `cat` the SSH private key:
 
 ----
 [root@control ~]# su - ansible
-Letzte Anmeldung: Mittwoch, den 27. März 2019, 17:01:07 CET auf pts/1
-[ansible@control ~]$ git clone git@control.example.com:gitea-repositories/git/structured-content.git
+[ansible@control ~]$ cat .ssh/id_rsa
+----
+
+* Copy the complete private key (including "BEGIN" and "END" lines) and paste it into the *Content* field in the Gitea web UI.
+* Click *Add Key*
+
+Next, clone the repository on the control machine:
+
+----
+[root@control ~]# su - ansible
+Letzte Anmeldung: Montag, den 01. April 2019, 18:13:03 CEST auf pts/0
+[ansible@control ~]$ git clone git@control.example.com:/git/structured-content.git
 Cloning into 'structured-content'...
-git@control.example.com's password:
+LFS server support needs at least Git v2.1.2, disabled
 warning: You appear to have cloned an empty repository.
+[ansible@control ~]$ cd structured-content/
+[ansible@control structured-content]$ ls
+[ansible@control structured-content]$
+----
+
+The repository is currently empty. Next we are going to add some default directories and files:
+
+----
+[ansible@control structured-content]$ touch {staging,production}
+----
+
+This command creates two inventory files: in this case we have different stages and keep them separate with dedicated files. Note that those files are right now still empty and need to be filled with content to work properly.
+
+In the current setup we have two instances. Let's assume that the `host1` instances is part of the staging environment, and that the instance `host2` is part of the production environment. To reflect that in the inventory files, they have to look like the following:
+
+----
+[ansible@control structured-content]$ cat staging
+[staging]
+host1.example.com
+----
+
+----
+[ansible@control structured-content]$ cat production
+[production]
+host2.example.com
+----
+
+Next we add some more often needed default directories: first we add directories for host and group variables, and second we add a roles directory where the main part of our automation logic will be in. Most of the automation tasks should be organized in roles where it is possible and feasible.
+For demonstration purpose we also will add a library directory: it can contain Ansible code related to a project like custom modules, plugins, etc.
+
+----
 [ansible@control structured-content]$ mkdir -p {group_vars,host_vars,library,roles}
 ----
 
+Top better highlight how such a structure would look like we are going to add two roles. First we will create empty roles to fill in content later. Empty but already complete roles structures can easily be created with the command `ansible-galaxy`: it creates role skelletons with all appropriate files, directories and so on already in place.
+
 ----
-echo 'autocmd FileType yaml setlocal ai ts=2 sw=2 et' > files/vimrc
-echo 'Ansible has your machine under control, {{ ansible_user | default(\'someone\') }} wishes you welcome!' > templates/motd.j2
-for file in plays tasks tests vars; do touch ${file}/some${file}.yml; done
-touch top-level_playbook.yml
-touch roles/requirements.yml # <1>
-ansible-galaxy init --offline --init-path=roles somerole
+ansible-galaxy init --offline --init-path=roles security
+ansible-galaxy init --offline --init-path=roles apache
 ----
-<1> we explain in the next chapter what this is for.
 
-The directory `plays` is for playbooks you're not primarily planning to call directly but only via `import_playbook` in your top-level playbooks. Those top-level playbooks live in the root directory of your repository so that they are easy to find. A naming convention can help to understand the structure of your playbooks (e.g. something like `<nr>_<verb>_<object>.yml` as in `05_setup_webserver.yml`).
+IMPORTANT: Even if a good role is generally self-explanatory, the context and which one to use in which occasion generally isn't! That it makes sense to have a proper documentation. In terms of roles, the right way to document what it is about and what it is doing is the file ?meta/main.yml`.
 
-IMPORTANT: even if a good playbook is generally self-explanatory, the context and which one to use in which occasion generally isn't, so that it makes sense to have a top-level README-file (in whichever format) to explain this, as well as where to find the fitting inventory repositories.
+The roles are empty, so we need to add a few tasks to each. In the last chapters we set up an Apache system and used some security tasks to showcase some Ansible functions. Let's add that code to our roles:
 
-Call now `find .` (FIXME: or is tree installed?) to get a feel how a complete structure can look like.
+----
+[ansible@control structured-content]$ cat roles/apache/tasks/main.yml
+---
+# tasks file for apache
+- name: latest Apache version installed
+  yum:
+    name: httpd
+    state: latest
+- name: latest firewalld version installed
+  yum:
+    name: firewalld
+    state: latest
+- name: firewalld enabled and running
+  service:
+    name: firewalld
+    enabled: true
+    state: started
+- name: firewalld permits http service
+  firewalld:
+    service: http
+    permanent: true
+    state: enabled
+    immediate: yes
+- name: Apache enabled and running
+  service:
+    name: httpd
+    enabled: true
+    state: started
+----
+
+----
+[ansible@control structured-content]$ cat roles/security/tasks/main.yml
+---
+# tasks file for security
+- name: "HIGH | RHEL-07-010290 | PATCH | The Red Hat Enterprise Linux operating system must not have accounts configured with blank or null passwords."
+  replace:
+    dest: "{{ item }}"
+    follow: true
+    regexp: 'nullok ?'
+  with_items:
+    - /etc/pam.d/system-auth
+    - /etc/pam.d/password-auth
+
+- name: "MEDIUM | RHEL-07-010210 | PATCH | The Red Hat Enterprise Linux operating system must be configured to use the shadow file to store only encrypted representations of passwords."
+  lineinfile:
+    dest: /etc/login.defs
+    regexp: ^#?ENCRYPT_METHOD
+    line: "ENCRYPT_METHOD SHA512"
+
+- name: "SCORED | 1.1.1.2 | PATCH | Remove freevxfs module"
+  modprobe:
+    name: freevxfs
+    state: absent
+
+- name: "NOTSCORED | 1.2.5 | PATCH | Disable the rhnsd Daemon"
+  service:
+    name: rhnsd
+    state: stopped
+    enabled: no
+----
+
+
+ We also need to create a playbook to call the roles from. This is often call `site.yml`, since it keeps the main code for the setup of our environment.
+
+----
+[ansible@control structured-content]$ cat site.yml 
+---
+- name: Execute apache and security roles
+  hosts: all
+
+  roles:
+    - { role: apache}
+    - { role: security }
+----
+
+So we have prepared a basic structure for quite some content - call `tree` to look at it.
 
 +++ <details><summary> +++
 *>> _Click here to see how it should look like_ <<*
 +++ </summary><div> +++
 ----
-├── files
-│   └── vimrc
-├── plays
-│   └── someplays.yml
-├── README.md
+[ansible@control structured-content]$ tree
+.
+├── group_vars
+├── host_vars
+├── library
+├── production
 ├── roles
-│   ├── requirements.yml
-│   └── somerole
+│   ├── apache
+│   │   ├── defaults
+│   │   │   └── main.yml
+│   │   ├── files
+│   │   ├── handlers
+│   │   │   └── main.yml
+│   │   ├── meta
+│   │   │   └── main.yml
+│   │   ├── README.md
+│   │   ├── tasks
+│   │   │   └── main.yml
+│   │   ├── templates
+│   │   ├── tests
+│   │   │   ├── inventory
+│   │   │   └── test.yml
+│   │   └── vars
+│   │       └── main.yml
+│   └── security
 │       ├── defaults
 │       │   └── main.yml
 │       ├── files
@@ -1291,42 +1432,209 @@ Call now `find .` (FIXME: or is tree installed?) to get a feel how a complete st
 │       │   └── test.yml
 │       └── vars
 │           └── main.yml
-├── tasks
-│   ├── main.yml
-│   └── sometasks.yml
-├── templates
-│   └── motd.j2
-├── tests
-│   ├── inventory
-│   ├── sometests.yml
-│   └── test.yml
-├── top-level_playbook.yml
-└── vars
-    ├── main.yml
-    └── somevars.yml
+├── site.yml
+└── staging
 ----
 +++ </div></details> +++
 
-NOTE: you can also have `group_vars` and `host_vars` next to your playbook(s) so that the variables defined in those directories are implicitly read by Ansible. This is acceptable but not recommended as it generally amounts to break the separation of code from data.
-
-=== External roles
-
-Let's now assume that we also have external roles needed by our playbooks, those can either come from https://galaxy.ansible.com/[Ansible Galaxy] or, more commonly in an enterprise environment, directly from a (private) Git repository.
-
-This is where we put content in our `roles/requirements.yml` file like this:
+Since we so far created the code only locally on the control host, we need to add it to the repository and push it. First 
+Add the code to the repository and push it. Check in the GUI if the code is actually there.
 
 ----
-# Directly from Galaxy # FIXME: do we want this, or just as example?
+[ansible@control structured-content]$ git status
+# On branch master
+#
+# Initial commit
+#
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#	production
+#	roles/
+#	site.yml
+#	staging
+nothing added to commit but untracked files present (use "git add" to track)
+[ansible@control structured-content]$ git add production roles site.yml staging 
+[ansible@control structured-content]$ git commit -m "Adding inventories and apache security roles"
+[master (root-commit) d51f095] Adding inventories and apache security roles
+ 19 files changed, 285 insertions(+)
+ create mode 100644 production
+ create mode 100644 roles/apache/README.md
+ create mode 100644 roles/apache/defaults/main.yml
+ create mode 100644 roles/apache/handlers/main.yml
+ create mode 100644 roles/apache/meta/main.yml
+ create mode 100644 roles/apache/tasks/main.yml
+ create mode 100644 roles/apache/tests/inventory
+ create mode 100644 roles/apache/tests/test.yml
+ create mode 100644 roles/apache/vars/main.yml
+ create mode 100644 roles/security/README.md
+ create mode 100644 roles/security/defaults/main.yml
+ create mode 100644 roles/security/handlers/main.yml
+ create mode 100644 roles/security/meta/main.yml
+ create mode 100644 roles/security/tasks/main.yml
+ create mode 100644 roles/security/tests/inventory
+ create mode 100644 roles/security/tests/test.yml
+ create mode 100644 roles/security/vars/main.yml
+ create mode 100644 site.yml
+ create mode 100644 staging
+ [ansible@control structured-content]$ git push
+LFS server support needs at least Git v2.1.2, disabled
+Counting objects: 32, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (14/14), done.
+Writing objects: 100% (32/32), 4.03 KiB | 0 bytes/s, done.
+Total 32 (delta 1), reused 0 (delta 0)
+remote: LFS server support needs at least Git v2.1.2, disabled
+remote: LFS server support needs at least Git v2.1.2, disabled
+remote: LFS server support needs at least Git v2.1.2, disabled
+To git@control.example.com:/git/structured-content.git
+ * [new branch]      master -> master
+----
+
+=== Launch it!
+
+==== From command line
+
+The code can now be launched. We start at the command line: call the playbook `site.yml` with the appropriate inventory and also requesting privilege escalation: `ansible-playbook -i staging site.yml -b`. Watch how the changes are done to the target machines. Afterwards, execute it against the production stage: `ansible-playbook -i production site.yml -b`.
+
+==== From Tower
+
+The new repository needs to be added as project. Feel free to use the web UI or use *tower-cli* like shown below.
+
+----
+[root@control ~]# tower-cli project create -n "Structured Content Repository" \
+                    --organization Default \
+                    --scm-type git \
+                    --scm-url http://control.example.com/gitea/git/structured-content.git \
+                    --scm-clean 1 \
+                    --scm-update-on-launch 1 \
+                    --scm-credential "Gitea Credentials"
+----
+
+Since we have a staged inventory now embedded in the repository, how about we re-use that in Tower? It is possible to add inventory files provided in a repository as a source to an inventory!
+
+In your Tower web UI, open the *RESOURCES->Inventory* view. Then click the image:green_plus.png[20,20] button and choose to create a new *Inventory*. In the next view:
+
+* *NAME:* Structured Content Inventory
+* Click *SAVE*
+* Click the button *SOURCES* which is now active at the top
+* Click the image:green_plus.png[20,20] button
+* *NAME:* Production
+* *SOURCE:* Pick *Sourced from a Project*
+* In the now extended view, click on *Choose an inventory file*
+* In the drop down menu, pick *production*
+* Click the green *SAVE* button
+* Down below in the view, click the image:green_plus.png[20,20] button again
+* In the enw view, add as *NAME:* Staging
+* *SOURCE:* Pick *Sourced from a Project*
+* In the now extended view, click on *Choose an inventory file*
+* In the drop down menu, pick *staging*
+* Click the green *SAVE* button
+* In the screen below, click the sync button for both sources once so that the cloud icon on the left site next to the name of each inventory turns green.
+
+To make sure that the project based inventory works, click on the *HOSTS* button and see that two hosts are listed there.
+
+Now we will add ad template to execute the `site.yml` against both stages at the same time.
+
+TIP: Please note that in a real world use case you might want to have different templates to address the different stages separatly.
+
+Since adding anoter template is something you are quite familiar with by now, let's just use `tower-cli`:
+
+----
+[root@control ~]# tower-cli job_template create -n "Structured Content Execution" \
+                    --job-type run -i "Structured Content Inventory" \
+                    --project "Structured Content Repository" \
+                    --playbook "site.yml" \
+                    --credential "Example Credentials" \
+                    --become-enabled 1
+----
+
+Launch the playbook from within Tower and watch the results.
+
+=== Adding external roles
+
+So far we only structured content inside one repository. While this drastically reduces complexity already, the largest benefit is in sharing roles among multiple teams or departments and keep them in a central place. In this section we will show how to reference such shared roles in your code and execute them together on your behalf.
+
+In enterprise environments it is common to share roles via internal git repositories, often one git repository per role. If a role might be interesting and re-used by the world wide Ansible community, they can be shared on our central platform link:https://galaxy.ansible.com/[Ansible Galaxy]. The advantage of Ansible Galaxy is that it features basic automatic testing and community ratings to give the interested users an idea of the quality and reusability of a role.
+
+To use external roles in a project, they need to be referenced in a file called link:https://docs.ansible.com/ansible/latest/reference_appendices/galaxy.html#installing-multiple-roles-from-a-file[`roles/requirements.yml`], for example like this:
+
+----
+# Import directly from Galaxy
 - src: geerlingguy.nginx
-# From a Git repo # FIXME: do we already have a role to re-use?
+# Import from a local Git repository
 - src: http://control.example.com/gitea/git/external-role.git
   version: master
   name: external-role_locally
 ----
 
-As Tower checks out the Project, it will also pull the roles listed in `roles/requirements.yml` and put them in the `roles` directory so that they can be used in your playbooks.
+The `requirements.yml` needs to be read - either on the command line by invocing `ansible-galaxy`, or automatically by Ansible Tower during project check outs. In both cases the file is read, and the roles are checked out and stored locally, and the roles can be called in playbooks. The advantage of Tower here is that it takes care of all that - including authorization to the Git repo, finding a proper place to store the role, updating it when needed and so on. Due to that reasons we will focus only on the Tower execution here.
 
-TODO:: put some concrete examples behind those words and show that it works. @Roland: can you take care of this?
+In this example, we will include a role which ships a simple `index.html` file as template and reloads the apache web server. The role is shared in Gitea at link:http://control.example.com/gitea/git/shared-apache-role .
+
+To include it with the existing structured content, first we have to create a file called `roles/requirements.yml` and reference the role there:
+
+----
+[ansible@control structured-content]$ cat roles/requirements.yml 
+- src: http://control.example.com/gitea/git/shared-apache-role.git
+  scm: git
+  version: master
+----
+
+TIP: In a production environment you may want to change the version to a fixed version or tag, to make sure that only tested and verified code is checked out and used. But this strongly depends on how you develop your code and which branching model you use.
+
+Here we add the source for the role and identify the type of source control.
+
+Next, we reference the role itself in our playbook:
+
+----
+[ansible@control structured-content]$ cat site.yml 
+---
+- name: Execute apache and security roles
+  hosts: all
+
+  roles:
+    - { role: apache}
+    - { role: security } 
+    - { role: shared-apache-role }
+----
+
+Do not forget to add, commit and push the changes!
+
+----
+[ansible@control structured-content]$ git add site.yml roles/
+[ansible@control structured-content]$ git commit -m "Add roles/requirements.yml referencing shared role"
+[master 3b87fda] Add roles/requirements.yml referencing shared role
+ 2 files changed, 3 insertions(+)
+ create mode 100644 roles/requirements.yml
+[ansible@control structured-content]$ git push
+LFS server support needs at least Git v2.1.2, disabled
+Counting objects: 8, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (5/5), 621 bytes | 0 bytes/s, done.
+Total 5 (delta 1), reused 0 (delta 0)
+remote: LFS server support needs at least Git v2.1.2, disabled
+remote: LFS server support needs at least Git v2.1.2, disabled
+remote: LFS server support needs at least Git v2.1.2, disabled
+To git@control.example.com:/git/structured-content.git
+   596b014..3b87fda  master -> master
+[ansible@control structured-content]$ 
+----
+
+=== Launch in Tower
+
+Just in case, make sure to update the Project in Tower: in the menu at *RESOURCES*, pick *Projects*, and click on the sync button next to *Structured Content Repository*.
+
+Afterwards, go to *RESOURCES*->*Templates* and launch the *Structured Content Execution* job template. As you will see in the job output, the external role is called just the way the other roles are called:
+
+----
+TASK [shared-apache-role : deploy content] *************************************
+changed: [host2.example.com]
+changed: [host1.example.com]
+----
+
+And you are done. You successfully used a shared role provided from a central source and used it integrated into your automation code. This way, you can limit your automation code to things really relevant and individual to you and your environment, while everything shreable is consumed from a shared resource.
 
 == Discovering the Tower API
 
