@@ -1289,19 +1289,21 @@ The main recommendations are:
 
 Of course, what structure works best in the end depends on the individual requirements, but we will highlight some common ground rules which apply to almost all use cases.
 
-The first recommendation is to separate _specific code_ from _reusable code_ from _data_:
+The first recommendation is to separate _specific code_ from _reusable/generic code_ from _data_:
 
 specific code:: Playbooks and their direct dependencies which are not shared outside the realm of the project or team. 
 
-generic code:: All content that will be used across multiple projects. In most cases this consists of Ansible roles. How a role itself is structured is link:https://galaxy.ansible.com/docs/contributing/creating_role.html[sufficiently described] and will not be part of this workshop. Instead we will focus on how to structure when multiple roles are used in parallel.
+generic code:: All content that will be used across multiple projects. 
 
-data:: This is mostly the inventory or the inventory scripts and the corresponding variables for hosts and groups. In many use cases it is advisable to have a dedicated inventory for each life-cycle environment. They can all be in the same Git repository, each in its own directory (e.g. dev, test, qa, prod). Alternatively, for example in larger environments or with dedicated teams per environment there can be one Git repository for each environment. How inventories are structured is link:https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html[sufficiently described] and is not part of this workshop. We recommend to put special focus on link:https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#splitting-out-host-and-group-specific-data[splitting out host and group data].
+data:: This is mostly the inventory or the inventory scripts and the corresponding variables for hosts and groups. In many use cases it is advisable to have a dedicated inventory for each life-cycle environment. 
 
-CAUTION: Be careful to _not_ one disjunct code repository for each environment. It would go against the purpose of testing the _same_ code as you push it through your life-cycle, only varying the data / inventory. If you have difficulties to keep the same code throughout all your environments we recommend to re-think the structure of cour code and what you put into your inventory.
+TIP: Data content files can be in the same Git repository, each in its own directory (e.g. dev, test, qa, prod). Alternatively, for example in larger environments or with dedicated teams per environment there can be one Git repository for each environment. We recommend to put special focus on link:https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#splitting-out-host-and-group-specific-data[splitting out host and group data].
+
+CAUTION: Be careful to _not_ have separate code repositories for each environment. It would go against the purpose of testing the _same_ code as you push it through your life-cycle, only varying the data / inventory. If you have difficulties to keep the same code throughout all your environments we recommend to re-think the structure of cour code and what you put into your inventory.
 
 === Example repository
 
-So, let's focus on the repository where you have the playbooks you'll call from within your Tower job templates. We recommend to have a structure somewhat similar to the one of a role, the structure has been thought out for a reason and this makes it easier to modularize your code once you decide to use roles. All of our recommendations are aligned to the link:https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html#content-organization[Ansible best practices] and are explained in more detail there.
+So, let's get started with an example. The content and repo-structure in this lab is aligned to the link:https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html#content-organization[Ansible best practices] and is explained in more detail there.
 
 Since we want to store all content in a repository, we will first create an empty Git repository on our Gitea server. Access the Gitea web UI via
 
@@ -1320,23 +1322,19 @@ Next we will clone the repository on the control host. To enable you to work wit
 
 ----
 [root@control ~]# su - ansible
-Letzte Anmeldung: Montag, den 01. April 2019, 18:13:03 CEST auf pts/0
 [ansible@control ~]$ git clone git@control.example.com:/git/structured-content.git
-Cloning into 'structured-content'...
-LFS server support needs at least Git v2.1.2, disabled
-warning: You appear to have cloned an empty repository.
 [ansible@control ~]$ cd structured-content/
-[ansible@control structured-content]$ ls
-[ansible@control structured-content]$
 ----
 
-The repository is currently empty. Next we are going to add some default directories and files:
+TIP: The repository is currently empty. 
+
+you are now going to add some default directories and files:
 
 ----
 [ansible@control structured-content]$ touch {staging,production}
 ----
 
-This command creates two inventory files: in this case we have different stages and keep them separate with dedicated files. Note that those files are right now still empty and need to be filled with content to work properly.
+This command creates two inventory files: in this case we have different stages with different hosts which we keep them in separate inventory files. Note that those files are right now still empty and need to be filled with content to work properly.
 
 In the current setup we have two instances. Let's assume that `host1.example.com` is part of the staging environment, and `host2.example.com` is part of the production environment. To reflect that in the inventory files, edit the two empty inventory files to look like this:
 
@@ -1499,42 +1497,12 @@ So we have prepared a basic structure for quite some content - call `tree` to lo
 ----
 +++ </div></details> +++
 
-Since we so far created the code only locally on the control host, we need to add it to the repository and push it. 
+Since we so far created the code only locally on the control host, we need to add it to the repository and push it:
 
 ----
 [ansible@control structured-content]$ git add production roles site.yml staging 
-
 [ansible@control structured-content]$ git commit -m "Adding inventories and apache security roles"
-[master (root-commit) d51f095] Adding inventories and apache security roles
- 19 files changed, 285 insertions(+)
- create mode 100644 production
- create mode 100644 roles/apache/README.md
- create mode 100644 roles/apache/defaults/main.yml
- create mode 100644 roles/apache/handlers/main.yml
- create mode 100644 roles/apache/meta/main.yml
- create mode 100644 roles/apache/tasks/main.yml
- create mode 100644 roles/apache/tests/inventory
- create mode 100644 roles/apache/tests/test.yml
- create mode 100644 roles/apache/vars/main.yml
- create mode 100644 roles/security/README.md
- create mode 100644 roles/security/defaults/main.yml
- create mode 100644 roles/security/handlers/main.yml
- create mode 100644 roles/security/meta/main.yml
- create mode 100644 roles/security/tasks/main.yml
- create mode 100644 roles/security/tests/inventory
- create mode 100644 roles/security/tests/test.yml
- create mode 100644 roles/security/vars/main.yml
- create mode 100644 site.yml
- create mode 100644 staging
-
 [ansible@control-dff2 structured-content]$ git push
-Counting objects: 32, done.
-Delta compression using up to 2 threads.
-Compressing objects: 100% (14/14), done.
-Writing objects: 100% (32/32), 4.06 KiB | 0 bytes/s, done.
-Total 32 (delta 1), reused 0 (delta 0)
-To git@control.example.com:/git/structured-content.git
- * [new branch]      master -> master
 ----
 
 Why not head over to Gitea's web UI to make sure the files are there?
