@@ -74,26 +74,35 @@ TIP: The Appendix contains some installation considerations and an installer inv
 
 For the first contact to your cluster open your browser and login to all three nodes web UIs (you'll have to accept the self-signed certificates):
 
-WARNING: Replace the *<REPL>* string with your GUID!
+WARNING: Replace the *<GUID>* string with your GUID!
 
-* *https://tower1-<REPL>.rhpds.opentlc.com*
-* *https://tower2-<REPL>.rhpds.opentlc.com*
-* *https://tower3-<REPL>.rhpds.opentlc.com*
+* *\https://tower1-<GUID>.rhpds.opentlc.com*
+* *\https://tower2-<GUID>.rhpds.opentlc.com*
+* *\https://tower3-<GUID>.rhpds.opentlc.com*
 
 Just from the web UI you wouldn't know you've got a Tower cluster at your hands here. To learn more about your cluster and it's state, in one of the instances web UI under *ADMINISTRATION* choose *Instance Groups*. Here you will get an overview of the cluster by instance groups. Explore the information provided, of course there is no capacity used yet and no Jobs have run.
 
-From this view you can already see the instance count is three, click on *INSTANCES* to get more information about your cluster's Tower instances. In the instances view you can toggle nodes off/online and adjust the number of forks.
+Right now we have three instance groups named *dev*, *prod* and *tower*. In a freshly installed Tower install you would only find one, *tower*. From this view you can also see how the instance are distributed over the groups. 
 
-Note right now we have only one *INSTANCE GROUP* named *tower*. This is the default in a freshly installed Tower cluster, we'll extend this later.
+To dig deeper, for every group, click on *INSTANCES* to get more information about the instances allocated to a group. In the instances view you can toggle nodes off/online and adjust the number of forks. You'll learn more about this later.
 
 === Access you Tower Cluster via SSH
 
-You can also get information about your cluster on the command line. In a terminal window, bring up an SSH session to your control host using the external hostname (replace the <GUID> string):
+You can also get information about your cluster on the command line. Open a terminal window and start an SSH session to your control host using the external hostname (replace the <GUID> string, key authentication should work automatically):
 
 ----
-# ssh root@control-<GUID>.rhpds.opentlc.com
+# ssh lab-user@control-<GUID>.rhpds.opentlc.com
 ----
 
+Then become root:
+----
+[lab-user@control-<GUID> ~]$ sudo -i
+[root@control-<GUID> ~]# 
+----
+
+TIP: Remember the control host is named *control-<GUID>.rhpds.opentlc.com* when accessed from the outside, inside the lab environment you can use *control.example.com*.
+
+WARNING: We'll leave out the *<GUID>* part of the prompt from now on for readability.
 
 From `control.example.com` jump to one of the Tower instances, e.g.:
 
@@ -105,14 +114,19 @@ And run the following command:
 
 ----
 [root@tower1 ~]# awx-manage list_instances
-[tower capacity=177]
-  tower1.example.com capacity=59 version=3.4.1 heartbeat="2019-02-26 15:00:25"
-  tower3.example.com capacity=59 version=3.4.1 heartbeat="2019-02-26 15:00:15"
-  tower2.example.com capacity=59 version=3.4.1 heartbeat="2019-02-26 15:00:07"
+[tower capacity=171]
+	tower2.example.com capacity=57 version=3.4.1 heartbeat="2019-04-05 12:00:38"
+	tower1.example.com capacity=57 version=3.4.1 heartbeat="2019-04-05 11:59:58"
+	tower3.example.com capacity=57 version=3.4.1 heartbeat="2019-04-05 12:00:41"
 
+[prod capacity=57]
+	tower3.example.com capacity=57 version=3.4.1 heartbeat="2019-04-05 12:00:41"
+
+[dev capacity=57]
+	tower2.example.com capacity=57 version=3.4.1 heartbeat="2019-04-05 12:00:38"
 ----
 
-So what we got is an three-node Tower cluster, no surprises here. In addition the command tells us the capacity (maximum number of forks/concurrent jobs) per node and for the whole cluster. 
+So what we've got is a three-node Tower cluster, no surprises here. In addition the command tells us the capacity (maximum number of forks/concurrent jobs) per node and for the instance groups. Here the capacity value of 57 is allocated to any of our three nodes. 
 
 TIP: The *awx-manage* (formerly tower-manage) utility can be used to administer a lot of the more internal aspects of Tower. You can e.g. use it to clean up old data, for token and session management and for cluster management.
 
@@ -183,7 +197,7 @@ To practice your *tower-cli* skills, here is a challenge:
 
 * Try to change the *idle time out* of the Tower web UI, it's 1800 seconds by default. Set it to, say, 7200. Using *tower-cli*, of course.
 
-* Start by looking for a resource type *tower-cli* provides using *--help* that sounds like it has something to do with changing config settings.
+* Start by looking for a resource type *tower-cli* provides using *--help* that sounds like it has something to do with changing settings.
 
 * Look at the available *tower-cli* commands for this resource type.
 
@@ -193,12 +207,18 @@ TIP: The configuration parameter is called *SESSION_COOKIE_AGE*
 
 WARNING: *SOLUTION BELOW!*
 
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
 ----
 [root@control ~]# tower-cli setting
 [root@control ~]# tower-cli setting get SESSION_COOKIE_AGE
 [root@control ~]# tower-cli setting modify SESSION_COOKIE_AGE 7200
 [root@control ~]# tower-cli setting get SESSION_COOKIE_AGE
 ----
+
++++ </div></details> +++
 
 If you want to, go to the web UI and check the setting under *ADMINISTRATION->Settings->System*.
 
@@ -212,26 +232,36 @@ But we don't want you to go to the web UI to configure your Ansible automation o
 
 First create a static inventory, we'll get to dynamic inventories later on. Try to figure out the proper invocation of *tower-cli* yourself and create an inventory name *Example Inventory* (yup, very creative, we know).
 
-TIP: *tower-cli* behaves pretty UNIXy, just use *--help* to get down to the needed command.
+TIP: Remember how you used the *tower-cli* help to get down to the needed command.
 
 WARNING: *Solution Below*!
+
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
 
 ----
 [root@control ~]# tower-cli inventory create --name "Example Inventory" --organization "Default"
 ----
 
++++ </div></details> +++
+
 ==== Add Hosts to the Inventory using *tower-cli*
 
 Now that we have the empty inventory created, add your two managed hosts *host1.example.com* and *host2.example.com*, again using *tower-cli*.
 
-TIP: Use *tower-cli* to get the resources you can use it on, then (in this case) *tower-cli host --help* and finally get the proper invocation help with *tower-cli host create --help*.
-
 WARNING: *Solution Below*!
+
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
 
 ----
 [root@control ~]# tower-cli host create --name "host1.example.com" --inventory "Example Inventory"
 [root@control ~]# tower-cli host create --name "host2.example.com" --inventory "Example Inventory"
 ----
+
++++ </div></details> +++
 
 ==== Add Hosts using *awx-manage*
 
@@ -268,8 +298,6 @@ Use *awx-manage* on the Tower node to add the hosts to your *Imported Inventory*
     2.876 INFO     Inventory import completed for  (Example Inventory - 6) in 1.1s
 ----
 
-Now go to the web UI of all three Tower nodes and check your *Example Inventory* and *Imported Inventory* exist and both contains the two hosts.
-
 === Create Machine Credentials
 
 TIP: SSH keys have already been created and distributed in your lab environment and `sudo` has been setup on the managed hosts to allow password-less login for user *ansible* on *control.example.com*.
@@ -290,12 +318,15 @@ As we are using SSH key authentication, you have to provide an SSH private key t
 ----
 [root@control ~]# su - ansible
 [ansible@control ~]$ cat .ssh/id_rsa
+[ansible@control ~]$ exit
 ----
 
 * Copy the complete private key (including "BEGIN" and "END" lines) and paste it into the *SSH PRIVATE KEY* field in the web UI.
 * Click *SAVE*
 
 You have now set up credentials to use later for your inventory hosts.
+
+WARNING: As the *tower-cli* commands get longer you'll find we use the back-slash for line wraps to make the commands readable. You can copy the examples or use them without the \ on one line, of course. 
 
 === Using Git for Software Configuration Management (SCM)
 
@@ -317,7 +348,41 @@ To configure and use this repository as a *Source Control Management (SCM)* syst
 
 Create credentials again, this time to access the Git repository over HTTP. This credential is user/password based, so feel free to use the web UI again or find out how to use *tower-cli* to create it.
 
-In the Tower web UI go to *Resources->Credentials*. Now:
+Create credentials with this parameters:
+
+* *Type:* Source Control
+* *Name:* Gitea Credentials
+* *Username:* git
+* *Password:* r3dh4t1!
+* *Organization:* Default
+
+==== Using *tower-cli*:
+
+* Use the *--help* function to find the needed arguments
+* Hints: The credential type name is *Source Control*, as *inputs* you need *user* and *password*.
+
+WARNING: *SOLUTION BELOW!*
+
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
+----
+[root@control ~]# tower-cli credential create --credential-type="Source Control" \
+                    --name="Gitea Credentials" \
+                    --inputs='{"username": "git", "password": "r3dh4t1!"}' \
+                    --organization="Default"
+----
+
++++ </div></details> +++
+
+==== Using the web UI
+
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
+In one of the Tower web UI go to *Resources->Credentials*. Now:
 
 * Click the image:green_plus.png[20,20] button to add new credentials
 * *NAME*: Gitea Credentials
@@ -329,24 +394,49 @@ TIP: You will have to change the page in the *SELECT CREDENTIAL TYPE* window.
 * *PASSWORD*: r3dh4t1!
 * Click *SAVE*
 
-If you want to use *tower-cli*:
++++ </div></details> +++
 
-* Use the help function to find the needed arguments
-* The credential type is "Source Control", as "inputs" you need "user" and "password"
+=== Create the Project
+
+Now with the SCM credentials configured, either in one of the web UI or using *tower-cli* create a *Project* for the *apache* Gitea repository. The parameters are:
+
+* *Name:* Apache
+* *SCM TYPE:* Git
+* *SCM URL:* \http://control.example.com/gitea/git/apache.git
+* *SCM Credentials:* Gitea Credentials
+* *Organization:* Default
+* Set all SCM update options to *true*  
+* Make *tower-cli* wait until finished
+
+==== Using *tower-cli* on the control host
+
+Try on your own!
 
 WARNING: *SOLUTION BELOW!*
 
-----
-[root@control ~]# tower-cli credential create --credential-type="Source Control" \
-                    --name="Gitea Credentials" \
-                    --inputs='{"username": "git", "password": "r3dh4t1!"}' \
-                    --organization="Default"
-----
-=== Create the Project
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
 
-Now with the SCM credentials configured, either in the web UI or using *tower-cli* create a *Project* for one of your Gitea repositories.
+----
+[root@control ~]# tower-cli project create --name="Apache" \
+                    --scm-type=git \
+                    --scm-url="http://control.example.com/gitea/git/apache.git" \
+                    --scm-credential="Gitea Credentials" \
+                    --organization "Default" \
+                    --scm-clean=true --scm-delete-on-update=true --scm-update-on-launch=true \
+                    --wait
+----
+
++++ </div></details> +++
 
 ==== In the web UI
+
+WARNING: *SOLUTION BELOW!*
+
++++ <details><summary> +++
+*>> _Click here if you really want to see the web ui stuff_ <<*
++++ </summary><div> +++
 
 * Go to *Projects* in the side menu view click the image:green_plus.png[20,20] button. Fill in the form:
 
@@ -361,17 +451,7 @@ Now you need the HTTP URL to access the repo. Go to the Gitea web UI, choose the
 * *SCM UPDATE OPTIONS:* Tick all three boxes to always get a fresh copy of the repository and to update the repository when launching a job.
 * Click *SAVE*
 
-==== Or Using *tower-cli* on the control host
-
-----
-[root@control ~]# tower-cli project create --name="Apache" \
-                    --scm-type=git \
-                    --scm-url="http://control.example.com/gitea/git/apache.git" \
-                    --scm-credential="Gitea Credentials" \
-                    --organization "Default" \
-                    --scm-clean=true --scm-delete-on-update=true --scm-update-on-launch=true \
-                    --wait
-----
++++ </div></details> +++
 
 TIP: The new Project will be synced after creation automatically.
 
@@ -381,7 +461,40 @@ TIP: Remember you can use `control.example.com` as hostname in *SCM URL* because
 
 Before running an Ansible *Job* from your Tower cluster you must create a *Job Template*, again business as usual for Tower users.
 
-==== In the Web UI
+Use these parameters:
+
+* *Name:* Install Apache
+* *Inventory:* Example Inventory
+* *Credentials:* Example Credentials
+* *Project:* Apache
+* *Playbook:* apache_install.yml
+* Enable privilege escalation
+
+==== Using *tower-cli*
+
+WARNING: *SOLUTION BELOW!*
+
++++ <details><summary> +++
+*>> _Click here for the solution_ <<*
++++ </summary><div> +++
+
+----
+[root@control ~]# tower-cli job_template create \
+                    --name="Install Apache" \
+                    --inventory="Example Inventory" \
+                    --credential="Example Credentials" \
+                    --project=Apache \
+                    --playbook=apache_install.yml \
+                    --become-enabled="yes"
+----
+
++++ </div></details> +++
+
+==== Or In the Web UI
+
++++ <details><summary> +++
+*>> _Click here if you really want to see the web ui stuff_ <<*
++++ </summary><div> +++
 
 * Go to *Templates* in the *RESOURCES* section of the menu, click the image:green_plus.png[20,20] button and choose *Job Template*.
 
@@ -394,42 +507,41 @@ Before running an Ansible *Job* from your Tower cluster you must create a *Job T
 ** We need to run the tasks as root so check *Enable privilege escalation*
 ** Click *SAVE*
 
-==== Or Using *tower-cli*
-
-----
-[root@control ~]# tower-cli job_template create \
-                    --name="Install Apache" \
-                    --inventory="Example Inventory" \
-                    --credential="Example Credentials" \
-                    --project=Apache \
-                    --playbook=apache_install.yml \
-                    --become-enabled="yes"
-----
++++ </div></details> +++
 
 === It's a Cluster After All
 
-So far nothing special regarding the objects you need to use Tower to run Ansible automation. But we are working in a clustered environment. Login to the other Tower instances Web UIs (the ones you didn't configured the inventory and credentials on). 
+So far nothing special regarding the Ansible Tower objects you created. But we are working in a clustered environment. Login to the other Tower instances Web UIs (the ones you didn't configured the inventory and credentials on). 
 
 Have a good look around, everything we configured on one Tower instance was *synced automatically* to the other nodes. Inventory, credentials, projects, templates, all there.
 
 === Run a Job
 
-Now you are ready to start a job in your Tower cluster. In the web UI's *Templates* view select the new Job Template and run it by clicking the rocket icon. Again this is at first not different from a standard Tower.
+Now you are ready to start a job in your Tower cluster. In one of the web UI's *Templates* view select the new Job Template and run it by clicking the rocket icon. Again this is at first not different from a standard Tower.
 
-But as this is a cluster of active nodes every node could have run the job. And the Job output in Tower's web UI doesn't tell you where it run, just the instance group.
+TIP: But as this is a cluster of active Tower instances every instance could have run the job. And the Job output in Tower's web UI doesn't tell you where it run, just the instance group.
 
 ==== So what Instance run the Job?
 
-In one of the Tower instances web UI under *ADMINISTRATION* go to the *Instance Groups* view. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs.
+In one of the Tower instances web UI under *ADMINISTRATION* go to the *Instance Groups* view. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs. You should see four jobs. Why? Three times the SCM Update on every node and then the actual Playbook run.
 
-To see on what instance a job actually run go back to the *Instance Groups* view. If you click *INSTANCES* under the *tower* group, you will get an overview of the *TOTAL JOBS* each Tower instance executed which leads to the job list again.
+To see on what instance a job actually run go back to the *Instance Groups* view. If you click *INSTANCES* under the *tower* group, you will get an overview of the *TOTAL JOBS* each Tower instance in this group executed. Clicking *TOTAL JOBS* for an instance leads to a detailed job list.
 
-But it would still be nice to see where a job run (not the other way round) and to get an idea how jobs are distributed to the available instances. For this we can utilize the API.
+===== But I just want to know on which Instance my Job Run!
 
-First find the job ID, in the web UI it prefixes the job name as shown in the job list. With the ID you can query the API for the instance/node the job was executed on:
+But it would still be nice to see where a job run (not the other way round) and to get an idea how jobs are distributed to the available instances. For this we can utilize the API:
 
+* First find the job ID: In the web UI access *VIEWS->Jobs*
+* The jobs names are prefixed with the job ID, example *3 - Install Apache* 
+* With the ID you can query the API for the instance/node the job was executed on
+
+Bring up the SSH session on your control host and run:
+
+WARNING: Replace <ID> with the job ID you want to query!
+
+[subs=+quotes]
 ----
-[root@control ~]# curl -s -k -u admin:r3dh4t1! https://tower2.example.com/api/v2/jobs/71/ | python -m json.tool | grep execution_node
+[root@control ~]# curl -s -k -u admin:r3dh4t1! https://tower2.example.com/api/v2/jobs/*<ID>*/ | python -m json.tool | grep execution_node
     "execution_node": "tower1.example.com",
 ----
 
@@ -439,17 +551,18 @@ TIP: You can use any method you want to access the API and to display the result
 
 Another way to query the Tower API is using a browser. For example to have a look at the job details (basically what you did above using curl and friends):
 
-* Find the job you just executed in *\https://tower1-<GUID>.rhpds.opentlc.com/#/jobs* and remember the job number/ID. 
-* Now get the job details via the API interface: open the URL *\https://tower1-<GUID>.rhpds.opentlc.com/api/v2/jobs/<NUMBER>/* where `<NUMBER>` is the number of the job you just looked up in the UI. 
-* Search the page for the string you are interested in, e.g. `execution_node`, the tower instance on which the job was executed is listed there.
+* Find the job ID
+* Now get the job details via the API interface: 
+** Open the URL *\https://tower1-<GUID>.rhpds.opentlc.com/api/v2/jobs/<ID>/* where `<ID>` is the number of the job you just looked up in the UI. 
+** Search the page for the string you are interested in, e.g. `execution_node`
 
 TIP: You can of course query any Tower node.
 
 == Tower Instance Groups
 
-Ansible Tower clustering allows you to easily add capacity to your Tower infrastructure by adding nodes. What it doesn't allow is to dedicate capacity or nodes to a purpose, be it a group of people, a department or a location. 
+Ansible Tower clustering allows you to easily add capacity to your Tower infrastructure by adding instances. What it doesn't allow is to dedicate capacity or nodes to a purpose, be it a group of people, a department or a location. 
 
-In a single-group Tower cluster where all nodes are within the `tower` group there is no way to influence what node will run a job, as you saw the cluster will take care of scheduling Jobs on nodes as it sees fit.
+In a single-group Tower cluster where all instances are within the `tower` group there is no way to influence what node will run a job, the cluster will take care of scheduling Jobs as it sees fit.
 
 To enable more control over what node is running a job, Tower 3.2 saw the introduction of the instance groups feature. Instance groups allow you to organize your cluster nodes into groups. In turn Jobs can be assigned to Instance Groups by configuring the Groups in Organizations, Inventories or Job Templates.
 
@@ -460,10 +573,10 @@ Some things to keep in mind about Instance Groups:
 * Nodes in an Instance Group share a job queue
 * You can have as many Instance Groups as you like as long as there is at least one node in the `tower` group
 * Nodes can be in one or more Instance Groups
-* Group can not be named `instance_group_tower`!
+* Groups can not be named `instance_group_tower`!
 * Tower instances can't have the same name as a group
 
-This allows for some pretty cool setups, e.g. you could have some nodes shared over the whole cluster (by putting them into all groups) but then have other nodes that are dedicated to one group to reserve some capacity.
+Instance Groups allows for some pretty cool setups, e.g. you could have some nodes shared over the whole cluster (by putting them into all groups) but then have other nodes that are dedicated to one group to reserve some capacity.
 
 WARNING: The base `tower` group does house keeping like processing events from jobs for all groups so the node count of this group has to scale with your overall cluster load, even if these nodes are not used to run Jobs.
 
@@ -471,40 +584,21 @@ Talking about the `tower` group: As you have learned this group is crucial for t
 
 WARNING: It is important to have enough nodes in the `tower` group
 
-TIP: Here is a really great blog post going into Instance Groups with a lot more depth: https://www.ansible.com/blog/ansible-tower-feature-spotlight-instance-groups-and-isolated-nodes.
+TIP: Here is a great blog post going into Instance Groups with a lot more depth: https://www.ansible.com/blog/ansible-tower-feature-spotlight-instance-groups-and-isolated-nodes.
 
-=== Creating Instance Groups
+=== Instance Group Setup
 
-Having the introduction out of the way, let's get back to our lab and give Instance Groups a try. First have a look at our setup as described in the installers inventory file. In your SSH session on the control host change into the Ansible installer directory and do the following:
+Having the introduction out of the way, let's get back to our lab and give Instance Groups a try. First have a look at your Tower configuration as described in the installers inventory file. In your SSH session on the control host change into the Ansible installer directory and do the following:
 
+[subs=+quotes]
 ----
 [root@control ~]# cd ansible-tower-setup-bundle-3.4.1-1.el7/
-[root@control ansible-tower-setup-bundle-3.4.1-1.el7]# cat inventory
+[root@control-dff2 ansible-tower-setup-bundle-3.4.1-1.el7]# cat inventory
+
 [tower]
 tower1.example.com
 tower2.example.com
 tower3.example.com
-
-[database]
-towerdb.example.com
-
-[...]
-----
-
-In this basic cluster setup we just have the `tower` base group. Let's configure two new Instance groups and add Tower instances. As an example scenario we'll take one node out of the `tower` group and share another node between groups.
-
-WARNING: This is not best practice, it's just for the sake of this lab! Any jobs that are launched targeting a group without active nodes will be stuck in a waiting state until instances become available. So one-instance groups are never a good idea.
-
-The global tower group can still be associated with a resource. This can be used to specify a preferred instance group on the job template or inventory, but still allow the job to be submitted to any instance if the Tower(s) of the preferred group are out of capacity.
-
-TIP: Instance groups are prefixed with `instance_group_`. 
-
-Using your favorite editor adapt the `inventory` file to add the inventory groups. Afterwards it should look like this:
-
-----
-[tower]
-tower1.example.com
-tower2.example.com
 
 *[instance_group_prod]
 tower3.example.com
@@ -512,54 +606,21 @@ tower3.example.com
 [instance_group_dev]
 tower2.example.com*
 
-[database]
-towerdb.example.com
-
-[all:vars]
-ansible_become=true
-
-admin_password='r3dh4t1!'
-
-pg_host='towerdb.example.com'
-pg_port='5432'
-
-pg_database='tower'
-pg_username='tower'
-pg_password='r3dh4t1!'
-
-rabbitmq_port=5672
-rabbitmq_vhost=tower
-rabbitmq_username=tower
-rabbitmq_password='r3dh4t1!'
-rabbitmq_cookie=rabbitmqcookie
-
-# Isolated Tower nodes automatically generate an RSA key for authentication;
-# To disable this behavior, set this value to false
-# isolated_key_generation=true
+[...]
 ----
 
-WARNING: Make sure you only change the groups above the `[database]` section!
+In a basic cluster setup you would just have the `[tower]` base group. In this lab environment two more Instance Groups where already configured, they are marked in bold:
 
-After editing the inventory, you are ready to run he installer to make the desired changes. But before have a look at the instance groups using *tower-cli*:
+* All instances are in the *tower* base group
+* Two more groups (*prod* and *dev*) with one instances each where setup
 
-----
-[root@control ~]# tower-cli instance_group list
-== ===== ======== =================
-id name  capacity consumed_capacity
-== ===== ======== =================
- 1 tower      171                 0
-== ===== ======== =================
-----
+TIP: Instance groups are prefixed with `instance_group_`.
 
-Okay, now start the Tower installer to create the instance groups. This can take a couple of minutes, just sit back and enjoy the show.
-
-----
-[root@control ansible-tower-setup-bundle-3.4.1-1.el7]# ./setup.sh
-----
+WARNING: This is not best practice, it's just for the sake of this lab! Any jobs that are launched targeting a group without active nodes will be stuck in a waiting state until instances become available. So one-instance groups are never a good idea.
 
 === Verify Instance Groups
 
-After the installer has finished, verify the instance groups where created as planned. This can be done using different ways.
+You can check your instance groups in a number of ways.
 
 ==== Via cli
 
@@ -576,7 +637,7 @@ id name  capacity consumed_capacity
 
 ==== Via API
 
-You can again query the API to get this information. Either use the browser to access the URL `\https://tower1-REPL.rhpds.opentlc.com/api/v2/instance_groups/` or use curl to access the API from the command line:
+You can again query the API to get this information. Either use the browser to access the URL `\https://tower1-<GUID>.rhpds.opentlc.com/api/v2/instance_groups/` or use curl to access the API from the command line:
 
 ----
 [root@control ~]# curl -s -k -u admin:r3dh4t1! https://tower2.example.com/api/v2/instance_groups/| python -m json.tool
@@ -638,7 +699,7 @@ The real power of instance groups is revealed when multiple jobs are started, an
 
 During this lab we'll focus on security compliance according to STIG, CIS and so on. Often these compliance rules are enforced by executing an Ansible task per each requirement. This makes documentation and audit easier. 
 
-Compliance requirements are often grouped into independent categories. The tasks of those can often be executed in parallel because they do not conflict with each other. 
+Compliance requirements are often grouped into independent categories. The tasks of can often be executed in parallel because they do not conflict with each other. 
 
 In our demo case we use three playbooks which:
 
@@ -674,7 +735,7 @@ Have a look at the status of the Project:
 
 ==== Second Step: Create three Templates
 
-As mentioned the repository contains three Playbooks to enforce different compliance requirements. To avoid clicking too much we again create these three templates via `tower-cli`:
+As mentioned the repository contains three Playbooks to enforce different compliance requirements. We again create these three templates via `tower-cli`:
 
 ----
 [root@control ~]# tower-cli job_template create -n "Compliance STIG packages" \
@@ -705,7 +766,7 @@ As mentioned the repository contains three Playbooks to enforce different compli
 
 === Create Parallel Workflow
 
-To enable parallel execution of the tasks in these job templates, we will create a workflow. Workflows are configured in the *Templates* view, you might have noticed you can choose between *Job Template* and *Workflow Template* when adding a template.
+To enable parallel execution of the tasks in these job templates, we will create a workflow. We'll use the web UI because using *tower-cli* is a bit too involved for a lab. Workflows are configured in the *Templates* view, you might have noticed you can choose between *Job Template* and *Workflow Template* when adding a template.
 
 * Go to the *Templates* view and click the image:green_plus.png[20,20] button. This time choose *Workflow Template*
 ** *NAME:* Compliance Workflow
@@ -736,9 +797,9 @@ Go to the *Instance Groups* view and find out how the jobs where distributed ove
 * Look at the *TOTAL JOBS* view of the three instances
 * Because the Job Templates called in the workflow didn't specify an instance group, they where distributed evenly over the instances. 
 
-Now deactivate instance *tower1.example.com* with the image:on_off.png[20,20] button and wait until it is shown as deactivated. Go back to the list of templates and launch the workflow *Compliance Workflow* again.
+Now deactivate instance *tower1.example.com* with the image:on_off.png[20,20] button and wait until it is shown as deactivated. Make a (mental) note of the *TOTAL JOBS* counter of the instance. Go back to the list of templates and launch the workflow *Compliance Workflow* again.
 
-Go back to the *Instance Groups* view, get back to the instance overview of instance group *tower* and verify that the three Playbooks are launched on the remaining instances.
+Go back to the *Instance Groups* view, get back to the instance overview of instance group *tower* and verify that the three Playbooks where launched on the remaining instances and the *TOTAL JOBS* counter of instance *tower1.example.com* didn't change.
 
 Activate *tower1.example.com* again by pressing image:on_off.png[20,20] a second time.
 
@@ -757,9 +818,9 @@ To make it easier to spot where the jobs where run let's first empty the jobs hi
 One way to assign a job to an instance group is in the job template. As our compliance workflow uses three job templates, do this for all of them:
 
 * In the web UI, go to *RESOURCES->Templates*
-* Open one of the three templates
+* Open one of the three compliance templates
 * In the *Instance Groups* field, choose the *dev* instance group and click *SAVE*.
-* Click *SAVE* for the template and do this for the other compliance templates, too.
+* Click *SAVE* for the template and do this for the other two compliance templates, too.
 
 Now the jobs that make up our *Compliance Workflow* are all configured to run on the instances of the *dev* instance group.
 
@@ -789,6 +850,8 @@ What's going to happen if you enable the instance again?
 
 TIP: *Result:* After the instance is enabled again the jobs will pickup and run on *tower2.example.com*.
 
+WARNING: At this point make sure the instances you disabled in the previous steps are definitely enabled again! Otherwise subsequent steps might fail...
+
 == Isolated Nodes
 
 Ansible is used to manage complex infrastructures with machines and networks living in multiple separate datacenters, servers behind firewalls or in cloud VPCs and remote locations only reachable over unstable links which may not survive the length of a job run. In cases like these it's often better to run automation local to the nodes.
@@ -813,10 +876,12 @@ First have a look at our setup as described in the installers inventory file. In
 
 ----
 [root@control ~]# cd ansible-tower-setup-bundle-3.4.1-1.el7
-[root@control ansible-tower-setup-bundle-3.4.1-1.el7]# cat inventory
+[root@control-dff2 ansible-tower-setup-bundle-3.4.1-1.el7]# cat inventory
+
 [tower]
 tower1.example.com
 tower2.example.com
+tower3.example.com
 
 [instance_group_prod]
 tower3.example.com
@@ -830,7 +895,7 @@ towerdb.example.com
 [...]
 ----
 
-We have the `tower` base group and two instance groups. For the isolated node we will define a new *isolated_group_* named *dmz* with one entirely new node (plain RHEL 7 for now), called `isonode.remote.example.com` which we'll use to manage other hosts in the remote location. Add the node to the inventory:
+We have the `tower` base group and two instance groups. For the isolated node we will define a new *isolated_group_* named *dmz* with one entirely new node (plain RHEL 7 for now), called `isonode.remote.example.com` which we'll use to manage other hosts in the remote location. Add the isolated node by editing the inventory:
 
 TIP: Changes are shown in *bold* type for clarity only!
 
@@ -866,11 +931,11 @@ After editing the inventory, start the installer to make the desired changes:
 [root@control ansible-tower-setup-bundle-3.2.5-1.el7]# ./setup.sh
 ----
 
-TIP: During installation of an isolated node, a randomized RSA key is generated and distributed as an authorized key to all *isolated* instances.
+TIP: During installation of an isolated node, a randomized RSA key is generated and distributed as an authorized key to the *isolated* instances.
 
 === Verify Isolated Nodes
 
-Isolated groups can be listed in the same way like instance groups and Ansible Tower cluster configuration. So the methods listed above discussing instance groups also show the isolated node. For example, using `tower-cli`:
+Isolated groups can be listed in the same way like instance groups and Ansible Tower cluster configuration. So the methods listed above discussing instance groups also applies to isolated nodes. For example, using `tower-cli`:
 
 [subs=+quotes]
 ----
@@ -881,7 +946,7 @@ id   name   capacity consumed_capacity
  1 tower         171                 0
  2 prod           57                 0
  3 dev            57                 0
- *4 dmz             0                 0*
+ *4 dmz            57                 0*
 == ======== ======== =================
 ----
 
@@ -889,9 +954,9 @@ Like other instance groups, isolated node groups can be assigned at the level of
 
 === Create Isolated Node specific Inventory
 
-Let's assume we have a DMZ setup with two hosts siloed off from the rest of the infrastructure called *isohost{1,2}.remote.example.com*. The isolated node we configured above is set in the same DMZ and is able to connect to the siloed hosts.
+Let's assume we have a DMZ setup with two hosts we want to manage siloed off from the rest of the infrastructure called *isohost{1,2}.remote.example.com*. The isolated node we configured above is located in the same DMZ and is able to connect to the DMZ hosts.
 
-Now create a new inventory in your Tower cluster. You can do this with `tower-cli` like we did above, or you use the web UI. Why not use the web UI this time?
+Now create a new inventory in your Tower cluster. You can do this with `tower-cli` like we did above, or you use the web UI. Why not use the web UI for a change?
 
 In the Tower web UI under *RESOURCES*, click *Inventories*:
 
@@ -911,7 +976,7 @@ Repeat the steps for a second host called `isohost2.remote.example.com`.
 
 === Create Template for Isolated Node
 
-Next we need to assign a template to the nodes. Since those nodes are in a dmz, we certainly have to ensure their compliance. Thus we are going to make sure that they are following our CIS guidelines - and will set up a template executing the CIS playbook on them.
+Next we need to assign a template to the nodes. Since those nodes are in a DMZ, we certainly have to ensure their compliance. Thus we are going to make sure that they are following our CIS guidelines - and will set up a template executing the CIS playbook on them.
 
 Go to *Templates* in the *RESOURCES* section of the menu, click the image:green_plus.png[20,20] button and choose *Job Template*.
 
