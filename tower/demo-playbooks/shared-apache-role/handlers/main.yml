@@ -1,6 +1,6 @@
 ---
 # handlers file for shared-apache-role
 - name: reload-apache
-  systemctl:
+  service:
     name: httpd
     state: reloaded
