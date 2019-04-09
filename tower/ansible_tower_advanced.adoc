@@ -1277,7 +1277,7 @@ The search string to use is: *ansible_facts.ansible_selinux.mode:enforcing*
 It should return the remote hosts only.
 +++ </div></details> +++
 
-== Well structured content repositories
+== Well Structured Content Repositories
 
 It's a common part of the learning curve for Ansible and Ansible Tower: At some point you will have written so many playbooks that a need for structure comes up. Where to put the Playbooks, what about the Templates, Files and so on.
 
@@ -1580,7 +1580,7 @@ TIP: Please note that in a real world use case you might want to have different 
 
 Now in the Tower web UI go to *RESOURCES->Templates*, launch the playbook and watch the results.
 
-=== Optional: Adding external roles
+=== Adding External Roles
 
 So far we only structured content inside one repository. While this drastically reduces complexity already, the largest benefit is in sharing roles among multiple teams or departments and keep them in a central place. In this section we will show how to reference such shared roles in your code and execute them together on your behalf.
 
@@ -1840,6 +1840,8 @@ WARNING: Replace *<ID>*
 +++ </div></details> +++
 
 ==== Challenge Lab: Create a Survey
+
+WARNING: XXXX Maybe take this out.... XXXX
 
 Now here is a real world challenge: Creating Surveys in the web UI is not exactly the favorite activity for most Tower users. But to create Surveys using the API you need the data as JSON and you have to find out how to use the API. 
 
