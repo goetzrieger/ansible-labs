@@ -1424,12 +1424,6 @@ The roles are empty, so we need to add a few tasks to each. In the last chapters
   modprobe:
     name: freevxfs
     state: absent
-
-- name: "NOTSCORED | 1.2.5 | PATCH | Disable the rhnsd Daemon"
-  service:
-    name: rhnsd
-    state: stopped
-    enabled: no
 ----
 
 We also need to create a playbook to call the roles from. This is often call `site.yml`, since it keeps the main code for the setup of our environment. Create the file:
