@@ -47,7 +47,7 @@ TIP: Ansible Tower has already been installed and licensed for you, the web UI w
 
 == Access your Lab Environment
 
-include::access_grabber.adoc[]
+include::access_adoc/access_summit19.adoc[]
 
 == Ansible Tower Introduction
 

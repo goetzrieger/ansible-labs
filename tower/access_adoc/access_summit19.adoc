@@ -1,0 +1,45 @@
+Every attendee gets her/his own lab environment. The labs have already been deployed, to access your lab you need a unique *Identifier (GUID)* that will be part of the hostnames and URL's you need to access.
+
+=== Get *GUID* and Access Information
+
+The web browser of your laptop should default to ADD LINK TO GRABBER URL. On this web page *select the lab* your attending and enter the *Activation Key* that will be given by the lab instructor. 
+
+After submitting your input by clicking *Next* you will see the attendee welcome screen with all the information you need:
+
+* The most important part: Your unique lab *GUID*
+* A *link* to the *lab guide* 
+* The *hostnames / URLs* with your *GUID* for *accessing* your lab
+* A *link* to a *status page*
+
+=== Access a host via SSH or Browser
+
+In most cases the lab instructions will use a string as a placeholder for your *GUID* like *<GUID>*.
+
+* Make sure you know your *GUID*
+* Open a terminal session to log in to a host:
+
+----
+ssh hostname-<GUID>.rhpds.opentlc.com
+----
+
+* Or open a browser to access a web UI:
+
+----
+https://hostname-<GUID>.rhpds.opentlc.com
+----
+
+WARNING: *Replace <GUID> with the GUID assigned to your seat!*
+
+=== Example
+
+If your GUID is *83d4*, do this:
+----
+ssh hostname-83d4.rhpds.opentlc.com
+----
+
+TIP: The user will default to `lab-user` and SSH key authentication will be used automatically. If for any reason key authentication is not working and the SSH client is asking for a password, use *r3dh4t1!*
+
+Then become root:
+----
+[lab-user@hostname-83d4 ~]$ sudo -i
+----
