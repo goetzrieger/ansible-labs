@@ -19,6 +19,7 @@ You have already used Ansible Automation quite a bit and have started to look in
 * Ways to provide inventories (importing inventory, dynamic inventory)
 * The Smart Inventory feature
 * Some guide lines for structuring Ansible content
+* How to work with the Tower API
 
 == Your Ansible Tower Lab Environment
 
@@ -51,8 +52,25 @@ As you can see the lab environment is pretty extensive. You basically have one n
 
 And a second network segment with:
 
-* One host that acts as a isolated Tower node
-* Two hosts which act as remote managed nodes that can only be reached from/through the isolated node. (Direct access to the managed hosts is actually not blocked, but this is the scenario)
+* One host that acts as an isolated Tower node that can be reached via SSH from the Tower cluster nodes.
+* Two hosts which act as remote managed nodes that can only be reached from/through the isolated node.
+
+TIP: Access to the isolated node and the managed hosts is actually not restricted in the lab environment. Just imagine access is filtered for educational purposes... ;-)
+
+=== Working the Lab
+
+Some hints to get you started:
+
+* Don't type everything manually, use copy & paste from the browser when appropriate. But don't stop to think and understand... ;-)
+
+* All labs where prepared using *Vim*, but we understand not everybody loves it. Feel free to use alternative editor, in the lab environment we provide *Midnight Commander* (just run *mc*, function keys can be reached via Esc-<n>) or *Nano* (run *nano*).
+
+TIP: Commands you are supposed to run are shown with or without the expected output, whatever makes more sense in the context. 
+
+TIP: The command line can wrap on the HTML page from time to time. Therefor the 
+output is often separated from the command line for better readability by an empty 
+line. *Anyway, the line you should actually run should be recognizable by the 
+prompt.* :-) 
 
 == Access your Lab Environment
 
@@ -72,7 +90,10 @@ TIP: The Appendix contains some installation considerations and an installer inv
 
 === Access the Tower Web UI
 
-For the first contact to your cluster open your browser and login to all three nodes web UIs (you'll have to accept the self-signed certificates):
+For the first contact to your cluster open your browser and login to all three nodes web UIs (you'll have to accept the self-signed certificates) as:
+
+* user *admin* 
+* password *r3dh4t1!*
 
 WARNING: Replace the *<GUID>* string with your GUID!
 
@@ -153,7 +174,7 @@ After installing the tool, you have to do some basic configuration:
 [root@control ~]# tower-cli config password r3dh4t1!
 ----
 
-TIP: It doesn't really matter what node you have it talking to.
+TIP: It doesn't really matter what node you connect to.
 
 Now test *tower-cli* is working. First run it without arguments to get a list of resources you can manage with it:
 
@@ -244,6 +265,8 @@ WARNING: *Solution Below*!
 [root@control ~]# tower-cli inventory create --name "Example Inventory" --organization "Default"
 ----
 
+TIP: You can work with multiple organizations in Tower. In this lab we'll work in the *Default* organization.
+
 +++ </div></details> +++
 
 ==== Add Hosts to the Inventory using *tower-cli*
@@ -332,7 +355,7 @@ WARNING: As the *tower-cli* commands get longer you'll find we use the back-slas
 
 Your lab environment includes Gitea, a Git-service that comes with a web ui and much more. Gitea runs on `control.example.com` and can be accessed via HTTP. Go and have a look around by accessing:
 
-*\http://control-<GUID>.rhpds.opentlc.com/gitea*.
+*\http://control-<GUID>.rhpds.opentlc.com/gitea*
 
 All repos on Gitea are configured as private e.g. you need to login to access the content. Log in as:
 
@@ -542,6 +565,7 @@ WARNING: Replace <ID> with the job ID you want to query!
 [subs=+quotes]
 ----
 [root@control ~]# curl -s -k -u admin:r3dh4t1! https://tower2.example.com/api/v2/jobs/*<ID>*/ | python -m json.tool | grep execution_node
+
     "execution_node": "tower1.example.com",
 ----
 
@@ -641,6 +665,7 @@ You can again query the API to get this information. Either use the browser to a
 
 ----
 [root@control ~]# curl -s -k -u admin:r3dh4t1! https://tower2.example.com/api/v2/instance_groups/| python -m json.tool
+
 {
     "count": 1,
     "next": null,
@@ -699,7 +724,7 @@ The real power of instance groups is revealed when multiple jobs are started, an
 
 During this lab we'll focus on security compliance according to STIG, CIS and so on. Often these compliance rules are enforced by executing an Ansible task per each requirement. This makes documentation and audit easier. 
 
-Compliance requirements are often grouped into independent categories. The tasks of can often be executed in parallel because they do not conflict with each other. 
+Compliance requirements are often grouped into independent categories. The tasks can often be executed in parallel because they do not conflict with each other. 
 
 In our demo case we use three playbooks which:
 
@@ -774,7 +799,7 @@ To enable parallel execution of the tasks in these job templates, we will create
 * Click *SAVE*
 * Now the *WORKFLOW VISUALIZER* button becomes active, click it to start the graphical editor.
 * Click on the *START* button, a new node opens. To the right you can assign an action to the node, you can choose between *JOBS*, *PROJECT SYNC* and *INVENTORY SYNC*.
-* In this lab we'll link multiple jobs to the *START*, so select the *Compliance STIG package* job and click *SELECT*. The node gets annotated with the name of the job.
+* In this lab we'll link multiple jobs to the *START*, so select the *Compliance STIG packages* job and click *SELECT*. The node gets annotated with the name of the job.
 * Click on the *START* button again, another new node opens.
 * Select the *Compliance STIG config* job and click *SELECT*. The node gets annotated with the name of the job.
 * Click on the *START* button again, another new node opens.
@@ -1107,7 +1132,7 @@ To sync your new source into the inventory:
 
 * Open the *Cloud Inventory* again
 * Click the *SOURCES* button
-* To the left click the circular arrow to start the sync process for your custom source.
+* To the right click the circular arrow to start the sync process for your custom source.
 * After the sync has finished click the *HOSTS* button.
 
 You should now see a list of hosts according to what you got from the curl command above. Click the hosts to make sure the host variables are there, too.
@@ -1190,7 +1215,7 @@ TIP: Search terms are automatically saved so make sure to hit *CLEAR ALL* to cle
 
 Or what about searching by inventory groups? In the *SEARCH* field enter *groups.name:dyngroup*. After hitting *ENTER* the hosts from the dynamic inventory exercise should show up.
 
-When you are satisfied with your search, hit *SAVE* for the *DYNAMIC HOSTS* window and again for the Smart Inventory. Now your Smart Inventory is usable for executing job templates!
+When your search returns the expected results, hit *SAVE* for the *DYNAMIC HOSTS* window and again for the Smart Inventory. Now your Smart Inventory is usable for executing job templates!
 
 TIP: You may press the *KEY* button to get a feeling along which fields you can search. Browsing through the API becomes necessary to understand which related fields have which attributes (e.g. name for groups).
 
@@ -1231,7 +1256,7 @@ The hosts facts should now be populated with a lot of facts.
 Now that we got the facts for the hosts in the facts cache, we can use facts in our searches. 
 
 * Create a new Smart Inventory named *Smart Inventory Facts*
-* Open the *DYNAMIC HOSTS* window to enter the search
+* Open the *SMART HOST FILTER* window to enter the search
 
 To search for facts the search field (left side of a search query) has to start with *ansible_facts.* followed by the fact. The value is separated by a colon on the right side.
 
@@ -1541,7 +1566,7 @@ In your Tower web UI, open the *RESOURCES->Inventory* view. Then click the image
 * Click the image:green_plus.png[20,20] button
 * *NAME:* Production
 * *SOURCE:* Pick *Sourced from a Project*
-* In the now extended view, click on *Choose an inventory file*
+* Click on *Choose an inventory file*
 * *PROJECT:* Structured Content Repository 
 * In the *INVENTORY FILE* drop down menu, pick *production*
 * Click the green *SAVE* button
@@ -1551,7 +1576,7 @@ And now for the staging inventory:
 * Down below in the view, click the image:green_plus.png[20,20] button again
 * In the next view, add as *NAME:* Staging
 * *SOURCE:* Pick *Sourced from a Project*
-* In the now extended view, click on *Choose an inventory file*
+* Click on *Choose an inventory file*
 * *PROJECT:* Structured Content Repository 
 * In the *INVENTORY FILE* drop down menu, pick *staging*
 * Click the green *SAVE* button
@@ -1576,7 +1601,7 @@ Now in the Tower web UI go to *RESOURCES->Templates*, launch the playbook and wa
 
 === Adding External Roles
 
-So far we only structured content inside one repository. While this drastically reduces complexity already, the largest benefit is in sharing roles among multiple teams or departments and keep them in a central place. In this section we will show how to reference such shared roles in your code and execute them together on your behalf.
+So far we have only worked with content inside a single repository. While this drastically reduces complexity already, the largest benefit is in sharing roles among multiple teams or departments and keeping them in a central place. In this section we will show how to reference shared roles in your code and execute them together on your behalf.
 
 In enterprise environments it is common to share roles via internal git repositories, often one git repository per role. If a role might be interesting and re-used by the world wide Ansible community, they can be shared on our central platform link:https://galaxy.ansible.com/[Ansible Galaxy]. The advantage of Ansible Galaxy is that it features basic automatic testing and community ratings to give the interested users an idea of the quality and reusability of a role.
 
@@ -1591,11 +1616,13 @@ To use external roles in a project, they need to be referenced in a file called 
   name: external-role_locally
 ----
 
-The `requirements.yml` needs to be read - either on the command line by invocing `ansible-galaxy`, or automatically by Ansible Tower during project check outs. In both cases the file is read, and the roles are checked out and stored locally, and the roles can be called in playbooks. The advantage of Tower here is that it takes care of all that - including authorization to the Git repo, finding a proper place to store the role, updating it when needed and so on. 
+The `requirements.yml` needs to be read - either on the command line by invoking `ansible-galaxy`, or automatically by Ansible Tower during project check outs. In both cases the file is read, and the roles are checked out and stored locally, and the roles can be called in playbooks. The advantage of Tower here is that it takes care of all that - including authorization to the Git repo, finding a proper place to store the role, updating it when needed and so on. 
 
 In this example, we will include a role which ships a simple `index.html` file as template and reloads the apache web server. The role is already shared in Gitea at *\http://control.example.com/gitea/git/shared-apache-role*.
 
 To include it with the existing structured content, first we have to create a file called `roles/requirements.yml` and reference the role there:
+
+WARNING: Make sure you work as user *ansible*
 
 ----
 [ansible@control structured-content]$ cat roles/requirements.yml 
@@ -1759,7 +1786,7 @@ Ansible 2.7.5
 
 You see that with the `--verbose` option, tower-cli tells us which API calls it's making, what *parameters* it's sending with *GET* requests and what *data* is needed for *POST* actions. 
 
-In this simple case you can simply take the call and run it with e.g. *cURL*:
+In this simple case you can simply take the call and run it with e.g. *curl*:
 
 ----
 [root@control ~]# curl -k -H 'Content-Type: application/json' --user admin:r3dh4t1! \
@@ -1771,52 +1798,52 @@ TIP: `jq` is optional but useful for us humans to understand the output without 
 
 ==== Practice, Practice...
 
-Using `tower-cli` to learn about the API call and executing it via cURL e.g. in scripts is really useful so let's practice a bit. What about creating our friend John Smith again?
+Using `tower-cli` to learn about the API call and executing it via curl e.g. in scripts is really useful so let's practice a bit. What about creating a new user, say Albert Miller?
 
 TIP: Consider that the parameters shown by tower-cli are in Python format (single quotes and the unicode `u`) but we need to send data in JSON format (double quotes).
 
 First create the user with tower-cli, then delete it again. Use `--verbose` to get the API invocation. 
 
 ----
-[root@control-dff2 ~]# tower-cli user create --username jsmith --email jsmith@example.com --password redhat --verbose
+[root@control-dff2 ~]# tower-cli user create --username amiller --email amiller@example.com --password redhat --verbose
 
 *** DETAILS: Checking for an existing record. *********************************
 GET https://tower2.example.com/api/v2/users/
-Params: {'username': u'jsmith'}
+Params: {'username': u'amiller'}
 
 *** DETAILS: Writing the record. **********************************************
 POST https://tower2.example.com/api/v2/users/
-Data: {'username': u'jsmith', 'password': u'redhat', 'email': u'jsmith@example.com'}
+Data: {'username': u'amiller', 'password': u'redhat', 'email': u'amiller@example.com'}
 ----
 
 ----
-[root@control-dff2 ~]# tower-cli user delete --username jsmith --verbose
+[root@control-dff2 ~]# tower-cli user delete --username amiller --verbose
 
 *** DETAILS: Getting the record. **********************************************
 GET https://tower2.example.com/api/v2/users/
-Params: {'username': u'jsmith'}
+Params: {'username': u'amiller'}
 
 DELETE /users/3/
 DELETE https://tower2.example.com/api/v2/users/3/
 ----
 
-Now we'll do the same using *cURL* with the API endpoints, parameters and data we have learned from `tower-cli`:
+Now we'll do the same using *curl* with the API endpoints, parameters and data we have learned from `tower-cli`:
 
-WARNING: The "Getting the record" is (sadly) a bit misleading...  you need to add `?username=jsmith` to filter on the username:
+WARNING: The "Getting the record" is (sadly) a bit misleading...  you need to add `?username=amiller` to filter on the username:
 
 Check if the user exists:
 
 ----
 [root@control-dff2 ~]# curl -k -H 'Content-Type: application/json' --user admin:r3dh4t1! \
-	-X GET https://tower1.example.com/api/v2/users/?username=jsmith
+	-X GET https://tower1.example.com/api/v2/users/?username=amiller
 ----
 
 Once you've found out that the user doesn't exist by *count:0* in the reply, you can create it:
 
 ----
 [root@control-dff2 ~]# curl -k -H 'Content-Type: application/json' --user admin:r3dh4t1! \
-	--data '{"username": "jsmith", "password": "redhat", "email": "jsmith@example.com"}' \
-	-X POST https://tower1.example.com/api/v2/users/?username=jsmith
+	--data '{"username": "amiller", "password": "redhat", "email": "amiller@example.com"}' \
+	-X POST https://tower1.example.com/api/v2/users/?username=amiller
 ----
 
 Run the `curl` command from above again to check the user now exists, it should return *count:1* and the user's data.
