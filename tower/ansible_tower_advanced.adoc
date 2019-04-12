@@ -63,7 +63,7 @@ Some hints to get you started:
 
 * Don't type everything manually, use copy & paste from the browser when appropriate. But don't stop to think and understand... ;-)
 
-* All labs where prepared using *Vim*, but we understand not everybody loves it. Feel free to use alternative editor, in the lab environment we provide *Midnight Commander* (just run *mc*, function keys can be reached via Esc-<n>) or *Nano* (run *nano*).
+* All labs where prepared using *Vim*, but we understand not everybody loves it. Feel free to use an alternative editor, in the lab environment *Midnight Commander* (just run *mc*, function keys can be reached via Esc-<n>) and *Nano* (run *nano*) are installed on the control host.
 
 TIP: Commands you are supposed to run are shown with or without the expected output, whatever makes more sense in the context. 
 
