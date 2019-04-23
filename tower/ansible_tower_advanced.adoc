@@ -243,15 +243,15 @@ WARNING: *SOLUTION BELOW!*
 
 If you want to, go to the web UI and check the setting under *ADMINISTRATION->Settings->System*.
 
-== Creating Tower Objects (Mostly) Using `tower-cli`
+== Creating Tower Objects Using `tower-cli`
 
-The next steps don't differ from what you would do with a single-instance Tower. To run Ansible jobs from Tower you need Inventories, Projects, Credentials and Job Templates.
+Next we want to configure Tower so that we can run Ansible jobs. For this we need Inventories, Projects, Credentials and Job Templates. When you first start with Tower, this is usually done via web UI. But using Tower more often and especially when you want to boot-strap a configured Tower from the bottom up it makes sense to do this via *tower-cli* in a scripted way - especially when Ansible is not yet set up properly.
 
-But we don't want you to go to the web UI to configure your Ansible automation objects more then necessary. I mean, if you really want to, go ahead. But here we'll use *tower-cli* to create content. 
+In this chapter we will show you how to set up the inventory step-by-step with *tower-cli* to have an example to better understand how it works. All other following steps setting up projects and so on will just be shown with the full *tower-cli* command and not explained step-by-step. Instead, we will write them all into a shell script to have an example how to boot strap a Tower from bottom up. This serves as an example how to automatically configure your Tower, for example for test cases.
 
 === Create an Inventory
 
-First create a static inventory, we'll get to dynamic inventories later on. Try to figure out the proper invocation of *tower-cli* yourself and create an inventory name *Example Inventory* (yup, very creative, we know).
+First create a static inventory, we'll get to dynamic inventories later on. Try to figure out the proper invocation of *tower-cli* yourself and create an inventory name *Example Inventory*.
 
 TIP: Remember how you used the *tower-cli* help to get down to the needed command.
 
@@ -286,70 +286,44 @@ WARNING: *Solution Below*!
 
 +++ </div></details> +++
 
-==== Add Hosts using *awx-manage*
+=== Create script to contain this and all following tower-cli commands
 
-It's fine to use *tower-cli* to add hosts but there is another way using the command line: *awx-manage* can add hosts by importing existing inventory files. Let's give this a try, too:
-
-First create a new inventory named *Imported Inventory* using *tower-cli* on the control host or from the web UI:
+Create a simple shell script on the control host:
 
 ----
-[root@control ~]# tower-cli inventory create --name "Imported Inventory" --organization "Default"
+[root@control ~]# cat setup-tower.sh
+#!/bin/bash
+tower-cli inventory create --name "Example Inventory" --organization "Default"
+tower-cli host create --name "host1.example.com" --inventory "Example Inventory"
+tower-cli host create --name "host2.example.com" --inventory "Example Inventory"
 ----
 
-Then open a SSH session to *tower1.example.com* (or one of the other nodes):
+Next, make the script executable, and launch it:
 
 ----
-[root@control ~]# ssh tower1.example.com
+[root@control ~]# chmod u+x setup-tower.sh
+[root@control ~]# ./setup-tower.sh
 ----
 
-On the Tower node create a file named *example_inventory* with a simple inventory:
-
-----
-host1.example.com
-host2.example.com
-----
-
-Use *awx-manage* on the Tower node to add the hosts to your *Imported Inventory* inventory:
-
-----
-[root@tower1 ~]# awx-manage inventory_import --source=./example_inventory --inventory-name="Imported Inventory"
-
-    1.808 INFO     Updating inventory 2: Example Inventory
-    1.910 INFO     Reading Ansible inventory source: /root/example_inventory
-    2.764 INFO     Processing JSON output...
-    2.764 INFO     Loaded 0 groups, 2 hosts
-    2.876 INFO     Inventory import completed for  (Example Inventory - 6) in 1.1s
-----
+If you run the script a second time, you will see that *tower-cli* is idempotent.
 
 === Create Machine Credentials
 
 TIP: SSH keys have already been created and distributed in your lab environment and `sudo` has been setup on the managed hosts to allow password-less login for user *ansible* on *control.example.com*.
 
-Now configure the credentials to access our managed hosts from Tower. As configuring credentials with SSH keys from *tower-cli* on the command line is a bit cumbersome, just this time use the web UI. In one of the Tower web UI under *RESOURCES -> Credentials*:
+Now configure the credentials to access our managed hosts from Tower. Configuring credentials with SSH keys from *tower-cli* on the command line is a bit cumbersome as you can see here:
 
-
-* Click the image:green_plus.png[20,20] button to add new credentials
-* *NAME:* Example Credentials
-* *ORGANIZATION:* Default
-* *CREDENTIAL TYPE:* Machine
-* *USERNAME:* ansible
-* *PRIVILEGE ESCALATION METHOD:* sudo
-
-As we are using SSH key authentication, you have to provide an SSH private key that can be used to access the hosts. You could also configure password authentication here.
-
-* Bring up an SSH terminal on *control.example.com*, become user `ansible` and `cat` the SSH private key:
 ----
-[root@control ~]# su - ansible
-[ansible@control ~]$ cat .ssh/id_rsa
-[ansible@control ~]$ exit
+tower-cli credential create --name "Example Credentials" \
+                     --organization "Default" --credential-type "Machine" \
+                     --inputs="{\"username\":\"ansible\",\"ssh_key_data\":\"$(sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g' /home/ansible/.ssh/id_rsa)\n\",\"become_method\":\"sudo\"}"
 ----
 
-* Copy the complete private key (including "BEGIN" and "END" lines) and paste it into the *SSH PRIVATE KEY* field in the web UI.
-* Click *SAVE*
+As you can see the ssh key is read in via a sub-shell. Since JSON POST data need to be on one line, we replace all new lines in the ssh key file with a *\n*.
 
-You have now set up credentials to use later for your inventory hosts.
+Add this line to *setup-tower.sh*.
 
-WARNING: As the *tower-cli* commands get longer you'll find we use the back-slash for line wraps to make the commands readable. You can copy the examples or use them without the \ on one line, of course. 
+WARNING: As the *tower-cli* commands get longer you'll find we use the back-slash for line wraps to make the commands readable. You can copy the examples or use them without the \ on one line, of course.
 
 === Using Git for Software Configuration Management (SCM)
 
@@ -357,124 +331,37 @@ Your lab environment includes Gitea, a Git-service that comes with a web ui and 
 
 *\http://control-<GUID>.rhpds.opentlc.com/gitea*
 
-All repos on Gitea are configured as private e.g. you need to login to access the content. Log in as:
+All repos on Gitea are configured as private, e.g. a login is needed to access the content. The credentials are:
 
 * *User*: git
 * *Password*: r3dh4t1!
 
-To configure and use this repository as a *Source Control Management (SCM)* system in Tower you have to:
-
-* Create *SCM Credentials* to access the Git repo
-* Create a *Project* that uses the repository
-
-=== Create SCM Credentials
-
-Create credentials again, this time to access the Git repository over HTTP. This credential is user/password based, so feel free to use the web UI again or find out how to use *tower-cli* to create it.
-
-Create credentials with this parameters:
-
-* *Type:* Source Control
-* *Name:* Gitea Credentials
-* *Username:* git
-* *Password:* r3dh4t1!
-* *Organization:* Default
-
-==== Using *tower-cli*:
-
-* Use the *--help* function to find the needed arguments
-* Hints: The credential type name is *Source Control*, as *inputs* you need *user* and *password*.
-
-WARNING: *SOLUTION BELOW!*
-
-+++ <details><summary> +++
-*>> _Click here for the solution_ <<*
-+++ </summary><div> +++
+To configure and use this repository as a *Source Control Management (SCM)* system in Tower you have to create credentials again, this time to access the Git repository over HTTP. This credential is user/password based, and we add another *tower-cli* command to our script:
 
 ----
-[root@control ~]# tower-cli credential create --credential-type="Source Control" \
+tower-cli credential create --credential-type="Source Control" \
                     --name="Gitea Credentials" \
                     --inputs='{"username": "git", "password": "r3dh4t1!"}' \
                     --organization="Default"
 ----
 
-+++ </div></details> +++
-
-==== Using the web UI
-
-+++ <details><summary> +++
-*>> _Click here for the solution_ <<*
-+++ </summary><div> +++
-
-In one of the Tower web UI go to *Resources->Credentials*. Now:
-
-* Click the image:green_plus.png[20,20] button to add new credentials
-* *NAME*: Gitea Credentials
-* *CREDENTIAL TYPE*: Choose *Source Control*
-
-TIP: You will have to change the page in the *SELECT CREDENTIAL TYPE* window.
-
-* *USERNAME*: git
-* *PASSWORD*: r3dh4t1!
-* Click *SAVE*
-
-+++ </div></details> +++
+Note the different *credential-type* in the command.
 
 === Create the Project
 
-Now with the SCM credentials configured, either in one of the web UI or using *tower-cli* create a *Project* for the *apache* Gitea repository. The parameters are:
-
-* *Name:* Apache
-* *SCM TYPE:* Git
-* *SCM URL:* \http://control.example.com/gitea/git/apache.git
-* *SCM Credentials:* Gitea Credentials
-* *Organization:* Default
-* Set all SCM update options to *true*  
-* Make *tower-cli* wait until finished
-
-==== Using *tower-cli* on the control host
-
-Try on your own!
-
-WARNING: *SOLUTION BELOW!*
-
-+++ <details><summary> +++
-*>> _Click here for the solution_ <<*
-+++ </summary><div> +++
+Now with the SCM credentials configured, we add a project to import the playbooks. Add the appropriate *tower-cli* line to it:
 
 ----
-[root@control ~]# tower-cli project create --name="Apache" \
-                    --scm-type=git \
-                    --scm-url="http://control.example.com/gitea/git/apache.git" \
-                    --scm-credential="Gitea Credentials" \
-                    --organization "Default" \
-                    --scm-clean=true --scm-delete-on-update=true --scm-update-on-launch=true \
-                    --wait
+tower-cli project create --name="Apache" \
+                  --scm-type=git \
+                  --scm-url="http://control.example.com/gitea/git/apache.git" \
+                  --scm-credential="Gitea Credentials" \
+                  --organization "Default" \
+                  --scm-clean=true --scm-delete-on-update=true --scm-update-on-launch=true \
+                  --wait
 ----
 
-+++ </div></details> +++
-
-==== In the web UI
-
-WARNING: *SOLUTION BELOW!*
-
-+++ <details><summary> +++
-*>> _Click here if you really want to see the web ui stuff_ <<*
-+++ </summary><div> +++
-
-* Go to *Projects* in the side menu view click the image:green_plus.png[20,20] button. Fill in the form:
-
-* *NAME:* Apache
-* *ORGANIZATION:* Default
-* *SCM TYPE:* Git
-
-Now you need the HTTP URL to access the repo. Go to the Gitea web UI, choose the *Apache* repository and copy the HTTP URL. Enter the URL into the Project configuration:
-
-** *SCM URL:* \http://control.example.com/gitea/git/apache.git
-* *SCM CREDENTIAL:* Gitea Control
-* *SCM UPDATE OPTIONS:* Tick all three boxes to always get a fresh copy of the repository and to update the repository when launching a job.
-* Click *SAVE*
-
-+++ </div></details> +++
+Note that the first parameter to *tower-cli* is different here since we work on the resource *project*.
 
 TIP: The new Project will be synced after creation automatically.
 
@@ -482,24 +369,7 @@ TIP: Remember you can use `control.example.com` as hostname in *SCM URL* because
 
 === Create a Job Template
 
-Before running an Ansible *Job* from your Tower cluster you must create a *Job Template*, again business as usual for Tower users.
-
-Use these parameters:
-
-* *Name:* Install Apache
-* *Inventory:* Example Inventory
-* *Credentials:* Example Credentials
-* *Project:* Apache
-* *Playbook:* apache_install.yml
-* Enable privilege escalation
-
-==== Using *tower-cli*
-
-WARNING: *SOLUTION BELOW!*
-
-+++ <details><summary> +++
-*>> _Click here for the solution_ <<*
-+++ </summary><div> +++
+Before running an Ansible *Job* from your Tower cluster you must create a *Job Template*, again business as usual for Tower users. Here *tower-cli* will work on the resource *job_template*. Add the following line to your script:
 
 ----
 [root@control ~]# tower-cli job_template create \
@@ -511,46 +381,66 @@ WARNING: *SOLUTION BELOW!*
                     --become-enabled="yes"
 ----
 
-+++ </div></details> +++
+=== Review the final script and execute it
 
-==== Or In the Web UI
+Verify that your script has all the pieces needed for a properly configured Tower:
 
-+++ <details><summary> +++
-*>> _Click here if you really want to see the web ui stuff_ <<*
-+++ </summary><div> +++
+* inventory with hosts
+* machine credentials and credentials for Git
+* project
+* job template
 
-* Go to *Templates* in the *RESOURCES* section of the menu, click the image:green_plus.png[20,20] button and choose *Job Template*.
+The final script is also shown here:
 
-** *NAME:* Install Apache
-** *JOB TYPE:* Run
-** *INVENTORY:* Example Inventory
-** *PROJECT:* Apache
-** *PLAYBOOK:* apache_install.yml
-** *CREDENTIAL:* Example Credentials
-** We need to run the tasks as root so check *Enable privilege escalation*
-** Click *SAVE*
+----
+#!/bin/bash
+tower-cli inventory create --name "Example Inventory" --organization "Default"
+tower-cli host create --name "host1.example.com" --inventory "Example Inventory"
+tower-cli host create --name "host2.example.com" --inventory "Example Inventory"
+tower-cli credential create --name "Example Credentials" \
+                      --organization "Default" --credential-type "Machine" \
+                      --inputs="{\"username\":\"ansible\",\"ssh_key_data\":\"$(sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g' /home/ansible/.ssh/id_rsa)\n\",\"become_method\":\"sudo\"}"
+tower-cli credential create --credential-type="Source Control" \
+                     --name="Gitea Credentials" \
+                     --inputs='{"username": "git", "password": "r3dh4t1!"}' \
+                     --organization="Default"
+tower-cli project create --name="Apache" \
+                  --scm-type=git \
+                  --scm-url="http://control.example.com/gitea/git/apache.git" \
+                  --scm-credential="Gitea Credentials" \
+                  --organization "Default" \
+                  --scm-clean=true --scm-delete-on-update=true --scm-update-on-launch=true \
+                  --wait
+tower-cli job_template create \
+                     --name="Install Apache" \
+                     --inventory="Example Inventory" \
+                     --credential="Example Credentials" \
+                     --project=Apache \
+                     --playbook=apache_install.yml \
+                     --become-enabled="yes"
+----
 
-+++ </div></details> +++
+Run the script, and verify that all resources were properly created in the web UI.
 
 === It's a Cluster After All
 
-So far nothing special regarding the Ansible Tower objects you created. But we are working in a clustered environment. Login to the other Tower instances Web UIs (the ones you didn't configured the inventory and credentials on). 
+We are working in a clustered environment. To verify that the resources were created on all instances properly, login to the other Tower instances web UIs (the ones you didn't configured the inventory and credentials on). 
 
-Have a good look around, everything we configured on one Tower instance was *synced automatically* to the other nodes. Inventory, credentials, projects, templates, all there.
+Have a look around, everything we automatically configured on one Tower instance with our script was *synced automatically* to the other nodes. Inventory, credentials, projects, templates, all there.
 
-=== Run a Job
+== Run a Job in a Cluster
 
-Now you are ready to start a job in your Tower cluster. In one of the web UI's *Templates* view select the new Job Template and run it by clicking the rocket icon. Again this is at first not different from a standard Tower.
+After boot-strapping the Tower configuration from bottom up you are ready to start a job in your Tower cluster. In one of the web UI's *Templates* view select the new Job Template and run it by clicking the rocket icon.
 
-TIP: But as this is a cluster of active Tower instances every instance could have run the job. And the Job output in Tower's web UI doesn't tell you where it run, just the instance group.
+At first this is not different from a standard Tower setup. But as this is a cluster of active Tower instances every instance could have run the job. And the Job output in Tower's web UI doesn't tell you where it run, just the instance group.
 
-==== So what Instance run the Job?
+=== So what Instance run the Job?
 
 In one of the Tower instances web UI under *ADMINISTRATION* go to the *Instance Groups* view. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs. You should see four jobs. Why? Three times the SCM Update on every node and then the actual Playbook run.
 
 To see on what instance a job actually run go back to the *Instance Groups* view. If you click *INSTANCES* under the *tower* group, you will get an overview of the *TOTAL JOBS* each Tower instance in this group executed. Clicking *TOTAL JOBS* for an instance leads to a detailed job list.
 
-===== But I just want to know on which Instance my Job Run!
+=== But I just want to know on which Instance my Job Run!
 
 But it would still be nice to see where a job run (not the other way round) and to get an idea how jobs are distributed to the available instances. For this we can utilize the API:
 
@@ -571,7 +461,7 @@ WARNING: Replace <ID> with the job ID you want to query!
 
 TIP: You can use any method you want to access the API and to display the result, of course. The usage of curl and python-tool was just for example.
 
-==== Via API in the browser
+=== Via API in the browser
 
 Another way to query the Tower API is using a browser. For example to have a look at the job details (basically what you did above using curl and friends):
 
