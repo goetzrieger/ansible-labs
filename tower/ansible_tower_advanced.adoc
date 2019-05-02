@@ -18,8 +18,12 @@ You have already used Ansible Automation quite a bit and have started to look in
 * Using isolated nodes to manage remote locations
 * Ways to provide inventories (importing inventory, dynamic inventory)
 * The Smart Inventory feature
-* Some guide lines for structuring Ansible content
-* How to work with the Tower API
+* Optional: How to structure Ansible content in Git repos
+* Optional: How to work with the Tower API
+
+=== So little time and so much to try...
+
+WARNING: To be honest we got carried away slighty while trying to press all these cool features into a 2-hours lab session. We decided to flag the last two chapters as "optional" instead of taking them out. If you find the time to run them, cool! If not, the lab guide will stay where it is, feel free to go through these lab tasks later (you don't need a Tower cluster for this).  
 
 == Your Ansible Tower Lab Environment
 
@@ -63,7 +67,7 @@ Some hints to get you started:
 
 * Don't type everything manually, use copy & paste from the browser when appropriate. But don't stop to think and understand... ;-)
 
-* All labs where prepared using *Vim*, but we understand not everybody loves it. Feel free to use an alternative editor, in the lab environment *Midnight Commander* (just run *mc*, function keys can be reached via Esc-<n>) and *Nano* (run *nano*) are installed on the control host.
+* All labs where prepared using *Vim*, but we understand not everybody loves it. Feel free to use an alternative editor, in the lab environment *Midnight Commander* (just run *mc*, function keys can be reached via Esc-<n> or clicked with the mouse) and *Nano* (run *nano*) are installed on the control host.
 
 TIP: Commands you are supposed to run are shown with or without the expected output, whatever makes more sense in the context. 
 
@@ -166,7 +170,7 @@ We'll install it on your control host using locally cached RPM packages. Exit th
 [root@control ~]# yum install python2-ansible-tower-cli -y
 ----
 
-After installing the tool, you have to do some basic configuration:
+After installing the tool, you have to do some basic configuration (Tower node to connect to, user and password):
 
 ----
 [root@control ~]# tower-cli config host tower2.example.com
@@ -247,7 +251,9 @@ If you want to, go to the web UI and check the setting under *ADMINISTRATION->Se
 
 Next we want to configure Tower so that we can run Ansible jobs. For this we need Inventories, Projects, Credentials and Job Templates. When you first start with Tower, this is usually done via web UI. But using Tower more often and especially when you want to boot-strap a configured Tower from the bottom up it makes sense to do this via *tower-cli* in a scripted way - especially when Ansible is not yet set up properly.
 
-In this chapter we will show you how to set up the inventory step-by-step with *tower-cli* to have an example to better understand how it works. All other following steps setting up projects and so on will just be shown with the full *tower-cli* command and not explained step-by-step. Instead, we will write them all into a shell script to have an example how to boot strap a Tower from bottom up. This serves as an example how to automatically configure your Tower, for example for test cases.
+In the first step you will setup the inventory with *tower-cli* to get some practice using the tool. For the following steps (Projects, Credentials, Job Templates) we will create a shell script with the needed commands to have an example of how to bootstrap a Tower from bottom up. 
+
+TIP: This serves as an example how to automatically configure your Tower, for example for test cases.
 
 === Create an Inventory
 
@@ -288,24 +294,27 @@ WARNING: *Solution Below*!
 
 === Create script to contain this and all following tower-cli commands
 
-Create a simple shell script on the control host:
+Now create a shell script on the control host with all commands you have to run to bootstrap Tower. Create the file *setup-tower.sh* with your favorite editor and add the following content:
 
 ----
-[root@control ~]# cat setup-tower.sh
 #!/bin/bash
 tower-cli inventory create --name "Example Inventory" --organization "Default"
 tower-cli host create --name "host1.example.com" --inventory "Example Inventory"
 tower-cli host create --name "host2.example.com" --inventory "Example Inventory"
 ----
 
-Next, make the script executable, and launch it:
+TIP: You have run these commands above already, true. But we want to show how to create the full script here. 
+
+Next, save the script, exit the editor and make the script executable. Then launch it:
 
 ----
 [root@control ~]# chmod u+x setup-tower.sh
 [root@control ~]# ./setup-tower.sh
 ----
 
-If you run the script a second time, you will see that *tower-cli* is idempotent.
+TIP: If you run the script a second time, you will see that *tower-cli* is idempotent, so it's fine that you run the *tower-cli* commands already.
+
+From now on we'll show and explain the needed comands and add them to the script step-by-step.
 
 === Create Machine Credentials
 
@@ -319,9 +328,9 @@ tower-cli credential create --name "Example Credentials" \
                      --inputs="{\"username\":\"ansible\",\"ssh_key_data\":\"$(sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g' /home/ansible/.ssh/id_rsa)\n\",\"become_method\":\"sudo\"}"
 ----
 
-As you can see the ssh key is read in via a sub-shell. Since JSON POST data need to be on one line, we replace all new lines in the ssh key file with a *\n*.
+The ssh key is read in via a sub-shell. Since JSON POST data need to be on one line, we replace all new lines in the ssh key file with a *\n*.
 
-Add this line to *setup-tower.sh*.
+Add this line to *setup-tower.sh*. Don't run the shell script yet, first got through the following steps to add all commands to it.
 
 WARNING: As the *tower-cli* commands get longer you'll find we use the back-slash for line wraps to make the commands readable. You can copy the examples or use them without the \ on one line, of course.
 
@@ -345,11 +354,11 @@ tower-cli credential create --credential-type="Source Control" \
                     --organization="Default"
 ----
 
-Note the different *credential-type* in the command.
+WARNING: Note the different *credential-type* *source* instead of *machine* in the command.
 
 === Create the Project
 
-Now with the SCM credentials configured, we add a project to import the playbooks. Add the appropriate *tower-cli* line to it:
+Now with the SCM credentials configured, we add a project to import the playbooks. Add the appropriate *tower-cli* line to the script:
 
 ----
 tower-cli project create --name="Apache" \
@@ -361,18 +370,16 @@ tower-cli project create --name="Apache" \
                   --wait
 ----
 
-Note that the first parameter to *tower-cli* is different here since we work on the resource *project*.
+TIP: Note that the first parameter to *tower-cli* is different here since we work on the resource *project*.
 
-TIP: The new Project will be synced after creation automatically.
-
-TIP: Remember you can use `control.example.com` as hostname in *SCM URL* because it resolves inside the environment. For accessing the Gitea web UI in your browser you need to use `\http://control-<GUID>.rhpds.opentlc.com/gitea`.
+WARNING: Remember you can use `control.example.com` as hostname in *SCM URL* because it resolves inside the environment. For accessing the Gitea web UI in your browser you need to use `\http://control-<GUID>.rhpds.opentlc.com/gitea`.
 
 === Create a Job Template
 
 Before running an Ansible *Job* from your Tower cluster you must create a *Job Template*, again business as usual for Tower users. Here *tower-cli* will work on the resource *job_template*. Add the following line to your script:
 
 ----
-[root@control ~]# tower-cli job_template create \
+tower-cli job_template create \
                     --name="Install Apache" \
                     --inventory="Example Inventory" \
                     --credential="Example Credentials" \
@@ -421,6 +428,10 @@ tower-cli job_template create \
 ----
 
 Run the script, and verify that all resources were properly created in the web UI.
+
+*Take away:*
+
+It's easy to script Tower's configuration using *tower-cli*.  This way you can bootstrap a new Tower node or script tasks you have to run on a regular basis. You will learn more about the Tower API at the end of the lab.
 
 === It's a Cluster After All
 
@@ -507,7 +518,7 @@ Having the introduction out of the way, let's get back to our lab and give Insta
 [subs=+quotes]
 ----
 [root@control ~]# cd ansible-tower-setup-bundle-3.4.1-1.el7/
-[root@control-dff2 ansible-tower-setup-bundle-3.4.1-1.el7]# cat inventory
+[root@control ansible-tower-setup-bundle-3.4.1-1.el7]# cat inventory
 
 [tower]
 tower1.example.com
@@ -552,6 +563,8 @@ id name  capacity consumed_capacity
 ==== Via API
 
 You can again query the API to get this information. Either use the browser to access the URL `\https://tower1-<GUID>.rhpds.opentlc.com/api/v2/instance_groups/` or use curl to access the API from the command line:
+
+TIP: The curl command has to be on one line.
 
 ----
 [root@control ~]# curl -s -k -u admin:r3dh4t1! https://tower2.example.com/api/v2/instance_groups/| python -m json.tool
@@ -1192,7 +1205,7 @@ The search string to use is: *ansible_facts.ansible_selinux.mode:enforcing*
 It should return the remote hosts only.
 +++ </div></details> +++
 
-== Well Structured Content Repositories
+== OPTIONAL: Well Structured Content Repositories
 
 It's a common part of the learning curve for Ansible and Ansible Tower: At some point you will have written so many playbooks that a need for structure comes up. Where to put the Playbooks, what about the Templates, Files and so on.
 
@@ -1566,7 +1579,7 @@ And you are done! This was quite something to follow through, so let's review:
 * You successfully integrated a shared role provided from a central source into your automation code. 
 * This way, you can limit your automation code to things really relevant and individual to the task and your environment, while everything generic is consumed from a shared resource.
 
-== Discovering the Tower API
+== OPTIONAL: Discovering the Tower API
 
 You have used the Tower API a couple of times in this lab already. In this chapter we'll describe two ways to discover the Tower API if you need to dive in deeper. While the https://docs.ansible.com/ansible-tower/latest/html/towerapi/index.html[principles of the Tower API] are documented and there is an https://docs.ansible.com/ansible-tower/latest/html/towerapi/api_ref.html#/[API reference guide], it's often more efficient to just browse and discover the API.
 
