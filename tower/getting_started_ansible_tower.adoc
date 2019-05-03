@@ -270,7 +270,7 @@ Your lab environment includes Gitea, a Git-service that comes with a web ui and 
 
 *\http://control-<GUID>.rhpds.opentlc.com/gitea*.
 
-All repos on Gitea are configured as private e.g. you need to login to access the content. Log in as user *git* with the usual password.
+All repos on Gitea are configured as private e.g. you need to login to access the content. Log in as user *git* with password *r3dh4t1!*
 
 A Playbook to install the Apache webserver has already been commited to the repository *Apache*:
 
@@ -987,20 +987,20 @@ And to get the status:
 [root@tower ~]# ansible-tower-service status
 ----
 
-=== Managing Tower with `tower-manage`
+=== Managing Tower with `awx-manage`
 
-The tool `tower-manage` can be used for a variety of administration tasks.
+The tool `awx-manage` can be used for a variety of administration tasks.
 
 On the Tower SSH console run the command to get an overview of the available commands:
 ----
-[root@tower ~]# tower-manage  --help
+[root@tower ~]# awx-manage  --help
 ----
 
 As a starting point here are some examples. Run the commands and check the results in the web UI.
 
 * Change the password for a Tower user:
 ----
-[root@tower ~]# tower-manage changepassword admin
+[root@tower ~]# awx-manage changepassword admin
 Changing password for user 'admin'
 Password: 
 Password (again): 
@@ -1011,13 +1011,13 @@ TIP: Check by log out of the web UI and then login again.
 
 * Remove old jobs, project and inventory updates from the database.
 ----
-[root@tower ~]# tower-manage cleanup_jobs -h # get help
+[root@tower ~]# awx-manage cleanup_jobs -h # get help
 ----
 Let's remove jobs:
 
 ----
-[root@tower ~]# tower-manage cleanup_jobs --jobs --days=0 --dry-run # dry run
-[root@tower ~]# tower-manage cleanup_jobs --jobs --days=0 # do it
+[root@tower ~]# awx-manage cleanup_jobs --jobs --days=0 --dry-run # dry run
+[root@tower ~]# awx-manage cleanup_jobs --jobs --days=0 # do it
 ----
 
 === Python Usage in Tower
@@ -1067,7 +1067,7 @@ WARNING: While `tower-cli` is part of Ansible and its usage is described in Ansi
 
 === Installation
 
-Tower-cli can be installed using pip or from EPEL (`python2-ansible-tower-cli`) . To install tower-cli quick & dirty in your lab environment on tower.example.com we'll use `pip`:
+Tower-cli can be installed using pip or from EPEL (`python2-ansible-tower-cli`) . To install tower-cli in your lab environment on tower.example.com we'll use `pip`:
 
 * Open a terminal session to tower.example.com 
 * As user root switch to the Ansible's Python virtual environment and install `tower-cli`
@@ -1094,7 +1094,7 @@ In most cases, you must set at least three configuration options (host, username
 ----
 (ansible)[root@tower ~]# tower-cli config host tower.example.com
 (ansible)[root@tower ~]# tower-cli config username admin
-(ansible)[root@tower ~]# tower-cli config password <Tower Admin PW>
+(ansible)[root@tower ~]# tower-cli config password r3dh4t1!
 ----
 
 === Examples

@@ -5,6 +5,13 @@
 :numbered:
 :icons: font
 :imagesdir: ./images
+:linkattrs:
+
+//image::summit2019_banner.png[width=100%]
+
+== About this Lab
+
+Ansible is a simple yet powerful IT automation engine for application deployment, configuration management, and orchestration that you can learn quickly. In this lab you will learn to use Ansible Engine for automation from the basics up to some more advanced concepts. After finishing this lab you are ready to start using Ansible for your automation requirements. 
 
 == Your Lab Environment
 
@@ -23,9 +30,9 @@ You will have access to the following hosts:
 
 WARNING: You will be able to SSH into the control host, from here you need to SSH into the other hosts. 
 
-=== Deploy your Lab Environment
+== Access your Lab Environment
 
-include::access_grabber.adoc[]
+include::access_adoc/access_summit19.adoc[]
 
 == Check the Prerequisites
 
@@ -73,7 +80,7 @@ You might have guessed by now this lab is pretty commandline-centric... :-)
 
 * Don't type everything manually, use copy & paste from the browser when appropriate. But don't stop to think and understand... ;-)
 
-* All labs where prepared using *Vim*, but we understand not everybody loves it. Feel free to use alternative editor, in the lab environment we provide *Midnight Commander* (just run *mc*, function keys can be reached via Esc-<n>) or *Nano* (run *nano*).
+* All labs where prepared using *Vim*, but we understand not everybody loves it. Feel free to use alternative editors, in the lab environment we provide *Midnight Commander* (just run *mc*, function keys can be reached via Esc-<n> or simply clicked with the mouse) or *Nano* (run *nano*). Here is a short http://people.redhat.com/grieger/editor_intro_rhel7.html[editor intro, window="_blank"].
 
 TIP: In the lab guide commands you are supposed to run are shown with or without the expected output, whatever makes more sense in the context. 
 

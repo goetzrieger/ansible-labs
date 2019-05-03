@@ -5,12 +5,13 @@
 :numbered:
 :icons: font
 :imagesdir: ./images
+:linkattrs:
 
 // image::forum.jpg[]
 
 == About this Lab
 
-You have already used Ansible Automation quite a bit and have started to look into Tower? Or you are already using Tower? Cool. We prepared this lab to give a hands-on introduction to some of the more advanced features of Tower. Be prepared to learn about:
+You have already used Ansible Automation quite a bit and have started to look into Tower? Or you are already using Tower? Cool. We prepared this lab to give a hands-on introduction to some of the more advanced features of Tower. You'll learn about:
 
 * Using commandline tools to manage Ansible Tower
 * Ansible Tower clustering
@@ -21,9 +22,15 @@ You have already used Ansible Automation quite a bit and have started to look in
 * Optional: How to structure Ansible content in Git repos
 * Optional: How to work with the Tower API
 
-=== So little time and so much to try...
+=== So little time and so much to do...
 
-WARNING: To be honest we got carried away slighty while trying to press all these cool features into a 2-hours lab session. We decided to flag the last two chapters as "optional" instead of taking them out. If you find the time to run them, cool! If not, the lab guide will stay where it is, feel free to go through these lab tasks later (you don't need a Tower cluster for this).  
+WARNING: To be honest we got carried away slightly while trying to press all these cool features into a two-hours lab session. We decided to flag the last two chapters as "optional" instead of taking them out. If you find the time to run them, cool! If not, the lab guide will stay where it is, feel free to go through these lab tasks later (you don't need a Tower cluster for this).  
+
+=== Want to Use this Lab after Summit?
+
+Definitely, the Asciidoc sources are available here:
+
+*\https://github.com/goetzrieger/ansible-labs/blob/master/tower/ansible_tower_advanced.adoc*
 
 == Your Ansible Tower Lab Environment
 
@@ -67,7 +74,7 @@ Some hints to get you started:
 
 * Don't type everything manually, use copy & paste from the browser when appropriate. But don't stop to think and understand... ;-)
 
-* All labs where prepared using *Vim*, but we understand not everybody loves it. Feel free to use an alternative editor, in the lab environment *Midnight Commander* (just run *mc*, function keys can be reached via Esc-<n> or clicked with the mouse) and *Nano* (run *nano*) are installed on the control host.
+* All labs where prepared using *Vim*, but we understand not everybody loves it. Feel free to use alternative editors, in the lab environment we provide *Midnight Commander* (just run *mc*, function keys can be reached via Esc-<n> or simply clicked with the mouse) or *Nano* (run *nano*). Here is a short http://people.redhat.com/grieger/editor_intro_rhel7.html[editor intro, window="_blank"].
 
 TIP: Commands you are supposed to run are shown with or without the expected output, whatever makes more sense in the context. 
 
