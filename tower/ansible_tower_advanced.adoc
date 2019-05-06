@@ -40,7 +40,7 @@ In this lab you work in a pre-configured lab environment. You will have access t
 |===
 |Role|Hostname External (if applicable)|Hostname Internal|Internal IP
 
-|Control/Jump Host, Gitea Repo|control-<GUID>.rhpds.opentlc.com|control.example.com|192.168.0.10
+|Control/Bastion Host, Gitea Repo|control-<GUID>.rhpds.opentlc.com|control.example.com|192.168.0.10
 |Ansible Tower Cluster|\https://tower{1-3}-<GUID>.rhpds.opentlc.com|tower{1-3}.example.com|192.168.0.{4,5,6}0
 |Ansible Tower Database Host||towerdb.example.com|192.168.0.70
 |Managed RHEL7 Host 1||host1.example.com|192.168.0.20
@@ -57,14 +57,18 @@ TIP: Ansible Tower has already been installed and licensed for you, the web UI w
 
 As you can see the lab environment is pretty extensive. You basically have one network segment with:
 
-* A bastion/jump host you access via SSH, the Gitea git repo lives here as well
+* A bastion/control host you access via SSH, the Gitea git repo lives here as well
+* A three-node Tower cluster with a separate DB host, accessed via SSH (from control host) or web UI
 * Two managed RHEL 7 hosts
-* A three-node Tower cluster with a separate DB host
 
 And a second network segment with:
 
 * One host that acts as an isolated Tower node that can be reached via SSH from the Tower cluster nodes.
 * Two hosts which act as remote managed nodes that can only be reached from/through the isolated node.
+
+A diagram says more then a thousand words:
+
+image::adv_tower_diagram.png[align="center"]
 
 TIP: Access to the isolated node and the managed hosts is actually not restricted in the lab environment. Just imagine access is filtered for educational purposes... ;-)
 
