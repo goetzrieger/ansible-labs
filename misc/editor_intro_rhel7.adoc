@@ -37,18 +37,27 @@ To exit edit mode with or without saving:
 * If you did any changes you will be asked "Save before Close?". 
 * Choose one of the options "Yes, No, Cancel" by moving with the *arrow* or *Tab* keys (or click) 
 
-Copy text:
+Copy text internally:
 
 * Position the cursor where you want to start to copy
 * Hit (or click) *F3* to start selecting
 * Move the cursor to highlight/select the text you want to copy
 * Hit (or click) *F3* again to stop selecting
 
-Paste text:
+Paste text internally:
 
 * Position the cursor where you want to paste the text
 * Hit (or click) *F5* to paste a copy of the text
 * Hit (or select) *F6* to cut the text and paste it here
+
+Copy text from external source:
+
+* mark the text with the mouse, e.g. from the lab guide
+* *right-click -> Copy*
+
+Paste text from external source:
+
+* Click *Edit -> Paste* in the terminal menu at the top
 
 === Short Intro to the Nano Editor
 
@@ -75,20 +84,9 @@ To leave Nano without saving the file (if something went wrong while editing and
 
 * Type *Ctrl-x* *n* *Enter*
 
+Copy and paste external text: 
 
-Copy and paste: 
-
-To mark the begin of the text to copy
-
-* Type *Alt-a*
-
-Then use the cursor arrow keys to mark the text. Copy the text with:
-
-* Type *Alt-6*
-
-Move the cursor to the position where you want it and paste:
-
-* Type *Ctrl-u*
-
-
+* mark the text with the mouse, e.g. from the lab guide
+* *right-click -> Copy*
+* *right-click* into the Nano terminal window, then click *Paste*
 
