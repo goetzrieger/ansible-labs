@@ -418,9 +418,11 @@ WARNING: *Solution Below*
 
 +++ </div></details> +++
 
-=== Challenge Lab
+=== What About Some Practice?
 
-Here is another challenge:
+Here is a list of tasks:
+
+WARNING: Please make sure to finish these steps as the next chapter depends on it!
 
 * Create a new inventory called `Webserver` and make only `host1.example.com` member of it.
 * Copy the `Install Apache` template using the copy icon in the *Templates* view
