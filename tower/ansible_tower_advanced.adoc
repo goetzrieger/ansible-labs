@@ -301,7 +301,7 @@ WARNING: *Solution Below*!
 
 === Create script to contain this and all following tower-cli commands
 
-As mentioned one of the puproses of *tower-cli* is to use it to automatically configure more complex Tower setups. In such cases, multiple *tower-cli* commands are put togerther in a script. We follow that practice in our example, and create a shell script on the control host with all commands you have to run to bootstrap Tower.
+As mentioned one of the puproses of *tower-cli* is to use it to automatically configure more complex Tower setups. In such cases, multiple *tower-cli* commands are put togerther in a script. We follow that practice in our example here, and create a shell script on the control host with all commands you have to run to bootstrap Tower. So in the next few paragraphs we describe the steps to do and describe the corresponding *tower-cli* commands. But we will not execute them, but instead write them into a script.
 
 Create the file *setup-tower.sh* with your favorite editor and add the commands executed above:
 
@@ -329,7 +329,7 @@ From now on we'll explain the needed comands for each of the next steps and add 
 
 TIP: SSH keys have already been created and distributed in your lab environment and `sudo` has been setup on the managed hosts to allow password-less login for user *ansible* on *control.example.com*.
 
-Now configure the credentials to access our managed hosts from Tower. Configuring credentials with SSH keys from *tower-cli* on the command line is a bit cumbersome as you can see here:
+Now we want to configure the credentials to access our managed hosts from Tower. Configuring credentials with SSH keys from *tower-cli* on the command line is a bit cumbersome as you can see in the following example. Add the following line to to *setup-tower.sh*, but don't run the script yet:
 
 ----
 tower-cli credential create --name "Example Credentials" \
@@ -337,9 +337,9 @@ tower-cli credential create --name "Example Credentials" \
                      --inputs="{\"username\":\"ansible\",\"ssh_key_data\":\"$(sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g' /home/ansible/.ssh/id_rsa)\n\",\"become_method\":\"sudo\"}"
 ----
 
-The ssh key is read in via a sub-shell. Since JSON POST data need to be on one line, we replace all new lines in the ssh key file with a *\n*.
+The ssh key is read in here via a sub-shell. Since JSON POST data need to be on one line, all new lines in the ssh key file are replaced with a *\n*.
 
-Add this line to *setup-tower.sh*. Don't run the shell script yet, first got through the following steps to add all commands to it.
+Don't run the shell script yet, first got through the following steps to add all commands to it.
 
 WARNING: As the *tower-cli* commands get longer you'll find we use the back-slash for line wraps to make the commands readable. You can copy the examples or use them without the \ on one line, of course.
 
@@ -354,7 +354,7 @@ All repos on Gitea are configured as private, e.g. a login is needed to access t
 * *User*: git
 * *Password*: r3dh4t1!
 
-To configure and use this repository as a *Source Control Management (SCM)* system in Tower you have to create credentials again, this time to access the Git repository over HTTP. This credential is user/password based, and we add another *tower-cli* command to our script:
+To configure and use this repository as a *Source Control Management (SCM)* system in Tower you have to create credentials again, this time to access the Git repository over HTTP. This credential is user/password based, and we add the following *tower-cli* command to our *setup-tower.sh* script. Just add it to the script, don't execute it yet.
 
 ----
 tower-cli credential create --credential-type="Source Control" \
@@ -367,7 +367,7 @@ WARNING: Note the different *credential-type* *source* instead of *machine* in t
 
 === Create the Project
 
-Now with the SCM credentials configured, we add a project to import the playbooks. Add the appropriate *tower-cli* line to the script:
+Now with the SCM credentials configured, the next step is to add a project to import the playbooks. Add the appropriate *tower-cli* line to the script *setup-tower.sh*:
 
 ----
 tower-cli project create --name="Apache" \
@@ -385,7 +385,7 @@ WARNING: Remember you can use `control.example.com` as hostname in *SCM URL* bec
 
 === Create a Job Template
 
-Before running an Ansible *Job* from your Tower cluster you must create a *Job Template*, again business as usual for Tower users. Here *tower-cli* will work on the resource *job_template*. Add the following line to your script:
+Before running an Ansible *Job* from your Tower cluster you must create a *Job Template*, again business as usual for Tower users. Here *tower-cli* will work on the resource *job_template*. Add the following line to your script *setup-tower.sh*. Don't run the script yet.
 
 ----
 tower-cli job_template create \
