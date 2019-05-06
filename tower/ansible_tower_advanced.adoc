@@ -262,13 +262,11 @@ If you want to, go to the web UI and check the setting under *ADMINISTRATION->Se
 
 Next we want to configure Tower so that we can run Ansible jobs. For this we need Inventories, Projects, Credentials and Job Templates. When you first start with Tower, this is usually done via web UI. But using Tower more often and especially when you want to boot-strap a configured Tower from the bottom up it makes sense to do this via *tower-cli* in a scripted way - especially when Ansible is not yet set up properly.
 
-In the first step you will setup the inventory with *tower-cli* to get some practice using the tool. For the following steps (Projects, Credentials, Job Templates) we will create a shell script with the needed commands to have an example of how to bootstrap a Tower from bottom up. 
-
-TIP: This serves as an example how to automatically configure your Tower, for example for test cases.
+In the first step you will learn to setup the inventory with *tower-cli* step by step to get practice using the tool. For the following steps (Projects, Credentials, Job Templates) we will not go into such detail. Instead we will just explain the actual *tower-cli* commands and put them all into a shell script. This shell script will serve as an example of how to bootstrap a Tower from bottom up, for example for test cases.
 
 === Create an Inventory
 
-First create a static inventory, we'll get to dynamic inventories later on. Try to figure out the proper invocation of *tower-cli* yourself and create an inventory name *Example Inventory*.
+First we create a static inventory, we'll get to dynamic inventories later on. Try to figure out the proper invocation of *tower-cli* yourself and create an inventory name *Example Inventory*.
 
 TIP: Remember how you used the *tower-cli* help to get down to the needed command.
 
@@ -305,7 +303,9 @@ WARNING: *Solution Below*!
 
 === Create script to contain this and all following tower-cli commands
 
-Now create a shell script on the control host with all commands you have to run to bootstrap Tower. Create the file *setup-tower.sh* with your favorite editor and add the following content:
+As mentioned one of the puproses of *tower-cli* is to use it to automatically configure more complex Tower setups. In such cases, multiple *tower-cli* commands are put togerther in a script. We follow that practice in our example, and create a shell script on the control host with all commands you have to run to bootstrap Tower.
+
+Create the file *setup-tower.sh* with your favorite editor and add the commands executed above:
 
 ----
 #!/bin/bash
@@ -325,7 +325,7 @@ Next, save the script, exit the editor and make the script executable. Then laun
 
 TIP: If you run the script a second time, you will see that *tower-cli* is idempotent, so it's fine that you run the *tower-cli* commands already.
 
-From now on we'll show and explain the needed comands and add them to the script step-by-step.
+From now on we'll explain the needed comands for each of the next steps and add them to the script step-by-step.
 
 === Create Machine Credentials
 
