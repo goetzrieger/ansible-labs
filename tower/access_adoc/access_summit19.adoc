@@ -2,7 +2,7 @@ Every attendee gets her/his own lab environment. The labs have already been depl
 
 === Get *GUID* and Access Information
 
-The web browser of your laptop should default to ADD LINK TO GRABBER URL. On this web page *select the lab* your attending and enter the *Activation Key* that will be given by the lab instructor. 
+The web browser of your laptop should default to the lab tool as startpage. On this web page *select the lab* you're attending and enter the *Activation Key* that will be given by the lab instructor. 
 
 After submitting your input by clicking *Next* you will see the attendee welcome screen with all the information you need:
 
