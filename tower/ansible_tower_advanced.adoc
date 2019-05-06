@@ -101,8 +101,6 @@ Each instance in a Tower cluster expands the cluster's capacity to execute jobs.
 
 TIP: The Appendix contains some installation considerations and an installer inventory for reference.
 
-== Know your Cluster
-
 === Access the Tower Web UI
 
 For the first contact to your cluster open your browser and login to all three nodes web UIs (you'll have to accept the self-signed certificates) as:
@@ -166,7 +164,7 @@ So what we've got is a three-node Tower cluster, no surprises here. In addition 
 
 TIP: The *awx-manage* (formerly tower-manage) utility can be used to administer a lot of the more internal aspects of Tower. You can e.g. use it to clean up old data, for token and session management and for cluster management.
 
-== There is more to Tower then the Web UI
+== There is more to Tower than the Web UI
 
 This is an advanced Tower lab so we don't really want you to use the web UI for everything. Tower's web UI is well done and helps with a lot of tasks, but same as in system administration it's often handy to be able to use the command line or scripts for certain tasks.
 
