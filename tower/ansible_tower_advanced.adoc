@@ -559,7 +559,7 @@ You can check your instance groups in a number of ways.
 ==== Via cli
 
 ----
-[root@control ansible-tower-setup-bundle-3.4.1-1.el7]# tower-cli instance_group list
+[root@control ~]# tower-cli instance_group list
 == ===== ======== ================= 
 id name  capacity consumed_capacity 
 == ===== ======== ================= 
@@ -662,7 +662,7 @@ The compliance repository needs to be added as project. Feel free to use the web
                     --scm-credential "Gitea Credentials"
 ----
 
-TIP: Again it should be obvious using tower-cli is much faster then clicking through multiple steps in a web interface.
+TIP: It should again be obvious that using tower-cli is much faster than clicking through multiple steps in a web interface.
 
 Have a look at the status of the Project:
 
@@ -747,7 +747,7 @@ So we have seen how a Tower cluster is distributing jobs over Tower instances by
 To make it easier to spot where the jobs where run let's first empty the jobs history. This can be done using *awx-manage* on one of the Tower instances. From your control node SSH into one of the Tower hosts and run the command:
 
 ----
-[root@tower1-REPL ~]# awx-manage cleanup_jobs  --days=0
+[root@tower1 ~]# awx-manage cleanup_jobs  --days=0
 ----
 
 ==== Assign Jobs to Instance Groups
@@ -813,7 +813,7 @@ First have a look at our setup as described in the installers inventory file. In
 
 ----
 [root@control ~]# cd ansible-tower-setup-bundle-3.4.1-1.el7
-[root@control-dff2 ansible-tower-setup-bundle-3.4.1-1.el7]# cat inventory
+[root@control ansible-tower-setup-bundle-3.4.1-1.el7]# cat inventory
 
 [tower]
 tower1.example.com
@@ -963,7 +963,7 @@ First you need a source. In *real life* this would be your *cloud provider, your
 Open an SSH session from the control host to one of your Tower-Nodes and query your external inventory source:
 
 ----
-[root@tower1  ~]# curl control.example.com:/pub/inventory_list
+[root@tower1 ~]# curl control.example.com:/pub/inventory_list
 {
     "dyngroup":{
         "hosts":[
@@ -1719,7 +1719,7 @@ TIP: Consider that the parameters shown by tower-cli are in Python format (singl
 First create the user with tower-cli, then delete it again. Use `--verbose` to get the API invocation. 
 
 ----
-[root@control-dff2 ~]# tower-cli user create --username amiller --email amiller@example.com --password redhat --verbose
+[root@control ~]# tower-cli user create --username amiller --email amiller@example.com --password redhat --verbose
 
 *** DETAILS: Checking for an existing record. *********************************
 GET https://tower2.example.com/api/v2/users/
@@ -1731,7 +1731,7 @@ Data: {'username': u'amiller', 'password': u'redhat', 'email': u'amiller@example
 ----
 
 ----
-[root@control-dff2 ~]# tower-cli user delete --username amiller --verbose
+[root@control ~]# tower-cli user delete --username amiller --verbose
 
 *** DETAILS: Getting the record. **********************************************
 GET https://tower2.example.com/api/v2/users/
@@ -1748,14 +1748,14 @@ WARNING: The "Getting the record" is (sadly) a bit misleading...  you need to ad
 Check if the user exists:
 
 ----
-[root@control-dff2 ~]# curl -k -H 'Content-Type: application/json' --user admin:r3dh4t1! \
+[root@control ~]# curl -k -H 'Content-Type: application/json' --user admin:r3dh4t1! \
 	-X GET https://tower1.example.com/api/v2/users/?username=amiller
 ----
 
 Once you've found out that the user doesn't exist by *count:0* in the reply, you can create it:
 
 ----
-[root@control-dff2 ~]# curl -k -H 'Content-Type: application/json' --user admin:r3dh4t1! \
+[root@control ~]# curl -k -H 'Content-Type: application/json' --user admin:r3dh4t1! \
 	--data '{"username": "amiller", "password": "redhat", "email": "amiller@example.com"}' \
 	-X POST https://tower1.example.com/api/v2/users/?username=amiller
 ----
@@ -1767,7 +1767,7 @@ Note the ID of the user and then delete it:
 WARNING: Replace *<ID>*
 
 ----
-[root@control-dff2 ~]# curl -k -H 'Content-Type: application/json' --user admin:r3dh4t1! \
+[root@control ~]# curl -k -H 'Content-Type: application/json' --user admin:r3dh4t1! \
 	-X DELETE https://tower1.example.com/api/v2/users/<ID>/ # <1>
 ----
 <1> don't forget the slash at the end of the URL, favorite error!
