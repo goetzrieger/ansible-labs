@@ -51,8 +51,7 @@ include::access_adoc/access_summit19.adoc[]
 
 == Ansible Tower Introduction
 
-To start using Ansible Tower, some concepts and naming conventions should be 
-known.
+To start using Ansible Tower, you should get familiar with some concepts and naming conventions.
 
 === Dashboard
 
@@ -268,7 +267,7 @@ You should definitely keep your Playbooks under version control. In this lab we'
 
 Your lab environment includes Gitea, a Git-service that comes with a web ui and much more. Gitea runs on `control.example.com` and can be accessed via HTTP. Go and have a look around by accessing: 
 
-*\http://control-<GUID>.rhpds.opentlc.com/gitea*.
+*\http://control-<GUID>.rhpds.opentlc.com/gitea*
 
 All repos on Gitea are configured as private e.g. you need to login to access the content. Log in as user *git* with password *r3dh4t1!*
 
@@ -671,7 +670,7 @@ In this lab you'll learn how to setup a workflow.
 You have two departements in your organization:
 
 * The web operations team that is developing Playbooks in their own Git repository.
-* The web applications team, that developes really cool JSP web applications for Tomcat in their Git repository.
+* The web applications team, that develops JSP web applications for Tomcat in their Git repository.
 
 When there is a new Tomcat server to deploy, two things need to happen:
 
@@ -767,7 +766,7 @@ action to the node, you can choose between *JOBS*, *PROJECT SYNC* and
 * In this lab we'll link Jobs together, so select the *Tomcat Deploy* job and click *SELECT*.
 * The node gets annotated with the name of the job. Hover the mouse pointer over the node, you'll see a red *x* and a green *+* signs appear.
 
-TIP: Using the red plus allows you to remove the node, the green plus lets you add the next node.
+TIP: Using the red "x" allows you to remove the node, the green plus lets you add the next node.
 
 * Click the green *+* sign
 * Choose *Web App Deploy* as the next Job (you might have to switch to the next page)
@@ -874,7 +873,7 @@ TIP: Make sure to keep the three dashes that mark the YAML start!
 * Create a new *Job Template* named `Create Web Content` that 
 ** targets the `Webserver` inventory 
 ** uses the Playbook `stage_content.yml` from the new `Webserver` Project
-** Defines two variables: `dev_content: default dev content` and `prod_content: default prod content` in the *EXTRA VARIABLES FILED*
+** Defines two variables: `dev_content: default dev content` and `prod_content: default prod content` in the *EXTRA VARIABLES FIELD*
 ** Uses `Example Credentials` and runs with privilege escalation
 * Save and run the template
 

@@ -16,13 +16,13 @@ After submitting your input by clicking *Next* you will see the attendee welcome
 In most cases the lab instructions will use a string as a placeholder for your *GUID* like *<GUID>*.
 
 * Make sure you know your *GUID*
-* Open a terminal session to log in to a host:
+* Open a terminal session to log in to a host, e.g.:
 
 ----
 ssh hostname-<GUID>.rhpds.opentlc.com
 ----
 
-* Or open a browser to access a web UI:
+* Or open a browser to access a web UI, e.g.:
 
 ----
 https://hostname-<GUID>.rhpds.opentlc.com
