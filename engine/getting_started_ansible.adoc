@@ -232,7 +232,7 @@ Let's try a simple module that just executes a command on a managed host:
 ----
 [ansible@control ansible-files]$ ansible host1.example.com -m command -a 'id' 
 
-host1.example.com | SUCCESS | rc=0 >>
+host1.example.com | CHANGED | rc=0 >>
 uid=1000(ansible) gid=1000(ansible) groups=1000(ansible),10(wheel) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
 ----
 
