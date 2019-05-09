@@ -87,9 +87,9 @@ output is often separated from the command line for better readability by an emp
 line. *Anyway, the line you should actually run should be recognizable by the 
 prompt.* :-) 
 
-== Access your Lab Environment
+//== Access your Lab Environment
 
-include::access_adoc/access_summit19.adoc[]
+//include::access_adoc/access_summit19.adoc[]
 
 == Introduction to Ansible Tower Clustering
 
@@ -450,7 +450,11 @@ Have a look around, everything we automatically configured on one Tower instance
 
 == Run a Job in a Cluster
 
-After boot-strapping the Tower configuration from bottom up you are ready to start a job in your Tower cluster. In one of the web UI's *Templates* view select the new Job Template and run it by clicking the rocket icon.
+After boot-strapping the Tower configuration from bottom up you are ready to start a job in your Tower cluster. In one of the Tower web UI's:
+
+* Open the *Templates* view 
+* Look for the *Install Apache* Template you created with the script
+* Run it by clicking the rocket icon.
 
 At first this is not different from a standard Tower setup. But as this is a cluster of active Tower instances every instance could have run the job. And the Job output in Tower's web UI doesn't tell you where it run, just the instance group.
 
@@ -1010,6 +1014,48 @@ fi
 ----
 
 What it basically does is to return the data collected by curl when called with *--list* and as the data includes *_meta* information about the host variables Ansible will not call it with *--host*. The curl command is of course the place where your script  would get data by whatever means, format it as proper JSON and return it.
+
+But before we integrate the custom inventory script into our Tower cluster, it's a good idea to test it on the commandline first:
+
+* Log in to one of the Tower nodes if you don't have an SSH session open:
+
+----
+[root@control ~]# ssh tower1.example.com
+----
+
+* Create the file dyninv.sh with the content shown above
+* Make the script executable:
+----
+[root@tower1 ~]# chmod +x dyninv.sh
+----
+* Execute it:
+
+----
+[root@tower1 ~]# ./dyninv.sh --list
+{
+    "dyngroup":{
+        "hosts":[
+            "cloud1.cloud.example.com",
+            "cloud2.cloud.example.com"
+        ],
+        "vars":{
+            "var1": true
+        }
+    },
+    "_meta":{
+        "hostvars":{
+            "cloud1.cloud.example.com":{
+                "type":"web"
+            },
+            "cloud2.cloud.example.com":{
+                "type":"database"
+            }
+        }
+    }
+}
+----
+
+The script should output the JSON-formatted output shown above.
 
 As simple as it gets, right? More information can be found https://docs.ansible.com/ansible/latest/dev_guide/developing_inventory.html[here]
 

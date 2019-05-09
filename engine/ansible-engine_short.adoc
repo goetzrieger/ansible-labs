@@ -30,11 +30,27 @@ You will have access to the following hosts:
 
 WARNING: You will be able to SSH into the control host, from here you need to SSH into the other hosts. 
 
-== Access your Lab Environment
+//== Access your Lab Environment
 
-include::access_adoc/access_summit19.adoc[]
+//include::access_adoc/access_summit19.adoc[]
 
-== Check the Prerequisites
+== Lets go: Check the Prerequisites
+
+Login to your control host via SSH:
+
+WARNING: Replace *<GUID>* by your *GUID* provided on the information page.
+
+----
+ssh control-<GUID>.rhpds.opentlc.com
+----
+
+TIP: The user will default to `lab-user` and SSH key authentication will be used automatically. If for any reason key authentication is not working and the SSH client is asking for a password, use *r3dh4t1!*
+
+Then become root:
+
+----
+[lab-user@control-<GUID> ~]$ sudo -i
+----
 
 Most prerequisite tasks have already been done for you:
 
@@ -507,24 +523,15 @@ Run your extended Playbook:
 
 The command should now return a friendly green "status: 200" line, amongst other information.
 
-=== Challenge Lab: Playbooks
+=== Practice: Apply to Multiple Host 
 
 This was nice but the real power of Ansible is to apply the same set of tasks reliably to many hosts.
 
-* Change the apache.yml Playbook to run on host1 *and* host2.example.com. 
+* So what about changing the apache.yml Playbook to run on host1.example.com *and* host2.example.com? 
 
-TIP: There are multiple ways to do this, try to edit the "webserver" group in your inventory file to include both hosts and change your Playbook to use the group in `hosts:`
+TIP: There are multiple ways to do this, here we'll change the "webserver" group in your inventory file to include both hosts and change your Playbook to use the group in `hosts:`
 
-* Run the Playbook
-* Test using the ad hoc command with the `uri` module.
-
-WARNING: *Solution below!*
-
-+++ <details><summary> +++
-*>> _Click here for the solution_ <<*
-+++ </summary><div> +++
-
-The changed inventory file:
+Change the inventory file to look like this:
 ----
 [webserver]
 host1.example.com
@@ -537,7 +544,7 @@ host2.example.com
 host2.example.com
 ----
 
-The Playbook now pointing to the group "webserver":
+Change the Playbook to point to the group "webserver":
 ----
 ---
 - name: Apache server installed
@@ -559,12 +566,12 @@ The Playbook now pointing to the group "webserver":
       dest: /var/www/html/
 ----
 
-Run the Playbook:
+Now run the Playbook:
 ----
 [ansible@control ansible-files]$ ansible-playbook apache.yml
 ----
 
-And the commands to check if Apache is now running on both servers:
+Finally check if Apache is now running on both servers:
 ----
 [ansible@control ansible-files]$ ansible localhost -m uri -a "url=http://host1.example.com/"
 ----
@@ -572,7 +579,6 @@ And the commands to check if Apache is now running on both servers:
 [ansible@control ansible-files]$ ansible localhost -m uri -a "url=http://host2.example.com/"
 ----
 
-+++ </div></details> +++
 
 == Ansible Variables
 
