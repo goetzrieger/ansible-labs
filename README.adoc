@@ -8,8 +8,9 @@ Okay, apart from the advanced Tower lab... anyway.
 
 Currently the following labs are available:
 
-* link:engine/ansible_getting _started.adoc[Ansible Engine]
+* link:engine/ansible_getting_started.adoc[Ansible Engine]
 * link:tower/getting_started_ansible_tower.adoc[Ansible Tower]
+* link:tower/ansible_tower_advanced.adoc[Ansible Tower Advanced]
 * link:networking/ansible-networking_short.adoc[Ansible Networking]
 
 == Setup
