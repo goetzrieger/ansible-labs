@@ -958,7 +958,7 @@ Tower includes built-in support for syncing dynamic inventory from cloud sources
 
 In this chapter you'll get started with dynamic inventories in Tower. Aside from the build-in sources you can write inventory scripts in any programming/scripting language that you have installed on the Tower machine. To keep it easy we'll use a most simple custom inventory script using... Bash! Yes!
 
-TIP: Don't get this wrong... we've choosen to use Bash to make it as simple as possible to show the concepts behind dynamic and custom inventories. Usually you'd use Python or some other scripting/programming language.
+TIP: Don't get this wrong... we've chosen to use Bash to make it as simple as possible to show the concepts behind dynamic and custom inventories. Usually you'd use Python or some other scripting/programming language.
 
 ==== The Inventory Source
 
