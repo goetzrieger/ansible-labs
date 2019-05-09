@@ -1,12 +1,14 @@
-= Getting Started Labs for Ansible Engine and Tower
+= Labs for Ansible Engine and Tower
 
-In this repo you'll find short lab guides to get you started learning the awesomeness of Ansible. The actual lab environments we use are not documented here but are pretty straight forward. I mean Ansible is all about being simple... ;-)
+In this repo you'll find short lab guides to get you started learning the awesomeness of Ansible and a guide for advanced Tower usage. The actual lab environments we use are not documented here but are pretty straight forward. I mean Ansible is all about being simple... ;-)
+
+Okay, apart from the advanced Tower lab... anyway.
 
 == Labs
 
 Currently the following labs are available:
 
-* link:engine/ansible-engine_short.adoc[Ansible Engine]
+* link:engine/ansible_getting _started.adoc[Ansible Engine]
 * link:tower/getting_started_ansible_tower.adoc[Ansible Tower]
 * link:networking/ansible-networking_short.adoc[Ansible Networking]
 
