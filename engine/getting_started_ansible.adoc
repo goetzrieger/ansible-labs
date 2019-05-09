@@ -471,7 +471,7 @@ Run your extended Playbook:
 
 === Extend your Playbook: Create an index.html
 
-Check that the tasks where executed correctly and Apache is accepting connections: Make an HTTP request using Ansible's `uri` module in an ad hoc command from the control node:
+Check that the tasks were executed correctly and Apache is accepting connections: Make an HTTP request using Ansible's `uri` module in an ad hoc command from the control node:
 ----
 [ansible@control ansible-files]$ ansible localhost -m uri -a "url=http://host1.example.com/"
 ----
