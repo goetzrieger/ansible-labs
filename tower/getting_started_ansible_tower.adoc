@@ -45,9 +45,9 @@ TIP: Your lab environment will get a unique *<GUID>*. You will be able to SSH in
 
 TIP: Ansible Tower has already been installed and licensed for you, the web UI will be reachable over HTTP/HTTPS. 
 
-== Access your Lab Environment
+//== Access your Lab Environment
 
-include::access_adoc/access_summit19.adoc[]
+//include::access_adoc/access_summit19.adoc[]
 
 == Ansible Tower Introduction
 
