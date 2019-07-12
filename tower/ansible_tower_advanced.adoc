@@ -176,7 +176,8 @@ We'll install it on your control host using locally cached RPM packages. Exit th
 
 ----
 # ssh root@control-<GUID>.rhpds.opentlc.com
-[root@control ~]# yum install python2-ansible-tower-cli -y
+#[root@control ~]# yum install python2-ansible-tower-cli -y
+ansible localhost, -m yum -a 'name=python2-ansible-tower-cli state=latest'
 ----
 
 After installing the tool, you have to do some basic configuration (Tower node to connect to, user and password):
