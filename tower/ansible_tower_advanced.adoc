@@ -460,7 +460,7 @@ At first this is not different from a standard Tower setup. But as this is a clu
 
 === So what Instance run the Job?
 
-In one of the Tower instances web UI under *ADMINISTRATION* go to the *Instance Groups* view. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs. You should see four jobs. Why? Three times the SCM Update on every node and then the actual Playbook run.
+In one of the Tower instances web UI under *ADMINISTRATION* go to the *Instance Groups* view. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs. You should see four jobs. Why? Three of them are the SCM Updates on every node, and the fourth is the actual Playbook run.
 
 To see what instance actually ran your job, go back to the *Instance Groups* view. If you click *INSTANCES* under the *tower* group, you will get an overview of the *TOTAL JOBS* each Tower instance in this group executed. Clicking *TOTAL JOBS* for an instance leads to a detailed job list.
 
