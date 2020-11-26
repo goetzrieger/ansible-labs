@@ -176,7 +176,8 @@ We'll install it on your control host using locally cached RPM packages. Exit th
 
 ----
 # ssh root@control-<GUID>.rhpds.opentlc.com
-[root@control ~]# yum install python2-ansible-tower-cli -y
+#[root@control ~]# yum install python2-ansible-tower-cli -y
+ansible localhost, -m yum -a 'name=python2-ansible-tower-cli state=latest'
 ----
 
 After installing the tool, you have to do some basic configuration (Tower node to connect to, user and password):
@@ -460,13 +461,13 @@ At first this is not different from a standard Tower setup. But as this is a clu
 
 === So what Instance run the Job?
 
-In one of the Tower instances web UI under *ADMINISTRATION* go to the *Instance Groups* view. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs. You should see four jobs. Why? Three times the SCM Update on every node and then the actual Playbook run.
+In one of the Tower instances web UI under *ADMINISTRATION* go to the *Instance Groups* view. For the `tower` instance group, the *TOTAL JOBS* counter shows the number of finished jobs. If you click *TOTAL JOBS* you'll get a detailed list of jobs. You should see four jobs. Why? Three of them are the SCM Updates on every node, and the fourth is the actual Playbook run.
 
-To see on what instance a job actually run go back to the *Instance Groups* view. If you click *INSTANCES* under the *tower* group, you will get an overview of the *TOTAL JOBS* each Tower instance in this group executed. Clicking *TOTAL JOBS* for an instance leads to a detailed job list.
+To see what instance actually ran your job, go back to the *Instance Groups* view. If you click *INSTANCES* under the *tower* group, you will get an overview of the *TOTAL JOBS* each Tower instance in this group executed. Clicking *TOTAL JOBS* for an instance leads to a detailed job list.
 
-=== But I just want to know on which Instance my Job Run!
+=== But I just want to know on which Instance my Job Ran!
 
-But it would still be nice to see where a job run (not the other way round) and to get an idea how jobs are distributed to the available instances. For this we can utilize the API:
+But it would still be nice to see where a job ran (not the other way round) and to get an idea how jobs are distributed to the available instances. For this we can utilize the API:
 
 * First find the job ID: In the web UI access *VIEWS->Jobs*
 * The jobs names are prefixed with the job ID, example *3 - Install Apache* 
@@ -511,12 +512,12 @@ Some things to keep in mind about Instance Groups:
 * Nodes in an Instance Group share a job queue
 * You can have as many Instance Groups as you like as long as there is at least one node in the `tower` group
 * Nodes can be in one or more Instance Groups
-* Groups can not be named `instance_group_tower`!
-* Tower instances can't have the same name as a group
+* Instance Groups can not be named `instance_group_tower`!
+* Tower instances can't have the same name as an Instance Group
 
 Instance Groups allows for some pretty cool setups, e.g. you could have some nodes shared over the whole cluster (by putting them into all groups) but then have other nodes that are dedicated to one group to reserve some capacity.
 
-WARNING: The base `tower` group does house keeping like processing events from jobs for all groups so the node count of this group has to scale with your overall cluster load, even if these nodes are not used to run Jobs.
+WARNING: The base `tower` group does house keeping like processing events from jobs for all groups. This enables the node count of this group to scale with your overall cluster load, even if these nodes are not used to run Jobs.
 
 Talking about the `tower` group: As you have learned this group is crucial for the operations of a Tower cluster. Apart from the house keeping tasks, if a resource is not associated with an Instance Group, one of the nodes from the `tower` group will run the Job. So if there are no operational nodes in the base group, the cluster will not be able to run Jobs.
 
@@ -622,7 +623,7 @@ TIP: The curl command has to be on one line.
 
 Open the URL `\https://tower1-<GUID>.rhpds.opentlc.com/#/instance_groups` in your browser.
 
-In the *INSTANCE GROUPS* overview all instance groups are listed with details of the group itself like number of instances in the group, running jobs and finished jobs. Like you've seen before for the *tower* global group the current capacity of the instance groups is shown in a live view, thus providing a quick insight if there are capacity problems.
+In the *INSTANCE GROUPS* overview all instance groups are listed with details of the group itself. It shows infrormation like number of instances in the group and running jobs and finished jobs. As you've seen before for the *tower* global group, the current capacity of the instance groups is shown in a live view.  This provides quick insight if there are capacity problems.
 
 === Deactivating Tower Instances
 
@@ -630,7 +631,7 @@ While in the *INSTANCES GROUPS* overview click the *INSTANCES* link for, say, th
 
 * The button should be set to "ON" image:on_off.png[20,20]. Clicking it would deactivate the corresponding instance and would prevent that further jobs are assigned to it. 
 * Running jobs on an instance which is set to "OFF" are finished in a normal way. 
-* Further to the right a slider can change the amount of RAM and thus the amount of forks scheduled on an instance. This way it is possible to influence in which ratio the jobs are assigned.
+* The slider can change the amount of RAM and thus the amount of forks scheduled on an instance. This way it is possible to influence in which ratio the jobs are assigned.
 
 == Start Parallel Jobs across Instances
 
@@ -732,11 +733,11 @@ Your workflow is ready to go, launch it.
 * In the *Templates* view launch the *Compliance Workflow* by clicking the rocket icon.
 * Wait until the job has finished.
 
-Go to the *Instance Groups* view and find out how the jobs where distributed over the instances:
+Go to the *Instance Groups* view and find out how the jobs were distributed over the instances:
 
 * Open the *INSTANCES* view of the tower instance group.
 * Look at the *TOTAL JOBS* view of the three instances
-* Because the Job Templates called in the workflow didn't specify an instance group, they where distributed evenly over the instances. 
+* Because the Job Templates called in the workflow didn't specify an instance group, they were distributed evenly over the instances. 
 
 Now deactivate instance *tower1.example.com* with the image:on_off.png[20,20] button and wait until it is shown as deactivated. Make a (mental) note of the *TOTAL JOBS* counter of the instance. Go back to the list of templates and launch the workflow *Compliance Workflow* again.
 
@@ -748,7 +749,7 @@ Activate *tower1.example.com* again by pressing image:on_off.png[20,20] a second
 
 So we have seen how a Tower cluster is distributing jobs over Tower instances by default. We have already created instance groups which allow us to take control over what job is executed on which node, so let's use them.
 
-To make it easier to spot where the jobs where run let's first empty the jobs history. This can be done using *awx-manage* on one of the Tower instances. From your control node SSH into one of the Tower hosts and run the command:
+To make it easier to spot where the jobs were run let's first empty the jobs history. This can be done using *awx-manage* on one of the Tower instances. From your control node SSH into one of the Tower hosts and run the command:
 
 ----
 [root@tower1 ~]# awx-manage cleanup_jobs  --days=0
@@ -795,7 +796,7 @@ WARNING: At this point make sure the instances you disabled in the previous step
 
 == Isolated Nodes
 
-Ansible is used to manage complex infrastructures with machines and networks living in multiple separate datacenters, servers behind firewalls or in cloud VPCs and remote locations only reachable over unstable links which may not survive the length of a job run. In cases like these it's often better to run automation local to the nodes.
+Ansible is used to manage complex infrastructures with machines and networks living in multiple separate datacenters, servers behind firewalls or in cloud VPCs, and remote locations only reachable over unstable links.  Some of these links may not survive the length of a job run. In cases like these it's often better to run automation local to the nodes.
 
 To solve this, Tower provides Isolated Nodes:
 
@@ -808,8 +809,6 @@ To solve this, Tower provides Isolated Nodes:
 === Setting Up Isolated Nodes
 
 Isolated nodes are defined in the inventory file (same as instance groups) and setup by the Ansible Tower installer. Isolated nodes make up their own instance groups that are specified in the inventory file prefixed with *isolated_group_*. In the isolated instance group model, only specific *controller* Tower instance groups interact with *isolated* nodes.
-
- 
 
 So for the fun of it, let's set one up.
 
@@ -948,7 +947,7 @@ Last but not least, let's check that the job was indeed executed by the isolated
 
 In Ansible and Ansible Tower, as you know, everything starts with an inventory. There are a several methods how inventories can be created, starting from simple static definitions over importing inventory files to dynamic and smart inventories.
 
-In real life it's very common to deal with external dynamic inventory sources (think cloud...). In this chapter we'll introduce you to building dynamic inventories using custom scripts. Another great feature of Tower to deal with inventories is the Smart Inventory feature which you'll do a lab on as well.  
+In real life it's very common to deal with external dynamic inventory sources (think cloud). In this chapter we'll introduce you to building dynamic inventories using custom scripts. Another great feature of Tower to deal with inventories is the Smart Inventory feature which you'll do a lab on as well.  
 
 === Dynamic Inventories
 
